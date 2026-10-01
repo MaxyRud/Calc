@@ -26,8 +26,8 @@ title = ParagraphStyle("t", fontName="LibSans-Bold", fontSize=12.5, leading=15, 
 sub = ParagraphStyle("s", fontName="LibSans", fontSize=8.5, leading=11, textColor=MUTED, spaceAfter=4)
 cap = ParagraphStyle("c", fontName="LibSans", fontSize=8.0, leading=10.4, textColor=MUTED,
                      alignment=TA_JUSTIFY, spaceBefore=2, spaceAfter=5)
-body = ParagraphStyle("b", fontName="LibSans", fontSize=8.75, leading=11.45, textColor=INK,
-                      alignment=TA_JUSTIFY, spaceAfter=4.2)
+body = ParagraphStyle("b", fontName="LibSans", fontSize=8.9, leading=11.7, textColor=INK,
+                      alignment=TA_JUSTIFY, spaceAfter=5)
 
 # ---- numbers (all computed, nothing typed by hand) ----
 r = analyse(verbose=False)
@@ -48,6 +48,8 @@ ms_cut = np.array([linfit(x["t"][3:], x["v"][3:])[0] for x in R])
 g_cut, _ = g_from_slope(ms_cut.mean(), da_prop)
 theta_needed = np.degrees(np.arcsin(abs(a) / G_REF))
 ev = np.sqrt(2) * DY * 30
+exp_slope = G_REF * np.sin(np.radians(THETA_DEG))
+sem_g = np.std([x['g'] for x in R], ddof=1) / np.sqrt(3)
 
 M = "−"
 def f(v, n=3):  # signed number with a real minus sign
@@ -65,71 +67,61 @@ def P(text, style):
     return Paragraph(text, style)
 
 story = [
-    Paragraph("Measuring <i>g</i> from a projectile on a tilted air table", title),
-    Paragraph("PHYS 1552 · Experiment 1 · Data analysis exercise: Investigation II and Analysis III"
+    Paragraph("Lab 1 – Measuring <i>g</i> from a projectile on a tilted air table", title),
+    Paragraph("PHYS 1552 · Physics for Engineering 1 · Data analysis exercise: Investigation II and Analysis III"
               + (f" · {NAME}" if NAME else ""), sub),
     RLImage("figure1.png", width=16.4 * cm, height=16.4 * cm * 1065 / 2130),
     P(
-        f"<b>Figure 1.</b> Velocity component along the slope, {vy} (positive = up the slope), against time for "
-        f"three hand-launched projectile recordings on the air table tilted at θ = ({THETA_DEG} ± {DTHETA_DEG})°. "
-        f"Each point is <i>v</i><sub>y,av</sub> = Δ<i>y</i>/Δ<i>t</i> between consecutive video frames "
-        f"(Δ<i>t</i> = 1/30 s), plotted at the interval mid-point time. Error bars: ±{ev:.3f} {ms1}, from a "
-        f"±{DY*1000:.0f} mm uncertainty in locating the puck centre in Tracker in each frame, "
-        f"δ{vy} = √2·δ<i>y</i>/Δ<i>t</i>; the timing uncertainty is negligible, so no horizontal bars are drawn. "
-        f"Lines: unweighted least-squares fits to all points of each recording; slope uncertainties are the standard "
-        f"errors of the fit (Excel LINEST).", cap),
-    build_table(),
+        f"<b>Figure 1.</b> Velocity of the puck along the slope ({vy}, positive up the table) against time for three "
+        f"recordings on the air table tilted at θ = ({THETA_DEG} ± {DTHETA_DEG})°. Each point is Δ<i>y</i>/Δ<i>t</i> "
+        f"between consecutive frames (Δ<i>t</i> = 1/30 s), plotted at the midpoint time. Lines are least-squares fits to all "
+        f"points of each recording; the legend gives each slope ± its fit (standard) error. Error bars show ±{ev:.3f} {ms1}, "
+        f"from a ±{DY*1000:.0f} mm uncertainty in locating the puck centre in Tracker (δ<i>v</i> = √2·δ<i>y</i>/Δ<i>t</i>); "
+        f"timing errors are negligible.", cap),
     Spacer(1, 3),
     P(caption_text(full=False), cap),
+    build_table(),
+    Spacer(1, 7),
 
     P(
-        f"<b>What the graph shows.</b> In all three recordings {vy} falls linearly with time: positive while the puck "
-        f"moves up the slope, zero at the top of the parabola (<i>t</i> ≈ {min(apex):.1f}–{max(apex):.1f} s) and negative as it "
-        f"comes back down. A straight <i>v</i>–<i>t</i> line means a constant acceleration equal to its slope. On the air "
-        f"cushion the only force along the table is the component of gravity down the slope, so "
-        f"<i>a</i><sub>y</sub> = −<i>g</i> sinθ and <i>g</i> = |slope| / sinθ. Meanwhile <i>v</i><sub>x</sub> stays constant "
-        f"(group’s averaged <i>v</i><sub>x</sub> fit: slope ≈ −0.01 {ms2}), so the horizontal motion is unaffected by the "
-        f"vertical acceleration — the two components are independent.", body),
+        f"Figure 1 shows the velocity of the puck along the slope of the table ({vy}, with up the table taken as positive) "
+        f"against time for three recordings of projectile motion, with a straight-line fit for each. In every recording the "
+        f"points fall on a straight line: {vy} is positive while the puck travels up the table, passes through zero at the top "
+        f"of its path (<i>t</i> ≈ {min(apex):.1f}–{max(apex):.1f} s) and becomes negative as the puck comes back down. A straight "
+        f"line on a <i>v</i>–<i>t</i> graph means the acceleration is constant, and its slope is that acceleration. This is what we "
+        f"expected: the air cushion removes almost all friction, so the only force pushing the puck along the table is the "
+        f"part of gravity acting down the slope, giving <i>a</i> = −<i>g</i> sinθ. The slope is negative because we took up "
+        f"the table as positive. The horizontal velocity, on the other hand, stayed roughly constant (slope of about "
+        f"−0.01 {ms2}), which shows that the motion along the slope does not affect the motion across it – the two "
+        f"directions are independent.", body),
 
     P(
-        f"<b>Slopes and their differences.</b> Recording 1: ({f(ms[0])} ± {dms[0]:.3f}) {ms2}; recording 2: "
-        f"({f(ms[1])} ± {dms[1]:.3f}) {ms2}; recording 3: ({f(ms[2])} ± {dms[2]:.3f}) {ms2}. The largest difference "
-        f"(recordings {worst[2]+1} and {worst[3]+1}, {worst[1]:.3f} {ms2}) is only {worst[0]:.2f}× their combined fit uncertainty, so the "
-        f"three slopes agree and the lines are parallel. They differ only in intercept, i.e. the launch velocity "
-        f"({R[0]['c']:.2f}, {R[1]['c']:.2f} and {R[2]['c']:.2f} {ms1}): each launch was different, but the acceleration does not "
-        f"depend on how the puck was launched.", body),
+        f"The slopes, with their fit errors, are {f(ms[0])} ± {dms[0]:.3f}, {f(ms[1])} ± {dms[1]:.3f} and "
+        f"{f(ms[2])} ± {dms[2]:.3f} {ms2} (Table 1). They are very similar and agree with each other: the biggest "
+        f"difference, between recordings {worst[2]+1} and {worst[3]+1}, is only {worst[1]:.3f} {ms2}, which is smaller than their "
+        f"combined error ({np.hypot(dms[worst[2]], dms[worst[3]]):.3f} {ms2}). The three lines are therefore almost parallel and only "
+        f"differ in where they start, because each puck was launched at a different speed, which does not change the "
+        f"acceleration. For a {THETA_DEG}° tilt we expect a slope of −<i>g</i> sinθ = −{G_REF} × sin {THETA_DEG}° = "
+        f"{f(-exp_slope)} {ms2}; recordings 1 and 3 are within their error of this value and recording 2 is just outside it. "
+        f"The error bars (±{ev:.3f} {ms1}) come from how accurately we could click on the centre of the puck in Tracker "
+        f"(about ±{DY*1000:.0f} mm in each frame). The trendlines go through about {inside_all*100:.0f} % of them, close to the 68 % "
+        f"expected for error bars of one standard deviation, so they are a sensible size. Recording 1 scatters the most "
+        f"because its video had a coarser scale, and its first few points, just after the launch, sit above the line.", body),
 
     P(
-        f"<b>Error bars and fit quality.</b> The ±{ev:.3f} {ms1} bars are about 10–15 % of the launch speeds. The fitted "
-        f"lines pass through {R[0]['inside']*100:.0f} %, {R[1]['inside']*100:.0f} % and {R[2]['inside']*100:.0f} % of the error bars "
-        f"({inside_all*100:.0f} % overall), close to the ≈68 % expected for 1σ bars, so the ±{DY*1000:.0f} mm estimate is realistic. "
-        f"Recording 1 scatters more (residual SD {R[0]['s']:.2f} vs {R[2]['s']:.2f} {ms1}): its video scale is coarser (≈1.9 mm per "
-        f"pixel vs ≈1 mm) and its first launch points lie 0.1–0.4 {ms1} above the line. "
-        f"Excluding the first 0.1 s of every recording changes the slopes by ≤ {np.max(np.abs(ms_cut-ms)):.2f} {ms2} and the final "
-        f"<i>g</i> to {g_cut:.2f} {ms2}, within its uncertainty.", body),
-
-    P(
-        f"<b><i>g</i> from each recording</b> (Table 1). <i>g</i><sub>i</sub> = |slope<sub>i</sub>| / sinθ, with "
-        f"δ<i>g</i>/<i>g</i> = √[(δ<i>a</i>/<i>a</i>)<super>2</super> + (δθ/tanθ)<super>2</super>]; the angle term alone is {ang_rel*100:.1f} %. "
-        f"<i>g</i><sub>1</sub> = {R[0]['g']:.2f} ± {R[0]['dg']:.2f}, <i>g</i><sub>2</sub> = {R[1]['g']:.2f} ± {R[1]['dg']:.2f}, "
-        f"<i>g</i><sub>3</sub> = {R[2]['g']:.2f} ± {R[2]['dg']:.2f} {ms2}.", body),
-
-    P(
-        f"<b>Combined value and choice of uncertainty.</b> I average the three slopes, <i>a</i> = ({f(a)} ± {da_prop:.3f}) {ms2}, "
-        f"then convert to <i>g</i>. The ±{da_prop:.3f} is propagated from the fit errors, δ<i>a</i> = √(Σδ<i>a</i><sub>i</sub><super>2</super>)/3; "
-        f"the standard error of the mean of the three slopes is smaller, ±{da_sem:.3f} {ms2}. I report the propagated value: the slopes "
-        f"agree within their fit errors, so the small SEM only reflects three values happening to land close together, and an SEM from "
-        f"just three values is itself very uncertain. The tilt error is shared by all recordings (one angle measurement), so it is "
-        f"systematic, does not average down, and is added once after averaging. Result: <b><i>g</i>\u00a0=\u00a0({g:.2f} ± {dg:.2f}) {ms2} "
-        f"≈ ({g:.1f} ± {dg:.1f}) {ms2}</b>. The angle term ({ang_rel*100:.1f} %) dominates the slope term "
-        f"({da_prop/abs(a)*100:.1f} %), so using the SEM instead would barely change it (±{dg_sem:.2f} {ms2}).", body),
-
-    P(
-        f"<b>Comparison with the tabulated value.</b> Our result is {g-G_REF:.2f} {ms2} ({(g-G_REF)/G_REF*100:.1f} %) above "
-        f"<i>g</i> = {G_REF} {ms2}, i.e. {abs(g-G_REF)/dg:.1f}σ, so the two agree within one standard uncertainty; each individual "
-        f"<i>g</i><sub>i</sub> also agrees within 1σ. The small excess would be fully explained if the true tilt were "
-        f"{theta_needed:.2f}° instead of {THETA_DEG:.2f}° (within the level’s resolution) or by a ≈2.5 % error in the "
-        f"Tracker length calibration. Measuring θ more precisely would improve the result most.", body),
+        f"Using <i>g</i> = |<i>a</i>| / sinθ with θ = {THETA_DEG} ± {DTHETA_DEG}°, the three recordings give "
+        f"<i>g</i> = {R[0]['g']:.2f} ± {R[0]['dg']:.2f}, {R[1]['g']:.2f} ± {R[1]['dg']:.2f} and {R[2]['g']:.2f} ± {R[2]['dg']:.2f} {ms2}. "
+        f"For the final value I averaged the three slopes and used the uncertainty propagated from their fit errors rather "
+        f"than the standard error of the mean (SEM). Because the slopes agree within their errors, the very small SEM "
+        f"({sem_g:.2f} {ms2} in <i>g</i>) only shows that three values happened to land close together, and a spread worked out "
+        f"from just three values is not reliable. The angle was also measured only once, so its error ({ang_rel*100:.1f} %, the "
+        f"largest source of uncertainty in the final value) affects all three recordings in the same way and cannot be "
+        f"averaged out, so I added it once at the end. Our final result is <b><i>g</i> = {g:.2f} ± {dg:.2f} {ms2}</b> "
+        f"(≈ {g:.1f} ± {dg:.1f} {ms2}). This is {g-G_REF:.2f} {ms2} above the accepted value of {G_REF} {ms2}, which is less "
+        f"than our uncertainty ({abs(g-G_REF)/dg:.1f}σ), so the two agree. The result is slightly high, which could be because "
+        f"the table was tilted a little more than {THETA_DEG}° (only {theta_needed-THETA_DEG:.2f}° more would explain it) or "
+        f"because of a small error when setting the ruler scale in Tracker. Measuring the angle more precisely would "
+        f"improve the experiment the most.", body),
 
     PageBreak(),
     Paragraph("Raw data used for Figure 1", title),
@@ -148,7 +140,7 @@ story.append(RLImage("raw_bottom.png", width=bw, height=bw * bot.size[1] / bot.s
 
 doc = SimpleDocTemplate("PHYS1552_Exp1_data_analysis.pdf", pagesize=A4, leftMargin=1.5 * cm,
                         rightMargin=1.5 * cm, topMargin=1.1 * cm, bottomMargin=1.0 * cm,
-                        title="Measuring g from a projectile on a tilted air table",
+                        title="Lab 1 - Measuring g from a projectile on a tilted air table",
                         author=NAME or "PHYS 1552 student")
 doc.build(story)
 print("built")

@@ -11,6 +11,7 @@ from reportlab.lib.fonts import addMapping
 from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer, Image as RLImage,
                                 PageBreak, KeepTogether)
 from analysis import analyse, linfit, g_from_slope, THETA_DEG, DTHETA_DEG, DY, G_REF
+from results_table import build_table, caption_text
 
 NAME = ""   # e.g. "Name Surname - Student ID"; left blank -> no author line
 
@@ -25,7 +26,7 @@ title = ParagraphStyle("t", fontName="LibSans-Bold", fontSize=12.5, leading=15, 
 sub = ParagraphStyle("s", fontName="LibSans", fontSize=8.5, leading=11, textColor=MUTED, spaceAfter=4)
 cap = ParagraphStyle("c", fontName="LibSans", fontSize=8.0, leading=10.4, textColor=MUTED,
                      alignment=TA_JUSTIFY, spaceBefore=2, spaceAfter=5)
-body = ParagraphStyle("b", fontName="LibSans", fontSize=8.9, leading=11.9, textColor=INK,
+body = ParagraphStyle("b", fontName="LibSans", fontSize=8.75, leading=11.45, textColor=INK,
                       alignment=TA_JUSTIFY, spaceAfter=4.2)
 
 # ---- numbers (all computed, nothing typed by hand) ----
@@ -67,7 +68,7 @@ story = [
     Paragraph("Measuring <i>g</i> from a projectile on a tilted air table", title),
     Paragraph("PHYS 1552 · Experiment 1 · Data analysis exercise: Investigation II and Analysis III"
               + (f" · {NAME}" if NAME else ""), sub),
-    RLImage("figure1.png", width=18.0 * cm, height=18.0 * cm * 1065 / 2130),
+    RLImage("figure1.png", width=16.4 * cm, height=16.4 * cm * 1065 / 2130),
     P(
         f"<b>Figure 1.</b> Velocity component along the slope, {vy} (positive = up the slope), against time for "
         f"three hand-launched projectile recordings on the air table tilted at θ = ({THETA_DEG} ± {DTHETA_DEG})°. "
@@ -77,6 +78,9 @@ story = [
         f"δ{vy} = √2·δ<i>y</i>/Δ<i>t</i>; the timing uncertainty is negligible, so no horizontal bars are drawn. "
         f"Lines: unweighted least-squares fits to all points of each recording; slope uncertainties are the standard "
         f"errors of the fit (Excel LINEST).", cap),
+    build_table(),
+    Spacer(1, 3),
+    P(caption_text(full=False), cap),
 
     P(
         f"<b>What the graph shows.</b> In all three recordings {vy} falls linearly with time: positive while the puck "
@@ -100,16 +104,15 @@ story = [
         f"lines pass through {R[0]['inside']*100:.0f} %, {R[1]['inside']*100:.0f} % and {R[2]['inside']*100:.0f} % of the error bars "
         f"({inside_all*100:.0f} % overall), close to the ≈68 % expected for 1σ bars, so the ±{DY*1000:.0f} mm estimate is realistic. "
         f"Recording 1 scatters more (residual SD {R[0]['s']:.2f} vs {R[2]['s']:.2f} {ms1}): its video scale is coarser (≈1.9 mm per "
-        f"pixel vs ≈1 mm) and its first launch points lie 0.1–0.4 {ms1} above the line, so its bars are somewhat underestimated. "
+        f"pixel vs ≈1 mm) and its first launch points lie 0.1–0.4 {ms1} above the line. "
         f"Excluding the first 0.1 s of every recording changes the slopes by ≤ {np.max(np.abs(ms_cut-ms)):.2f} {ms2} and the final "
-        f"<i>g</i> to {g_cut:.2f} {ms2}, within its uncertainty, so the conclusion does not depend on this choice.", body),
+        f"<i>g</i> to {g_cut:.2f} {ms2}, within its uncertainty.", body),
 
     P(
-        f"<b><i>g</i> from each recording.</b> <i>g</i><sub>i</sub> = |slope<sub>i</sub>| / sinθ, with "
-        f"δ<i>g</i>/<i>g</i> = √[(δ<i>a</i>/<i>a</i>)<super>2</super> + (δθ/tanθ)<super>2</super>] and "
-        f"δθ = {DTHETA_DEG}° (digital-level resolution), which alone contributes {ang_rel*100:.1f} %: "
-        f"<i>g</i><sub>1</sub> = ({R[0]['g']:.2f} ± {R[0]['dg']:.2f}) {ms2}, <i>g</i><sub>2</sub> = ({R[1]['g']:.2f} ± {R[1]['dg']:.2f}) {ms2}, "
-        f"<i>g</i><sub>3</sub> = ({R[2]['g']:.2f} ± {R[2]['dg']:.2f}) {ms2}.", body),
+        f"<b><i>g</i> from each recording</b> (Table 1). <i>g</i><sub>i</sub> = |slope<sub>i</sub>| / sinθ, with "
+        f"δ<i>g</i>/<i>g</i> = √[(δ<i>a</i>/<i>a</i>)<super>2</super> + (δθ/tanθ)<super>2</super>]; the angle term alone is {ang_rel*100:.1f} %. "
+        f"<i>g</i><sub>1</sub> = {R[0]['g']:.2f} ± {R[0]['dg']:.2f}, <i>g</i><sub>2</sub> = {R[1]['g']:.2f} ± {R[1]['dg']:.2f}, "
+        f"<i>g</i><sub>3</sub> = {R[2]['g']:.2f} ± {R[2]['dg']:.2f} {ms2}.", body),
 
     P(
         f"<b>Combined value and choice of uncertainty.</b> I average the three slopes, <i>a</i> = ({f(a)} ± {da_prop:.3f}) {ms2}, "
@@ -126,8 +129,7 @@ story = [
         f"<i>g</i> = {G_REF} {ms2}, i.e. {abs(g-G_REF)/dg:.1f}σ, so the two agree within one standard uncertainty; each individual "
         f"<i>g</i><sub>i</sub> also agrees within 1σ. The small excess would be fully explained if the true tilt were "
         f"{theta_needed:.2f}° instead of {THETA_DEG:.2f}° (within the level’s resolution) or by a ≈2.5 % error in the "
-        f"Tracker length calibration. As the angle now dominates the uncertainty, measuring θ more precisely (e.g. from the "
-        f"height difference along the table) would improve the result most.", body),
+        f"Tracker length calibration. Measuring θ more precisely would improve the result most.", body),
 
     PageBreak(),
     Paragraph("Raw data used for Figure 1", title),
@@ -145,7 +147,7 @@ bw = W * (bot.size[0] / top.size[0]) * (21.2 / 14.9)
 story.append(RLImage("raw_bottom.png", width=bw, height=bw * bot.size[1] / bot.size[0], hAlign="LEFT"))
 
 doc = SimpleDocTemplate("PHYS1552_Exp1_data_analysis.pdf", pagesize=A4, leftMargin=1.5 * cm,
-                        rightMargin=1.5 * cm, topMargin=1.3 * cm, bottomMargin=1.2 * cm,
+                        rightMargin=1.5 * cm, topMargin=1.1 * cm, bottomMargin=1.0 * cm,
                         title="Measuring g from a projectile on a tilted air table",
                         author=NAME or "PHYS 1552 student")
 doc.build(story)

@@ -13,7 +13,7 @@ from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer, Image as R
 from analysis import analyse, linfit, g_from_slope, THETA_DEG, DTHETA_DEG, DY, G_REF
 from results_table import build_table, caption_text
 
-NAME = ""   # e.g. "Name Surname - Student ID"; left blank -> no author line
+NAME = "Maksymilian Rudakov · 01/10/26"
 
 FONT_DIR = "/usr/share/fonts/truetype/liberation/"
 for style, f in [("", "Regular"), ("-Bold", "Bold"), ("-Italic", "Italic"), ("-BoldItalic", "BoldItalic")]:
@@ -68,8 +68,7 @@ def P(text, style):
 
 story = [
     Paragraph("Lab 1 – Measuring <i>g</i> from a projectile on a tilted air table", title),
-    Paragraph("PHYS 1552 · Physics for Engineering 1 · Data analysis exercise: Investigation II and Analysis III"
-              + (f" · {NAME}" if NAME else ""), sub),
+    Paragraph((f"{NAME} · " if NAME else "") + "Physics for Engineering 1 (PHYS 1552) · Data analysis exercise: Investigation II and Analysis III", sub),
     RLImage("figure1.png", width=16.4 * cm, height=16.4 * cm * 1065 / 2130),
     P(
         f"<b>Figure 1.</b> Velocity of the puck along the slope ({vy}, positive up the table) against time for three "
@@ -141,6 +140,6 @@ story.append(RLImage("raw_bottom.png", width=bw, height=bw * bot.size[1] / bot.s
 doc = SimpleDocTemplate("PHYS1552_Exp1_data_analysis.pdf", pagesize=A4, leftMargin=1.5 * cm,
                         rightMargin=1.5 * cm, topMargin=1.1 * cm, bottomMargin=1.0 * cm,
                         title="Lab 1 - Measuring g from a projectile on a tilted air table",
-                        author=NAME or "PHYS 1552 student")
+                        author="Maksymilian Rudakov")
 doc.build(story)
 print("built")

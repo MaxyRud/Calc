@@ -87,11 +87,11 @@ story = [
         f"against time for three recordings of projectile motion, with a straight-line fit for each. In every recording the "
         f"points fall on a straight line: {vy} is positive while the puck travels up the table, passes through zero at the top "
         f"of its path (<i>t</i> ≈ {min(apex):.1f}–{max(apex):.1f} s) and becomes negative as the puck comes back down. A straight "
-        f"line on a <i>v</i>–<i>t</i> graph means the acceleration is constant, and its slope is that acceleration. This is what we "
-        f"expected: the air cushion removes almost all friction, so the only force pushing the puck along the table is the "
+        f"line on a <i>v</i>–<i>t</i> graph means the acceleration is constant, and its slope is that acceleration. As "
+        f"expected, the air cushion removes almost all friction, so the only force pushing the puck along the table is the "
         f"part of gravity acting down the slope, giving <i>a</i> = −<i>g</i> sinθ. The slope is negative because we took up "
-        f"the table as positive. The horizontal velocity, on the other hand, stayed roughly constant (slope of about "
-        f"−0.01 {ms2}), which shows that the motion along the slope does not affect the motion across it – the two "
+        f"the table as positive. The horizontal velocity stayed roughly constant (fitted slopes −0.015 to +0.025 {ms2}, "
+        f"at least 25 times smaller), so the motion along the slope does not affect the motion across it – the two "
         f"directions are independent.", body),
 
     P(
@@ -104,8 +104,8 @@ story = [
         f"{f(-exp_slope)} {ms2}; recordings 1 and 3 are within their error of this value and recording 2 is just outside it. "
         f"The error bars (±{ev:.3f} {ms1}) come from how accurately we could click on the centre of the puck in Tracker "
         f"(about ±{DY*1000:.0f} mm in each frame). The trendlines go through about {inside_all*100:.0f} % of them, close to the 68 % "
-        f"expected for error bars of one standard deviation, so they are a sensible size. Recording 1 scatters the most "
-        f"because its video had a coarser scale, and its first few points, just after the launch, sit above the line.", body),
+        f"expected for error bars of one standard deviation, so they are a sensible size. Recording 1 scatters the most, "
+        f"probably because its video had a coarser scale, and its first few points, just after the launch, sit above the line.", body),
 
     P(
         f"Using <i>g</i> = |<i>a</i>| / sinθ with θ = {THETA_DEG} ± {DTHETA_DEG}°, the three recordings give "

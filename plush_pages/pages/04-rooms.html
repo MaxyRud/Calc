@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Room Service</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f3eee6;--card:#fbf8f3;--ink:#1f1d1a;--mute:#6f685e;--line:rgba(31,29,26,.13);
+  --accent:#d96a8b;--sage:#8fae8b;--sky:#7fb1d9;
+  --kit-bg:#fbf8f3;--kit-fg:#1f1d1a;--kit-muted:#6f685e;--kit-accent:#1f1d1a;--kit-accent-fg:#fbf8f3;--kit-line:rgba(31,29,26,.12);--kit-radius:999px;--kit-font:"Instrument Sans",sans-serif;--kit-scrim:rgba(31,29,26,.3);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Instrument Sans",system-ui,sans-serif;font-size:17px;line-height:1.55;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.se{font-family:"Instrument Serif",Georgia,serif;font-weight:400;letter-spacing:-.01em}
+.wrap{width:min(1300px,100% - 32px);margin-inline:auto}
+.k{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+
+header .wrap{display:flex;align-items:center;gap:18px;height:74px}
+.logo{font-family:"Instrument Serif";font-size:30px;text-decoration:none;font-style:italic}
+header nav{display:flex;gap:22px;margin-left:auto;font-size:15px}
+header nav a{text-decoration:none;color:var(--mute)}
+header nav a:hover{color:var(--ink)}
+.cart{appearance:none;border:1px solid var(--ink);background:transparent;height:42px;padding:0 16px;border-radius:99px;display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600}
+.cart svg{width:17px;height:17px}
+
+.intro{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end;padding:36px 0 26px}
+h1{font-family:"Instrument Serif";font-weight:400;font-size:clamp(54px,7.6vw,118px);line-height:.92;margin:12px 0 0;letter-spacing:-.025em}
+h1 em{color:var(--accent)}
+.intro p{color:var(--mute);max-width:380px;margin:0 0 6px}
+
+/* studio */
+.studio{display:grid;grid-template-columns:1fr 330px;gap:16px;align-items:stretch}
+.scene{position:relative;border-radius:28px;overflow:hidden;background:#e9e1d4;aspect-ratio:10/7;touch-action:none;user-select:none;-webkit-user-select:none}
+.scene svg.bg{position:absolute;inset:0;width:100%;height:100%;transition:opacity .5s}
+.scene svg.bg:not(.on){opacity:0}
+.toy{position:absolute;left:0;top:0;transform-origin:50% 100%;cursor:grab;will-change:transform;z-index:3}
+.toy:active{cursor:grabbing}
+.toy img{width:100%;height:100%;pointer-events:none;filter:drop-shadow(0 10px 10px rgba(0,0,0,.18))}
+.shadow{position:absolute;height:16px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.28),transparent);transform:translateX(-50%);z-index:2;pointer-events:none}
+.ruler{position:absolute;z-index:4;pointer-events:none;border-left:1.5px solid var(--ink);border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);width:10px;transition:opacity .3s}
+.ruler.flip{border-left:0;border-right:1.5px solid var(--ink)}
+.ruler.flip span{left:auto;right:-8px;transform:translate(100%,-50%)}
+.ruler span{position:absolute;left:-8px;top:50%;transform:translate(-100%,-50%);background:var(--ink);color:#fff;font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.scene .cap{position:absolute;left:18px;bottom:16px;z-index:5;background:rgba(251,248,243,.9);backdrop-filter:blur(6px);border-radius:99px;padding:8px 14px;font-size:14px;font-weight:500}
+.scene .tip{position:absolute;right:16px;top:16px;z-index:5;background:var(--ink);color:#fff;border-radius:99px;padding:8px 14px;font-size:13px;font-weight:600;animation:nudge 2.4s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateY(-4px)}}
+.side{background:var(--card);border-radius:28px;padding:22px;display:flex;flex-direction:column;gap:18px}
+.side h3{font-family:"Instrument Serif";font-weight:400;font-size:28px;margin:0;line-height:1}
+.rooms{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.room{appearance:none;border:1px solid var(--line);background:transparent;border-radius:16px;padding:12px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:2px;transition:background .2s,border-color .2s}
+.room b{font-weight:600}
+.room small{color:var(--mute);font-size:12px}
+.room[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.room[aria-pressed="true"] small{color:#cfc8bc}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:99px;padding:4px}
+.seg button{appearance:none;border:0;background:none;border-radius:99px;padding:9px;font-weight:600;cursor:pointer;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--card);box-shadow:0 2px 8px rgba(31,29,26,.1)}
+.sw{display:flex;gap:10px}
+.sw button{appearance:none;width:40px;height:40px;border-radius:50%;border:2px solid var(--card);box-shadow:0 0 0 1px var(--line);background:var(--c);cursor:pointer}
+.sw button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink)}
+.side .price{display:flex;align-items:baseline;gap:10px}
+.side .price b{font-family:"Instrument Serif";font-weight:400;font-size:48px;line-height:1}
+.side .price s{color:var(--mute)}
+.btn{appearance:none;border:0;background:var(--ink);color:var(--card);border-radius:99px;height:54px;padding:0 24px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px;transition:transform .2s,background .2s;text-decoration:none}
+.btn:hover{background:var(--accent)}
+.btn svg{width:18px;height:18px}
+.note{font-size:12px;color:var(--mute);margin:0}
+
+section{padding:100px 0}
+.sh{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:end;margin-bottom:34px}
+.sh h2{font-family:"Instrument Serif";font-weight:400;font-size:clamp(44px,5.6vw,84px);line-height:.95;margin:10px 0 0;letter-spacing:-.02em}
+.sh h2 em{color:var(--accent)}
+.sh p{color:var(--mute);margin:0;max-width:440px;justify-self:end}
+
+/* day in the life */
+.day{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.slot{background:var(--card);border-radius:24px;overflow:hidden;cursor:pointer;transition:transform .45s cubic-bezier(.2,.8,.2,1);appearance:none;border:0;padding:0;text-align:left}
+.slot:hover{transform:translateY(-6px)}
+.slot .pic{aspect-ratio:10/7;position:relative;background:#e9e1d4;overflow:hidden}
+.slot .pic svg{position:absolute;inset:0;width:100%;height:100%}
+.slot .pic img{position:absolute;width:auto;max-width:none;transform:translateX(-50%);filter:drop-shadow(0 6px 6px rgba(0,0,0,.18))}
+.slot .meta{padding:16px 18px 18px}
+.slot time{font-size:12px;font-weight:600;letter-spacing:.14em;color:var(--mute)}
+.slot b{display:block;font-family:"Instrument Serif";font-weight:400;font-size:26px;line-height:1.1;margin-top:4px}
+
+/* real photos */
+.photos{display:grid;grid-template-columns:1.1fr .9fr .9fr;gap:14px}
+.ph{border-radius:24px;overflow:hidden;background:#fff;position:relative;margin:0}
+.ph img{width:100%;height:100%;object-fit:cover;transition:transform 1s cubic-bezier(.2,.8,.2,1)}
+.ph:hover img{transform:scale(1.04)}
+.ph figcaption{position:absolute;left:14px;bottom:14px;background:rgba(251,248,243,.92);border-radius:99px;padding:6px 12px;font-size:13px;font-weight:600}
+.ph.studio{background:#fff;display:grid;place-items:center;padding:20px}
+.ph.studio img{object-fit:contain;height:auto;width:min(100%,340px)}
+
+/* buy */
+.buy{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--card);border-radius:28px;padding:clamp(20px,3vw,34px)}
+.packs{display:grid;gap:10px;margin:18px 0}
+.pk{appearance:none;border:1px solid var(--line);background:transparent;border-radius:18px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-align:left}
+.pk b{font-weight:600}
+.pk small{display:block;color:var(--mute)}
+.pk span:last-child{font-family:"Instrument Serif";font-size:26px}
+.pk[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.adds{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.ad{appearance:none;border:1px solid var(--line);background:transparent;border-radius:99px;padding:8px 14px;font-size:14px;cursor:pointer}
+.ad[aria-pressed="true"]{background:var(--ink);color:var(--card)}
+.total{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:16px;gap:12px;flex-wrap:wrap}
+.total b{font-family:"Instrument Serif";font-weight:400;font-size:44px}
+.qa details{border-top:1px solid var(--line)}
+.qa details:last-child{border-bottom:1px solid var(--line)}
+.qa summary{cursor:pointer;list-style:none;padding:16px 0;font-family:"Instrument Serif";font-size:24px;display:flex;justify-content:space-between}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary::after{content:"+";font-family:"Instrument Sans";transition:transform .3s}
+.qa details[open] summary::after{transform:rotate(45deg)}
+.qa p{margin:0 0 16px;color:var(--mute)}
+.quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
+.quotes blockquote{margin:0;font-family:"Instrument Serif";font-size:30px;line-height:1.15;font-style:italic}
+.quotes cite{display:block;margin-top:12px;font-family:"Instrument Sans";font-style:normal;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+footer{border-top:1px solid var(--line);padding:30px 0 100px;color:var(--mute);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@supports (animation-timeline:view()){
+  .rv{animation:rv linear both;animation-timeline:view();animation-range:entry 0% entry 100%}
+  @keyframes rv{from{transform:translateY(50px)}}
+}
+@media (max-width:1000px){
+  .studio{grid-template-columns:1fr}
+  .intro,.sh{grid-template-columns:1fr}
+  .sh p{justify-self:start}
+  .day{grid-template-columns:1fr 1fr}
+  .photos{grid-template-columns:1fr 1fr}
+  .photos .ph.studio{grid-column:1 / -1}
+  .buy,.quotes{grid-template-columns:1fr}
+  header nav{display:none}
+  .cart{margin-left:auto}
+}
+@media (max-width:560px){
+  .scene{aspect-ratio:10/8}
+  .scene .tip{font-size:12px;padding:6px 10px}
+  .day{grid-template-columns:1fr}
+  .photos{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<!-- scene illustrations (1000 × 700 units). data-floor = surface line, data-ucm = units per centimetre -->
+<template id="scenes">
+  <svg class="bg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMax slice" data-room="desk" data-floor="500" data-ucm="6.2" data-x="0.24">
+    <rect width="1000" height="700" fill="#e9e1d4"/><rect y="0" width="1000" height="500" fill="#efe8dc"/>
+    <rect x="70" y="80" width="200" height="140" rx="6" fill="#f8f4ec" stroke="#d6cbb8" stroke-width="4"/><circle cx="135" cy="150" r="34" fill="#d96a8b" opacity=".7"/><path d="M90 200l60-50 40 30 30-20 40 40" fill="none" stroke="#8fae8b" stroke-width="8" stroke-linejoin="round"/>
+    <rect x="0" y="500" width="1000" height="200" fill="#c9a77f"/><rect x="0" y="500" width="1000" height="14" fill="#b28f66"/>
+    <rect x="400" y="170" width="420" height="250" rx="14" fill="#25262b"/><rect x="414" y="184" width="392" height="222" rx="6" fill="#7fb1d9"/><path d="M414 340q90-60 180-10t212-40v116H414z" fill="#a9cbe6"/><rect x="590" y="420" width="40" height="60" fill="#3a3b40"/><rect x="540" y="476" width="140" height="24" rx="10" fill="#3a3b40"/>
+    <rect x="300" y="430" width="70" height="70" rx="8" fill="#f8f4ec"/><path d="M370 448h18a14 14 0 0 1 0 28h-18" fill="none" stroke="#f8f4ec" stroke-width="9"/><rect x="300" y="430" width="70" height="12" rx="4" fill="#d96a8b"/>
+    <path d="M860 500l18-90h70l18 90z" fill="#d9744f"/><path d="M915 410c-30-60-70-60-80-110 40 10 60 40 80 80 0-60 30-90 60-120 10 50-10 90-40 150z" fill="#8fae8b"/>
+    <rect x="440" y="560" width="360" height="40" rx="10" fill="#e4dbcc" opacity=".8"/>
+  </svg>
+  <svg class="bg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMax slice" data-room="bed" data-floor="470" data-ucm="4.6" data-x="0.5">
+    <rect width="1000" height="700" fill="#e7e0ea"/>
+    <rect x="80" y="120" width="840" height="300" rx="40" fill="#b8a7c4"/><rect x="100" y="140" width="800" height="260" rx="30" fill="#c9bbd4"/>
+    <rect x="40" y="420" width="920" height="280" rx="30" fill="#f6f2f8"/><rect x="40" y="470" width="920" height="230" fill="#e2d9ea"/><path d="M40 470h920" stroke="#cfc3da" stroke-width="6"/>
+    <rect x="120" y="330" width="300" height="150" rx="50" fill="#fbf9fc"/><rect x="580" y="330" width="300" height="150" rx="50" fill="#fbf9fc"/>
+    <circle cx="160" cy="70" r="22" fill="#f4d48a" opacity=".8"/><path d="M40 600q300-40 460 0t460-10" fill="none" stroke="#d1c4dd" stroke-width="8"/>
+  </svg>
+  <svg class="bg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMax slice" data-room="shelf" data-floor="520" data-ucm="6" data-x="0.62">
+    <rect width="1000" height="700" fill="#dfe7dc"/>
+    <rect x="60" y="0" width="880" height="700" fill="#cdb894"/><rect x="80" y="0" width="840" height="700" fill="#e8dcc4"/>
+    <rect x="60" y="250" width="880" height="22" fill="#b89f78"/><rect x="60" y="520" width="880" height="22" fill="#b89f78"/>
+    <g><rect x="110" y="110" width="40" height="140" fill="#d96a8b"/><rect x="150" y="96" width="34" height="154" fill="#7fb1d9"/><rect x="184" y="120" width="44" height="130" fill="#8fae8b"/><rect x="228" y="104" width="30" height="146" fill="#f0c36a"/><rect x="262" y="130" width="38" height="120" fill="#5e6a7d" transform="rotate(-10 262 250)"/></g>
+    <g><rect x="110" y="376" width="44" height="144" fill="#5e6a7d"/><rect x="154" y="390" width="36" height="130" fill="#d96a8b"/><rect x="190" y="370" width="42" height="150" fill="#f0c36a"/><rect x="232" y="384" width="34" height="136" fill="#7fb1d9"/></g>
+    <circle cx="760" cy="200" r="46" fill="#8fae8b"/><rect x="730" y="200" width="60" height="50" rx="8" fill="#d9744f"/>
+    <rect x="800" y="430" width="90" height="90" rx="10" fill="#f8f4ec" stroke="#cdb894" stroke-width="4"/>
+    <rect x="60" y="600" width="880" height="100" fill="#cdb894"/>
+  </svg>
+  <svg class="bg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMax slice" data-room="car" data-floor="450" data-ucm="5.4" data-x="0.72">
+    <rect width="1000" height="700" fill="#9fc7e6"/><path d="M0 320q250-60 500-30t500-20v180H0z" fill="#b9d8a6"/><path d="M0 380q300-40 600-10t400 0v80H0z" fill="#9cc58a"/><rect x="0" y="420" width="1000" height="60" fill="#8a8f98"/>
+    <path d="M0 0h1000v120q-500-60-1000 0z" fill="#2f3138"/><path d="M0 0h70l120 460H0zM1000 0h-70l-120 460h190z" fill="#2f3138"/>
+    <path d="M0 450q500-60 1000 0v250H0z" fill="#3a3c44"/><path d="M0 450q500-60 1000 0" fill="none" stroke="#4b4e57" stroke-width="10"/>
+    <circle cx="300" cy="640" r="170" fill="none" stroke="#1f2026" stroke-width="34"/><circle cx="300" cy="640" r="40" fill="#1f2026"/>
+    <rect x="470" y="500" width="160" height="70" rx="10" fill="#22242a"/><rect x="482" y="512" width="136" height="46" rx="6" fill="#7fb1d9" opacity=".6"/>
+  </svg>
+</template>
+
+<header><div class="wrap">
+  <a class="logo" href="#top">softdrink</a>
+  <nav aria-label="Sections"><a href="#studio">Try it at home</a><a href="#day">A day with it</a><a href="#photos">Photos</a><a href="#buy">Buy</a></nav>
+  <button class="cart" data-cart-open aria-label="Open cart"><svg><use href="#i-bag"/></svg><span data-cart-count>0</span></button>
+</div></header>
+
+<main id="top" class="wrap">
+  <div class="intro">
+    <div><div class="k">Zero Can plush · room service</div><h1>Where will it <em>live?</em></h1></div>
+    <p>Drop the Zero Can into a room at true scale. Drag it around, switch the size, see what 25 cm really looks like next to a monitor, a pillow or a steering wheel.</p>
+  </div>
+
+  <div class="studio" id="studio">
+    <div class="scene" id="scene">
+      <div class="shadow" id="shadow"></div>
+      <div class="toy" id="toy" role="img" aria-label="Zero Can plush placed in the room"><img id="toyImg" src="../assets/plush-ar.webp" alt="" width="742" height="1036"></div>
+      <div class="ruler" id="ruler" aria-hidden="true"><span id="rulerTxt">25 cm</span></div>
+      <span class="cap" id="cap">On the desk, next to a 24" monitor</span>
+      <span class="tip" aria-hidden="true">Drag me · drop me</span>
+    </div>
+    <aside class="side">
+      <div><div class="k">Room</div><div class="rooms" id="rooms" role="group" aria-label="Room" style="margin-top:8px">
+        <button class="room" aria-pressed="true" data-room="desk"><b>Desk</b><small>next to a monitor</small></button>
+        <button class="room" aria-pressed="false" data-room="bed"><b>Bed</b><small>with the pillows</small></button>
+        <button class="room" aria-pressed="false" data-room="shelf"><b>Shelf</b><small>between the books</small></button>
+        <button class="room" aria-pressed="false" data-room="car"><b>Car</b><small>on the dashboard</small></button>
+      </div></div>
+      <div><div class="k">Size</div><div class="seg" role="group" aria-label="Size" style="margin-top:8px"><button aria-pressed="true" data-s="25">Classic 25 cm</button><button aria-pressed="false" data-s="40">Big hug 40 cm</button></div></div>
+      <div><div class="k">Colour</div><div class="sw" id="sw" role="group" aria-label="Colour" style="margin-top:8px"></div><p class="note" id="wayNote" style="margin-top:6px">Arctic · photographed</p></div>
+      <div class="price"><b id="sidePrice">$12.99</b><s>$19.99</s></div>
+      <button class="btn" id="sideAdd"><svg><use href="#i-bag"/></svg>Add to cart</button>
+      <p class="note">Room scenes are illustrations; plush shown at approximate true scale.</p>
+    </aside>
+  </div>
+
+  <section id="day">
+    <div class="sh rv"><div><div class="k">A day with it</div><h2>It goes <em>everywhere.</em></h2></div><p>Click a moment to load that room above.</p></div>
+    <div class="day" id="dayList"></div>
+  </section>
+
+  <section id="photos" style="padding-top:0">
+    <div class="sh rv"><div><div class="k">Real photos</div><h2>No filters, <em>just fluff.</em></h2></div><p>Product photos with the label artwork removed for this template. Colour previews are digital recolours of these.</p></div>
+    <div class="photos">
+      <figure class="ph studio rv"><img src="../assets/plush-ar.webp" alt="Zero Can plush, studio photo" width="742" height="1036"><figcaption>Studio · Arctic</figcaption></figure>
+      <figure class="ph rv"><img src="../assets/plush-hand.webp" alt="Zero Can plush held in one hand, showing its size" width="740" height="776" loading="lazy"><figcaption>In hand · about 25 cm</figcaption></figure>
+      <figure class="ph rv" style="display:grid;align-content:stretch"><img src="../assets/plush-face.webp" alt="Close-up of the embroidered eyes and smile" width="800" height="440" loading="lazy"><figcaption>Embroidered face</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="buy" style="padding-top:0">
+    <div class="buy">
+      <div class="card rv">
+        <div class="k">Order</div>
+        <h2 class="se" style="font-size:clamp(40px,4.4vw,64px);margin:8px 0 0;line-height:1">Room for <em style="color:var(--accent)">more?</em></h2>
+        <div class="packs" role="group" aria-label="Pack">
+          <button class="pk" aria-pressed="true" data-q="1"><span><b>One</b><small>for your space</small></span><span id="p1"></span></button>
+          <button class="pk" aria-pressed="false" data-q="2"><span><b>Two</b><small>one for a friend · −10%</small></span><span id="p2"></span></button>
+          <button class="pk" aria-pressed="false" data-q="3"><span><b>Three</b><small>desk, bed and car · −15%</small></span><span id="p3"></span></button>
+        </div>
+        <div class="adds" id="adds"></div>
+        <div class="total"><div><span class="k">Total</span><br><b id="tot">$12.99</b></div><button class="btn" id="buyAdd"><svg><use href="#i-bag"/></svg>Add to cart</button></div>
+        <p class="note" style="margin-top:12px">Ships in 48h · estimated delivery <span id="eta"></span> · free over $30.</p>
+      </div>
+      <div class="card rv qa">
+        <div class="k" style="margin-bottom:10px">Good to know</div>
+        <details open><summary>How big is it exactly?</summary><p>Classic is about 25 cm tall seated (roughly a 330 ml can × 2). Big hug is about 40 cm.</p></details>
+        <details><summary>What is it made of?</summary><p>Short-pile polyester plush outside, PP cotton inside, embroidered eyes and smile.</p></details>
+        <details><summary>Will it fit on a car dashboard?</summary><p>The Classic does. Keep it clear of airbags and your view of the road.</p></details>
+        <details><summary>How do I clean it?</summary><p>Hand wash cold and air dry, or spot clean.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="quotes">
+      <blockquote class="rv">"Lives on my monitor stand. Watches me work."<cite>Sample review</cite></blockquote>
+      <blockquote class="rv">"The 40 cm one is officially a pillow now."<cite>Sample review</cite></blockquote>
+      <blockquote class="rv">"Rides shotgun on every road trip."<cite>Sample review</cite></blockquote>
+    </div>
+  </section>
+</main>
+<footer><div class="wrap"><span>softdrink · Zero Can plush</span><span>Template by js.17 · prices, specs and reviews are sample content.</span></div></footer>
+
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  K.layoutPill(4);
+  const S = {room:'desk', size:'25', way:'ar', q:1, addons:new Set()};
+  const scene = $('#scene'), toy = $('#toy'), shadow = $('#shadow'), ruler = $('#ruler');
+  const tpl = $('#scenes').content;
+  const SC = {};
+  tpl.querySelectorAll('svg').forEach(s => { const c = s.cloneNode(true); scene.prepend(c); SC[c.dataset.room] = c; });
+  const CAP = {desk:'On the desk, next to a 24" monitor', bed:'On the bed, between standard pillows', shelf:'On the shelf, next to paperbacks', car:'On the dashboard (keep clear of airbags)'};
+  const H_CM = {25:25, 40:40}, ASPECT = 742 / 1036;
+  let pos = {x:.24, y:1};   /* x as fraction of width, y as fraction where 1 = on the floor line */
+
+  /* map the SVG's slice-scaling to pixel geometry */
+  function geo(){
+    const svg = SC[S.room], r = scene.getBoundingClientRect();
+    const k = Math.max(r.width / 1000, r.height / 700);       // xMidYMax slice
+    const ox = (r.width - 1000 * k) / 2, oy = r.height - 700 * k;
+    return {k, ox, oy, floor: oy + +svg.dataset.floor * k, ucm: +svg.dataset.ucm, W: r.width, H: r.height};
+  }
+  function layout(fall){
+    const g = geo(), h = H_CM[S.size] * g.ucm * g.k, w = h * ASPECT;
+    toy.style.width = w + 'px'; toy.style.height = h + 'px';
+    const x = pos.x * g.W - w / 2, yFloor = g.floor - h + h * .02;
+    const y = pos.y >= 1 ? yFloor : Math.min(yFloor, pos.y * g.H - h / 2);
+    toy.style.left = x + 'px'; toy.style.top = y + 'px';
+    shadow.style.left = pos.x * g.W + 'px'; shadow.style.top = (g.floor - 6) + 'px'; shadow.style.width = w * .8 + 'px';
+    const lift = Math.max(0, yFloor - y); shadow.style.opacity = Math.max(.15, 1 - lift / 200);
+    const flip = x - 26 < 70; ruler.classList.toggle('flip', flip);
+    ruler.style.left = (flip ? x + w + 16 : x - 26) + 'px'; ruler.style.top = (y + h * .02) + 'px'; ruler.style.height = h * .96 + 'px';
+    $('#rulerTxt').textContent = '≈ ' + S.size + ' cm';
+    ruler.style.opacity = pos.y >= 1 ? 1 : 0;
+    if (fall) squash();
+  }
+  function squash(){ if (K.reduced) return; toy.animate([{transform:'scale(1.14,.82)'},{transform:'scale(.94,1.06)'},{transform:'scale(1.03,.98)'},{transform:'none'}], {duration:520, easing:'ease-out'}); }
+  function dropFrom(y0){
+    if (K.reduced){ pos.y = 1; layout(); return; }
+    const g = geo(), h = parseFloat(toy.style.height), target = g.floor - h;
+    let y = y0, v = 0;
+    (function f(){ v += 1.4; y += v; if (y >= target){ pos.y = 1; layout(true); return; } toy.style.top = y + 'px'; shadow.style.opacity = Math.max(.15, 1 - (target - y) / 200); requestAnimationFrame(f); })();
+  }
+  /* drag */
+  let drag = null;
+  toy.addEventListener('pointerdown', e => {
+    toy.setPointerCapture(e.pointerId); const r = toy.getBoundingClientRect();
+    drag = {dx: e.clientX - (r.left + r.width / 2), dy: e.clientY - (r.top + r.height / 2)};
+    $('.tip') && $('.tip').remove();
+  });
+  toy.addEventListener('pointermove', e => {
+    if (!drag) return; const r = scene.getBoundingClientRect();
+    pos.x = Math.max(.06, Math.min(.94, (e.clientX - drag.dx - r.left) / r.width));
+    pos.y = Math.max(.15, (e.clientY - drag.dy - r.top) / r.height);
+    toy.style.transform = `rotate(${Math.max(-12, Math.min(12, e.movementX * 1.5))}deg)`;
+    layout();
+  });
+  const end = () => { if (!drag) return; drag = null; toy.style.transform = ''; dropFrom(parseFloat(toy.style.top)); };
+  toy.addEventListener('pointerup', end); toy.addEventListener('pointercancel', end);
+
+  function setRoom(r){
+    S.room = r; Object.entries(SC).forEach(([k, s]) => s.classList.toggle('on', k === r));
+    $$('.room').forEach(b => b.setAttribute('aria-pressed', b.dataset.room === r));
+    $('#cap').textContent = CAP[r];
+    pos = {x: +SC[r].dataset.x, y: .2}; layout(); dropFrom(parseFloat(toy.style.top));
+  }
+  $$('.room').forEach(b => b.addEventListener('click', () => setRoom(b.dataset.room)));
+  $$('.seg button').forEach(b => b.addEventListener('click', () => {
+    S.size = b.dataset.s; $$('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b)); layout(true); prices();
+  }));
+  const tint = {ar:'#eef0f3', bl:'#f6bfd2', gl:'#bcdcf6', ma:'#c4e8c6'};
+  P.colorways.forEach((c, i) => {
+    const b = document.createElement('button'); b.style.setProperty('--c', tint[c.id]); b.setAttribute('aria-label', c.name); b.setAttribute('aria-pressed', i === 0); b.title = c.name;
+    b.addEventListener('click', () => {
+      S.way = c.id; $$('#sw button').forEach(x => x.setAttribute('aria-pressed', x === b));
+      $('#toyImg').src = K.img(c.id); $('#wayNote').textContent = c.name + (i ? ' · colour preview' : ' · photographed'); squash(); drawDay();
+    });
+    $('#sw').appendChild(b);
+  });
+  SC.desk.classList.add('on');
+  new ResizeObserver(() => layout()).observe(scene);
+  layout();
+  if (!K.reduced){ pos.y = .1; layout(); setTimeout(() => dropFrom(parseFloat(toy.style.top)), 500); }
+
+  /* day in the life */
+  const DAY = [['08:30', 'Morning stand-up', 'desk'], ['13:00', 'Lunch run', 'car'], ['18:00', 'Reading corner', 'shelf'], ['23:00', 'Lights out', 'bed']];
+  function drawDay(){
+    $('#dayList').innerHTML = DAY.map(([t, n, r]) => {
+      const s = SC[r]; const ucm = +s.dataset.ucm, fl = +s.dataset.floor, h = 25 * ucm / 700 * 100, x = +s.dataset.x * 100;
+      return `<button class="slot rv" data-room="${r}"><div class="pic">${s.outerHTML.replace('class="bg', 'class="bg on')}<img src="${K.img(S.way, true)}" alt="" width="371" height="518" style="height:${h}%;left:${x}%;top:${fl / 7 - h}%"></div><div class="meta"><time>${t}</time><b>${n}</b></div></button>`;
+    }).join('');
+    $$('.slot').forEach(b => b.addEventListener('click', () => { setRoom(b.dataset.room); $('#studio').scrollIntoView({behavior: K.reduced ? 'auto' : 'smooth', block:'center'}); }));
+  }
+  drawDay();
+
+  /* buy */
+  function unit(){ return P.price + K.size(S.size).add; }
+  function prices(){
+    [1, 2, 3].forEach(q => $('#p' + q).textContent = K.money(unit() * q * (1 - K.bundleOff(q))));
+    $('#sidePrice').textContent = K.money(unit());
+    let t = unit() * S.q * (1 - K.bundleOff(S.q)); S.addons.forEach(id => t += K.addon(id).price); $('#tot').textContent = K.money(t);
+  }
+  $$('.pk').forEach(b => b.addEventListener('click', () => { S.q = +b.dataset.q; $$('.pk').forEach(x => x.setAttribute('aria-pressed', x === b)); prices(); }));
+  P.addons.forEach(a => {
+    const b = document.createElement('button'); b.className = 'ad'; b.setAttribute('aria-pressed', 'false'); b.textContent = `+ ${a.name} · ${K.money(a.price)}`;
+    b.addEventListener('click', () => { const on = !S.addons.has(a.id); on ? S.addons.add(a.id) : S.addons.delete(a.id); b.setAttribute('aria-pressed', on); prices(); });
+    $('#adds').appendChild(b);
+  });
+  prices();
+  $('#sideAdd').addEventListener('click', () => K.add({variant: S.way, size: S.size, from: toy}));
+  $('#buyAdd').addEventListener('click', e => K.add({variant: S.way, size: S.size, qty: S.q, addons: [...S.addons], from: e.currentTarget}));
+  $('#eta').textContent = K.deliveryWindow(6, 11);
+})();
+</script>
+</body>
+</html>

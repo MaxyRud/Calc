@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Classic PDP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#fbf9f6;--panel:#fff;--soft:#f3effa;--ink:#20172e;--mute:#6f6680;--line:#e7e1ee;
+  --grape:#6d3bd8;--grape2:#5a2ec0;--lime:#b5eb5f;--lime2:#9fd64a;--tip:#e4572e;--star:#f2a93b;
+  --r:18px;
+  --kit-bg:#fff;--kit-fg:#20172e;--kit-muted:#6f6680;--kit-accent:#6d3bd8;--kit-accent-fg:#fff;--kit-line:#e7e1ee;--kit-radius:14px;--kit-font:"Sora",sans-serif;--kit-scrim:rgba(32,23,46,.4);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Sora",system-ui,sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+.wrap{width:min(1280px,100% - 32px);margin-inline:auto}
+
+/* announcement */
+.ann{background:var(--ink);color:#efe9fb;font-size:13px;height:38px;position:relative;overflow:hidden}
+.ann p{position:absolute;inset:0;margin:0;line-height:38px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s;padding:0 16px;text-align:center}
+.ann p.out{transform:translateY(-100%);opacity:0}
+.ann p.in{transform:translateY(100%);opacity:0}
+.ann b{color:var(--lime)}
+
+header{background:var(--panel);border-bottom:1px solid var(--line);position:relative;z-index:20}
+header .wrap{display:flex;align-items:center;gap:22px;height:70px}
+.logo{font-weight:700;font-size:20px;text-decoration:none;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+.logo svg{width:30px;height:12px}
+.search{flex:1;max-width:460px;position:relative}
+.search input{width:100%;height:42px;border:1px solid var(--line);border-radius:99px;background:var(--bg);padding:0 16px 0 40px;outline:none;transition:border-color .2s,box-shadow .2s}
+.search input:focus{border-color:var(--grape);box-shadow:0 0 0 4px rgba(109,59,216,.12)}
+.search svg{position:absolute;left:14px;top:12px;width:18px;height:18px;color:var(--mute)}
+.hnav{display:flex;gap:18px;font-size:14px;margin-left:auto}
+.hnav a{text-decoration:none;color:var(--mute)}.hnav a:hover{color:var(--ink)}
+.icons{display:flex;gap:8px}
+.ib{appearance:none;border:1px solid var(--line);background:var(--panel);width:42px;height:42px;border-radius:50%;display:grid;place-items:center;cursor:pointer;position:relative;transition:border-color .2s}
+.ib:hover{border-color:var(--ink)}
+.ib svg{width:19px;height:19px}
+.ib .badge{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:99px;background:var(--grape);color:#fff;font-size:11px;font-weight:600;display:grid;place-items:center;padding:0 5px}
+.ib .badge[data-count="0"]{background:var(--line);color:var(--mute)}
+
+.crumbs{font-size:13px;color:var(--mute);padding:18px 0}
+.crumbs a{text-decoration:none}.crumbs a:hover{color:var(--ink)}
+.crumbs span{margin:0 8px;opacity:.5}
+
+/* PDP grid */
+.pdp{display:grid;grid-template-columns:1.12fr 1fr;gap:48px;align-items:start}
+.gallery{position:sticky;top:20px;display:grid;grid-template-columns:84px 1fr;gap:14px}
+.thumbs{display:grid;gap:10px;align-content:start}
+.th{appearance:none;border:2px solid transparent;background:var(--panel);border-radius:14px;aspect-ratio:1;padding:6px;cursor:pointer;overflow:hidden;display:grid;place-items:center;transition:border-color .2s,transform .2s}
+.th:hover{transform:translateY(-2px)}
+.th[aria-current="true"]{border-color:var(--grape)}
+.th img{width:100%}
+.th .mini{width:100%;height:100%;border-radius:8px;display:grid;place-items:center}
+.th .mini svg{width:70%;height:40%}
+.viewer{position:relative;aspect-ratio:1/1;background:radial-gradient(circle at 50% 40%,#f1ebfb,#e6ddf5);border-radius:28px;overflow:hidden;cursor:zoom-in}
+.slide{position:absolute;inset:0;display:grid;place-items:center;opacity:0;transform:scale(1.04);transition:opacity .5s,transform .7s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.slide.on{opacity:1;transform:none;pointer-events:auto}
+.slide>img{width:86%;filter:drop-shadow(0 30px 30px rgba(32,23,46,.18))}
+.zoom{position:absolute;inset:0;background-repeat:no-repeat;background-size:230%;opacity:0;transition:opacity .2s;pointer-events:none;background-color:#ece4f8}
+.viewer.zooming .zoom{opacity:1}
+.vtag{position:absolute;left:18px;top:18px;display:flex;gap:8px;z-index:3}
+.vtag span{background:var(--panel);border-radius:99px;font-size:12px;font-weight:600;padding:6px 12px;box-shadow:0 4px 12px rgba(32,23,46,.08)}
+.vtag .hot{background:var(--tip);color:#fff}
+.vnav{position:absolute;right:16px;bottom:16px;display:flex;gap:8px;z-index:3}
+.vnav button{appearance:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--panel);box-shadow:0 4px 14px rgba(32,23,46,.12);cursor:pointer;display:grid;place-items:center}
+.vnav svg{width:18px;height:18px}
+.vnav .p svg{transform:rotate(180deg)}
+.dots{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);display:flex;gap:6px;z-index:3}
+.dots i{width:7px;height:7px;border-radius:99px;background:rgba(32,23,46,.2);transition:width .3s,background .3s}
+.dots i.on{width:22px;background:var(--grape)}
+.boxshot{position:relative;width:100%;height:100%}
+.boxshot img{position:absolute;width:62%;left:6%;top:12%;filter:drop-shadow(0 20px 24px rgba(32,23,46,.2))}
+.boxshot .sh{position:absolute;width:15%;height:auto}
+.boxshot .bl{position:absolute;width:10%;height:auto}
+.boxshot .lbl{position:absolute;right:7%;bottom:9%;text-align:right;font-weight:600;font-size:clamp(14px,1.6vw,20px);line-height:1.35}
+.macro{width:100%;height:100%;background:radial-gradient(circle at 30% 30%,#fff7da,#f0d48a 55%,#b88a2b);display:grid;place-items:center;position:relative;overflow:hidden}
+.macro svg{position:absolute}
+.lineup{display:grid;grid-template-columns:1fr 1fr;gap:6%;width:84%}
+.lineup div{text-align:center;font-size:12px;font-weight:600}
+
+/* info */
+.info h1{font-size:clamp(28px,3vw,40px);line-height:1.12;letter-spacing:-.025em;margin:8px 0 10px;font-weight:600}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{font-size:12px;font-weight:600;padding:5px 11px;border-radius:99px;background:var(--soft);color:var(--grape)}
+.pill.l{background:#eefbd9;color:#3f6b0b}
+.rating{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--mute);flex-wrap:wrap}
+.stars{display:inline-flex;gap:1px;color:var(--star)}
+.stars svg{width:16px;height:16px}
+.rating a{color:var(--ink)}
+.priceb{display:flex;align-items:baseline;gap:12px;margin:18px 0 4px;flex-wrap:wrap}
+.priceb b{font-size:42px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.priceb s{color:var(--mute);font-size:18px}
+.priceb em{font-style:normal;background:var(--tip);color:#fff;font-weight:600;font-size:13px;padding:4px 10px;border-radius:99px}
+.save{color:#3f6b0b;font-size:14px;font-weight:500;margin:0 0 6px}
+.lede{color:var(--mute);margin:14px 0 22px}
+.lbl{display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin:22px 0 10px}
+.lbl span{font-weight:400;color:var(--mute)}
+.swatches{display:flex;gap:12px;flex-wrap:wrap}
+.swatch{appearance:none;width:64px;height:64px;padding:4px;border-radius:18px;border:2px solid var(--line);background:var(--panel);cursor:pointer;transition:border-color .2s,transform .2s}
+.swatch:hover{transform:translateY(-2px)}
+.swatch[aria-pressed="true"]{border-color:var(--grape)}
+.swatch img{width:100%;height:100%;object-fit:contain}
+.bundles{display:grid;gap:10px}
+.bundle{appearance:none;display:grid;grid-template-columns:22px 1fr auto;gap:14px;align-items:center;text-align:left;padding:14px 16px;border-radius:16px;border:2px solid var(--line);background:var(--panel);cursor:pointer;position:relative;transition:border-color .2s,background .2s}
+.bundle .rd{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;transition:border-color .2s}
+.bundle .rd::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--grape);transform:scale(0);transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.bundle[aria-checked="true"]{border-color:var(--grape);background:#faf7ff}
+.bundle[aria-checked="true"] .rd{border-color:var(--grape)}
+.bundle[aria-checked="true"] .rd::after{transform:scale(1)}
+.bundle b{display:block;font-weight:600}
+.bundle small{color:var(--mute);font-size:13px}
+.bundle .bp{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.bundle .bp s{display:block;font-weight:400;color:var(--mute);font-size:12px}
+.bundle .flag{position:absolute;top:-10px;right:14px;background:var(--lime);color:var(--ink);font-size:11px;font-weight:700;padding:2px 10px;border-radius:99px;letter-spacing:.04em}
+.addons{display:grid;gap:8px}
+.addon{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;border:1px solid var(--line);background:var(--panel);cursor:pointer;font-size:14px}
+.addon input{width:18px;height:18px;accent-color:var(--grape);margin:0}
+.addon span{flex:1}
+.addon b{font-weight:600}
+.actions{display:grid;grid-template-columns:auto 1fr auto;gap:10px;margin-top:22px}
+.qty{display:flex;align-items:center;border:1px solid var(--line);border-radius:99px;background:var(--panel);height:54px}
+.qty button{appearance:none;border:0;background:transparent;width:44px;height:100%;cursor:pointer;display:grid;place-items:center;border-radius:99px}
+.qty button:hover{background:var(--soft)}
+.qty svg{width:15px;height:15px}
+.qty output{min-width:28px;text-align:center;font-weight:600}
+.atc{appearance:none;border:0;border-radius:99px;background:var(--grape);color:#fff;font-weight:600;font-size:16px;height:54px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;position:relative;overflow:hidden;transition:background .25s,transform .15s}
+.atc:hover{background:var(--grape2)}
+.atc:active{transform:scale(.98)}
+.atc svg{width:20px;height:20px}
+.atc .t2,.atc .t3{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:10px;transform:translateY(100%);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.atc .t1{display:flex;align-items:center;gap:10px;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.atc.busy .t1{transform:translateY(-160%)}.atc.busy .t2{transform:none}
+.atc.done{background:#2f8a3e}.atc.done .t1{transform:translateY(-160%)}.atc.done .t3{transform:none}
+.spin{width:20px;height:20px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(1turn)}}
+.wish{appearance:none;width:54px;height:54px;border-radius:50%;border:1px solid var(--line);background:var(--panel);cursor:pointer;display:grid;place-items:center;position:relative}
+.wish svg{width:22px;height:22px;transition:transform .3s cubic-bezier(.3,1.8,.5,1)}
+.wish path{fill:none;stroke:var(--ink);stroke-width:1.8;transition:fill .2s,stroke .2s}
+.wish[aria-pressed="true"] path{fill:var(--tip);stroke:var(--tip)}
+.wish[aria-pressed="true"] svg{transform:scale(1.15)}
+.burst{position:absolute;width:6px;height:6px;border-radius:50%;left:50%;top:50%;margin:-3px;pointer-events:none}
+.buynow{appearance:none;width:100%;margin-top:10px;height:54px;border-radius:99px;border:0;background:var(--lime);color:var(--ink);font-weight:700;font-size:16px;cursor:pointer;transition:background .2s}
+.buynow:hover{background:var(--lime2)}
+.ship{margin-top:18px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel)}
+.ship>div{display:flex;gap:12px;padding:14px 16px;align-items:flex-start;font-size:14px}
+.ship>div+div{border-top:1px solid var(--line)}
+.ship svg{width:22px;height:22px;flex:none;color:var(--grape);margin-top:1px}
+.ship b{display:block}
+.ship small{color:var(--mute)}
+.zip{display:flex;gap:8px;margin-top:8px}
+.zip input{flex:1;min-width:0;height:38px;border:1px solid var(--line);border-radius:10px;padding:0 12px;background:var(--bg)}
+.zip button{appearance:none;border:0;border-radius:10px;background:var(--ink);color:#fff;padding:0 14px;cursor:pointer;font-weight:600;font-size:13px}
+.acc{margin-top:22px;border-top:1px solid var(--line)}
+.acc details{border-bottom:1px solid var(--line)}
+.acc summary{list-style:none;cursor:pointer;padding:18px 0;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary i{width:28px;height:28px;border-radius:50%;background:var(--soft);display:grid;place-items:center;transition:transform .3s,background .3s}
+.acc summary i svg{width:13px;height:13px}
+.acc details[open] summary i{transform:rotate(45deg);background:var(--lime)}
+.acc .in{padding:0 0 18px;color:var(--mute);font-size:14px}
+.acc table{width:100%;border-collapse:collapse}
+.acc td{padding:8px 0;border-bottom:1px dashed var(--line)}
+.acc td:first-child{color:var(--ink);font-weight:500;width:40%}
+
+/* sections */
+section.blk{padding:90px 0 0}
+.st{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:24px;flex-wrap:wrap}
+.st h2{font-size:clamp(26px,3vw,38px);letter-spacing:-.025em;line-height:1.1;margin:0;font-weight:600}
+.st p{margin:0;color:var(--mute)}
+.fbt{background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:24px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center}
+.fbt .row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.fbt .it{display:grid;gap:8px;justify-items:center;text-align:center;width:150px;font-size:13px;position:relative}
+.fbt .it .im{width:130px;height:110px;border-radius:18px;background:var(--soft);display:grid;place-items:center;transition:opacity .3s,filter .3s}
+.fbt .it .im img{width:88%}
+.fbt .it .im svg{width:60px;height:30px}
+.fbt .it.off .im{opacity:.35;filter:grayscale(1)}
+.fbt .it label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.fbt .it input{accent-color:var(--grape);width:16px;height:16px}
+.fbt .plus{font-size:26px;color:var(--mute)}
+.fbt .tot{text-align:right}
+.fbt .tot b{display:block;font-size:30px;font-weight:700;letter-spacing:-.02em}
+.fbt .tot button{margin-top:10px;padding:0 24px}
+
+.revtop{display:grid;grid-template-columns:300px 1fr;gap:40px}
+.score{background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:24px;align-self:start}
+.score b{font-size:56px;font-weight:700;letter-spacing:-.04em;line-height:1}
+.dist{display:grid;gap:8px;margin-top:16px}
+.dist button{appearance:none;border:0;background:transparent;display:grid;grid-template-columns:28px 1fr 36px;gap:10px;align-items:center;font-size:13px;cursor:pointer;padding:2px 0;color:var(--mute)}
+.dist button:hover{color:var(--ink)}
+.dist i{height:8px;border-radius:8px;background:var(--soft);overflow:hidden;display:block}
+.dist i span{display:block;height:100%;background:var(--star);border-radius:inherit;width:var(--w);transform-origin:0 50%}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.chip{appearance:none;border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chips select{margin-left:auto;height:38px;border-radius:99px;border:1px solid var(--line);padding:0 12px;background:var(--panel)}
+.rlist{display:grid;gap:12px}
+.rv{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:20px;animation:rin .45s both}
+@keyframes rin{from{opacity:0;transform:translateY(12px)}}
+.rv header{display:flex;justify-content:space-between;gap:12px;align-items:center;background:none;border:0;height:auto;position:static}
+.rv .who{display:flex;gap:10px;align-items:center;font-size:14px;font-weight:600}
+.rv .av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff}
+.rv p{margin:10px 0 12px}
+.rv footer{display:flex;gap:14px;align-items:center;font-size:12px;color:var(--mute);border:0;padding:0}
+.helpful{appearance:none;border:1px solid var(--line);background:transparent;border-radius:99px;padding:4px 10px;cursor:pointer;font-size:12px}
+.helpful[aria-pressed="true"]{background:var(--soft);border-color:var(--grape);color:var(--grape)}
+.sample{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:var(--soft);color:var(--grape);padding:2px 8px;border-radius:99px}
+.more{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.mc{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:16px;display:grid;gap:10px;transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s}
+.mc:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(32,23,46,.08)}
+.mc .im{height:120px;border-radius:14px;background:var(--soft);display:grid;place-items:center}
+.mc .im svg{width:70px;height:34px}
+.mc b{font-weight:600}
+.mc .r{display:flex;justify-content:space-between;align-items:center}
+.mc button{appearance:none;border:1px solid var(--ink);background:transparent;border-radius:99px;padding:6px 14px;cursor:pointer;font-size:13px;font-weight:600}
+.mc button:hover{background:var(--ink);color:#fff}
+
+/* sticky bar */
+.sticky{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line);transform:translateY(110%);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.sticky.on{transform:none}
+.sticky .wrap{display:flex;align-items:center;gap:14px;height:76px}
+.sticky img{width:58px}
+.sticky .nm{flex:1;min-width:0}
+.sticky .nm b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sticky .nm small{color:var(--mute)}
+.sticky .pr{font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+.sticky .atc{padding:0 26px;height:48px}
+
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:9000;background:rgba(20,14,30,.94);display:grid;place-items:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.lb.on{opacity:1;pointer-events:auto}
+.lb img{max-width:min(92vw,1100px);max-height:82vh;width:auto;transform:scale(.94);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.lb.on img{transform:none}
+.lb button{position:absolute;appearance:none;border:0;background:rgba(255,255,255,.12);color:#fff;width:50px;height:50px;border-radius:50%;cursor:pointer;display:grid;place-items:center}
+.lb button:hover{background:rgba(255,255,255,.24)}
+.lb button svg{width:20px;height:20px}
+.lb .x{top:20px;right:20px}.lb .l{left:20px;top:50%}.lb .r{right:20px;top:50%}
+.lb .l svg{transform:rotate(180deg)}
+.lb .cap{position:absolute;bottom:22px;left:0;right:0;text-align:center;color:#d8d0ea;font-size:13px}
+
+footer.site{margin-top:100px;border-top:1px solid var(--line);background:var(--panel);padding:36px 0 120px;font-size:13px;color:var(--mute)}
+footer.site .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (max-width:1060px){
+  .hnav{display:none}
+  .pdp{grid-template-columns:1fr;gap:30px}
+  .gallery{position:static}
+  .revtop{grid-template-columns:1fr}
+  .more{grid-template-columns:1fr 1fr}
+  .fbt{grid-template-columns:1fr}.fbt .tot{text-align:left}
+}
+@media (max-width:640px){
+  .search{display:none}
+  .icons{margin-left:auto}
+  .gallery{grid-template-columns:1fr}
+  .thumbs{grid-template-columns:repeat(4,1fr);order:2}
+  .atc{font-size:15px}
+  .atc .pp{display:none}
+  .qty button{width:38px}
+  .viewer{border-radius:22px}
+  .fbt .it{width:100px}.fbt .it .im{width:96px;height:84px}
+  .sticky img,.sticky .nm small{display:none}
+  .sticky .atc{padding:0 18px}
+  .more{grid-template-columns:1fr}
+  .chips select{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<div class="ann" aria-live="polite" id="ann">
+  <p>Bundle deal: <b>2 blasters −10%</b> · <b>3 blasters −15%</b></p>
+  <p class="in">Free shipping on orders over <b>$35</b></p>
+  <p class="in">Toy blaster · ages <b>14+</b> · keep the orange tip on</p>
+</div>
+<header>
+  <div class="wrap">
+    <a class="logo" href="#top"><svg aria-hidden="true"><use href="#i-shell"/></svg>popshell</a>
+    <label class="search"><svg><circle cx="9" cy="9" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M14 14l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><input type="search" placeholder="Search blasters, refills, targets…" aria-label="Search"></label>
+    <nav class="hnav" aria-label="Categories"><a href="#">Blasters</a><a href="#">Refills</a><a href="#">Targets</a><a href="#">Gifts</a></nav>
+    <div class="icons">
+      <button class="ib" aria-label="Wishlist" id="wishTop"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg><span class="badge" id="wishN" data-count="0">0</span></button>
+      <button class="ib" data-cart-open aria-label="Open cart"><svg><use href="#i-bag"/></svg><span class="badge" data-cart-count>0</span></button>
+    </div>
+  </div>
+</header>
+
+<main id="top" class="wrap">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="#">Home</a><span>/</span><a href="#">Toys</a><span>/</span><a href="#">Soft blasters</a><span>/</span>M92 Shell-Eject</nav>
+
+  <div class="pdp">
+    <div class="gallery">
+      <div class="thumbs" id="thumbs" role="tablist" aria-label="Product images"></div>
+      <div class="viewer" id="viewer">
+        <div class="vtag"><span class="hot">−36%</span><span>Bestseller</span></div>
+        <div class="slide on" data-zoom="1"><img id="mainImg" src="../assets/blaster-pg.webp" alt="M92 toy blaster in Grape / Lime" width="1354" height="1208"></div>
+        <div class="slide">
+          <div class="boxshot">
+            <img src="../assets/blaster-pg-sm.webp" alt="" width="677" height="604" class="bximg">
+            <svg class="sh" viewBox="0 0 64 26" style="left:66%;top:20%;transform:rotate(-20deg)"><use href="#i-shell"/></svg>
+            <svg class="sh" viewBox="0 0 64 26" style="left:74%;top:30%;transform:rotate(15deg)"><use href="#i-shell"/></svg>
+            <svg class="sh" viewBox="0 0 64 26" style="left:64%;top:40%;transform:rotate(60deg)"><use href="#i-shell"/></svg>
+            <svg class="bl" viewBox="0 0 46 26" style="left:14%;top:72%;transform:rotate(-10deg)"><use href="#i-bullet"/></svg>
+            <svg class="bl" viewBox="0 0 46 26" style="left:28%;top:78%;transform:rotate(25deg)"><use href="#i-bullet"/></svg>
+            <svg class="bl" viewBox="0 0 46 26" style="left:42%;top:74%;transform:rotate(-40deg)"><use href="#i-bullet"/></svg>
+            <svg class="bl" viewBox="0 0 46 26" style="left:54%;top:82%;transform:rotate(10deg)"><use href="#i-bullet"/></svg>
+            <div class="lbl">1 blaster<br>6 shells<br>20 soft bullets</div>
+          </div>
+        </div>
+        <div class="slide">
+          <div class="macro">
+            <svg viewBox="0 0 64 26" style="width:62%;height:auto;transform:rotate(-24deg);left:6%;top:24%;filter:drop-shadow(0 20px 20px rgba(80,50,0,.35))"><use href="#i-shell"/></svg>
+            <svg viewBox="0 0 46 26" style="width:40%;height:auto;transform:rotate(18deg);right:6%;bottom:16%;filter:drop-shadow(0 20px 20px rgba(80,20,0,.3))"><use href="#i-bullet"/></svg>
+          </div>
+        </div>
+        <div class="slide">
+          <div class="lineup" id="lineup"></div>
+        </div>
+        <div class="zoom" id="zoom" aria-hidden="true"></div>
+        <div class="dots" id="dots" aria-hidden="true"></div>
+        <div class="vnav"><button class="p" id="vprev" aria-label="Previous image"><svg><use href="#i-arrow"/></svg></button><button id="vnext" aria-label="Next image"><svg><use href="#i-arrow"/></svg></button></div>
+      </div>
+    </div>
+
+    <div class="info">
+      <div class="pills"><span class="pill">Shell ejecting</span><span class="pill l">No batteries</span><span class="pill">Ages 14+</span></div>
+      <h1>M92 Shell-Eject Soft Blaster — 6 shells + 20 EVA bullets</h1>
+      <div class="rating"><span class="stars" aria-label="4.8 out of 5"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span><b>4.8</b><a href="#reviews">Sample ratings</a><span>·</span><span>SKU PS-M92</span></div>
+      <div class="priceb"><b id="price">$15.99</b><s id="compare">$24.99</s><em id="off">−36%</em></div>
+      <p class="save" id="save">You save $9.00 on this order</p>
+      <p class="lede">A pistol-style soft blaster with real shell ejection. Rack the slide and a brass-look casing pops out; pull the trigger and a light EVA bullet flies. Manual, no batteries, rated 14+.</p>
+
+      <div class="lbl">Colourway <span id="wayName">Grape / Lime</span></div>
+      <div class="swatches" id="swatches" role="radiogroup" aria-label="Colourway"></div>
+
+      <div class="lbl">Bundle &amp; save <span>Applied automatically</span></div>
+      <div class="bundles" role="radiogroup" aria-label="Bundle">
+        <button class="bundle" role="radio" aria-checked="true" data-q="1"><span class="rd"></span><span><b>1 blaster</b><small>Standard price</small></span><span class="bp">$15.99</span></button>
+        <button class="bundle" role="radio" aria-checked="false" data-q="2"><span class="flag">MOST POPULAR</span><span class="rd"></span><span><b>2 blasters</b><small>Save 10% · $14.39 each</small></span><span class="bp">$28.78<s>$31.98</s></span></button>
+        <button class="bundle" role="radio" aria-checked="false" data-q="3"><span class="rd"></span><span><b>3 blasters</b><small>Save 15% · $13.59 each</small></span><span class="bp">$40.77<s>$47.97</s></span></button>
+      </div>
+
+      <div class="lbl">Add-ons</div>
+      <div class="addons" id="addons"></div>
+
+      <div class="actions" id="actions">
+        <div class="qty"><button id="qm" aria-label="Decrease quantity"><svg><use href="#i-minus"/></svg></button><output id="qv">1</output><button id="qp" aria-label="Increase quantity"><svg><use href="#i-plus"/></svg></button></div>
+        <button class="atc" id="atc"><span class="t1"><svg><use href="#i-bag"/></svg>Add to cart<span class="pp">&nbsp;· <span id="atcP">$15.99</span></span></span><span class="t2"><span class="spin"></span>Adding…</span><span class="t3"><svg><use href="#i-check"/></svg>Added</span></button>
+        <button class="wish" id="wish" aria-pressed="false" aria-label="Save to wishlist"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></button>
+      </div>
+      <button class="buynow" id="buynow">Buy now</button>
+
+      <div class="ship">
+        <div><svg><use href="#i-truck"/></svg><div><b>Delivery <span id="eta"></span></b><small>Free over $35, otherwise $3.99. Check your area:</small>
+          <form class="zip" id="zipf"><input id="zip" inputmode="numeric" placeholder="ZIP / postcode" aria-label="ZIP or postcode"><button>Check</button></form><small id="zipr" aria-live="polite"></small></div></div>
+        <div><svg><use href="#i-shield"/></svg><div><b>30-day returns</b><small>Unused and in original packaging (sample policy).</small></div></div>
+        <div><svg><use href="#i-gift"/></svg><div><b>Gift-ready</b><small>Add gift wrap and a message card above.</small></div></div>
+      </div>
+
+      <div class="acc">
+        <details open><summary>Description <i><svg><use href="#i-plus"/></svg></i></summary><div class="in">The M92 is a 2011-style toy blaster with a working slide. Load a soft bullet into each brass-look shell, slot the shells into the magazine, rack and fire. Each shot sends the bullet forward and the empty shell out of the ejection port. The scaled lime grip panels give a confident hold.</div></details>
+        <details><summary>Specifications <i><svg><use href="#i-plus"/></svg></i></summary><div class="in"><table>
+          <tr><td>Model</td><td>M92 / 2011-style</td></tr><tr><td>Action</td><td>Manual slide, shell ejecting</td></tr><tr><td>Ammo</td><td>EVA soft bullets</td></tr><tr><td>In the box</td><td>1 blaster, 6 shells, 20 bullets</td></tr><tr><td>Size / weight</td><td>≈ 22 cm · ≈ 300 g</td></tr><tr><td>Material</td><td>ABS + nylon</td></tr><tr><td>Age</td><td>14+</td></tr></table></div></details>
+        <details><summary>Shipping &amp; returns <i><svg><use href="#i-plus"/></svg></i></summary><div class="in">Ships within 48 hours. Standard delivery 7–12 days. Returns accepted within 30 days for unused items (sample policy for this template).</div></details>
+        <details><summary>Safety <i><svg><use href="#i-plus"/></svg></i></summary><div class="in">Toy blaster, not a real firearm. Wear eye protection. Never aim at faces, people who aren't playing, or animals. Keep the orange tip on. Do not carry or use in public places. Adult supervision recommended.</div></details>
+      </div>
+    </div>
+  </div>
+
+  <section class="blk">
+    <div class="st"><h2>Frequently bought together</h2></div>
+    <div class="fbt">
+      <div class="row" id="fbt">
+        <div class="it"><div class="im"><img src="../assets/blaster-pg-sm.webp" alt="" width="677" height="604"></div><label><input type="checkbox" checked disabled> This blaster</label><b>$15.99</b></div>
+        <span class="plus">+</span>
+        <div class="it" data-id="refill"><div class="im"><svg viewBox="0 0 46 26"><use href="#i-bullet"/></svg></div><label><input type="checkbox" checked> Refill pack</label><b>$4.99</b></div>
+        <span class="plus">+</span>
+        <div class="it" data-id="goggles"><div class="im"><svg viewBox="0 0 24 24" style="width:44px;height:44px;color:var(--grape)"><use href="#i-shield"/></svg></div><label><input type="checkbox" checked> Goggles</label><b>$3.99</b></div>
+      </div>
+      <div class="tot"><small>Total for selected</small><b id="fbtT">$24.97</b><button class="atc" id="fbtAdd" style="height:48px"><span class="t1">Add selected to cart</span></button></div>
+    </div>
+  </section>
+
+  <section class="blk" id="reviews">
+    <div class="st"><h2>Reviews</h2><p>Ratings and reviews below are sample content.</p></div>
+    <div class="revtop">
+      <div class="score">
+        <b>4.8</b><span class="stars" style="margin-left:8px"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span>
+        <div style="color:var(--mute);font-size:13px;margin-top:4px">Sample distribution</div>
+        <div class="dist" id="dist"></div>
+      </div>
+      <div>
+        <div class="chips" id="chips">
+          <button class="chip" aria-pressed="true" data-f="all">All</button>
+          <button class="chip" aria-pressed="false" data-f="5">5 ★</button>
+          <button class="chip" aria-pressed="false" data-f="4">4 ★</button>
+          <button class="chip" aria-pressed="false" data-f="gift">Gift</button>
+          <select id="sort" aria-label="Sort reviews"><option value="new">Newest</option><option value="help">Most helpful</option></select>
+        </div>
+        <div class="rlist" id="rlist"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blk">
+    <div class="st"><h2>Complete the set</h2></div>
+    <div class="more" id="more"></div>
+  </section>
+</main>
+
+<footer class="site"><div class="wrap"><span>© Popshell · Toy blaster, not a real firearm.</span><span>Template by js.17 · prices, policies, specs, ratings and reviews are sample content.</span></div></footer>
+
+<div class="sticky" id="sticky" aria-hidden="true">
+  <div class="wrap">
+    <img id="stImg" src="../assets/blaster-pg-sm.webp" alt="" width="677" height="604">
+    <div class="nm"><b>M92 Shell-Eject Soft Blaster</b><small id="stWay">Grape / Lime · 1 blaster</small></div>
+    <span class="pr" id="stP">$15.99</span>
+    <button class="atc" id="stAtc" tabindex="-1"><span class="t1"><svg><use href="#i-bag"/></svg>Add to cart</span></button>
+  </div>
+</div>
+
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Image viewer">
+  <img id="lbImg" src="../assets/blaster-pg.webp" alt="" width="1354" height="1208">
+  <button class="x" id="lbX" aria-label="Close"><svg><use href="#i-x"/></svg></button>
+  <button class="l" id="lbL" aria-label="Previous colourway"><svg><use href="#i-arrow"/></svg></button>
+  <button class="r" id="lbR" aria-label="Next colourway"><svg><use href="#i-arrow"/></svg></button>
+  <div class="cap" id="lbCap"></div>
+</div>
+
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  K.layoutPill(5);
+
+  /* announcement rotator */
+  const ps = $$('#ann p'); let ai = 0;
+  if (!K.reduced) setInterval(() => {
+    const cur = ps[ai], nx = ps[(ai + 1) % ps.length];
+    cur.classList.add('out'); nx.classList.remove('in', 'out');
+    setTimeout(() => { cur.classList.remove('out'); cur.classList.add('in'); }, 650);
+    ai = (ai + 1) % ps.length;
+  }, 3800);
+
+  /* state */
+  const S = {way:'pg', bundle:1, qty:1, addons:new Set()};
+  const ADD = P.addons;
+
+  /* gallery */
+  const slides = $$('.slide'), thumbs = $('#thumbs'), dots = $('#dots');
+  const thumbHTML = [
+    () => `<img src="${K.img(S.way, true)}" alt="">`,
+    () => `<span class="mini" style="background:#efe7fb"><svg viewBox="0 0 64 26"><use href="#i-shell"/></svg></span>`,
+    () => `<span class="mini" style="background:#f6e3a8"><svg viewBox="0 0 46 26"><use href="#i-bullet"/></svg></span>`,
+    () => `<span class="mini" style="background:linear-gradient(135deg,#d9c6f7 50%,#f8cfe8 50%)"></span>`
+  ];
+  const names = ['Product', 'In the box', 'Shells & bullets', 'Colourways'];
+  let si = 0;
+  function drawThumbs(){
+    thumbs.innerHTML = ''; dots.innerHTML = '';
+    slides.forEach((s, i) => {
+      const b = document.createElement('button'); b.className = 'th'; b.setAttribute('role','tab');
+      b.setAttribute('aria-label', names[i]); b.setAttribute('aria-current', i === si);
+      b.innerHTML = thumbHTML[i](); b.addEventListener('click', () => go(i)); thumbs.appendChild(b);
+      const d = document.createElement('i'); if (i === si) d.className = 'on'; dots.appendChild(d);
+    });
+  }
+  function go(i){
+    si = (i + slides.length) % slides.length;
+    slides.forEach((s, k) => s.classList.toggle('on', k === si));
+    $$('.th').forEach((t, k) => t.setAttribute('aria-current', k === si));
+    $$('#dots i').forEach((d, k) => d.classList.toggle('on', k === si));
+  }
+  drawThumbs();
+  $('#vprev').addEventListener('click', e => { e.stopPropagation(); go(si - 1); });
+  $('#vnext').addEventListener('click', e => { e.stopPropagation(); go(si + 1); });
+  /* swipe */
+  let tx = null;
+  $('#viewer').addEventListener('touchstart', e => tx = e.touches[0].clientX, {passive:true});
+  $('#viewer').addEventListener('touchend', e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 40) go(si + (dx < 0 ? 1 : -1)); tx = null; });
+  /* hover zoom on the product slide */
+  const viewer = $('#viewer'), zoom = $('#zoom');
+  viewer.addEventListener('pointermove', e => {
+    if (e.pointerType !== 'mouse' || si !== 0 || e.target.closest('.vnav,.vtag')){ viewer.classList.remove('zooming'); return; }
+    const r = viewer.getBoundingClientRect();
+    zoom.style.backgroundImage = `url(${K.img(S.way)})`;
+    zoom.style.backgroundPosition = `${(e.clientX - r.left) / r.width * 100}% ${(e.clientY - r.top) / r.height * 100}%`;
+    viewer.classList.add('zooming');
+  });
+  viewer.addEventListener('pointerleave', () => viewer.classList.remove('zooming'));
+  /* lightbox */
+  const lb = $('#lb'); let li = 0;
+  function lbShow(i){ li = (i + 4) % 4; const c = P.colorways[li]; $('#lbImg').src = K.img(c.id); $('#lbImg').alt = c.name; $('#lbCap').textContent = c.name + (li ? ' · digital preview' : ' · photographed') + ` · ${li+1}/4`; }
+  viewer.addEventListener('click', e => { if (si !== 0 || e.target.closest('.vnav')) return; lbShow(P.colorways.findIndex(c => c.id === S.way)); lb.classList.add('on'); $('#lbX').focus(); });
+  $('#lbX').addEventListener('click', () => lb.classList.remove('on'));
+  $('#lbL').addEventListener('click', () => lbShow(li - 1));
+  $('#lbR').addEventListener('click', () => lbShow(li + 1));
+  lb.addEventListener('click', e => { if (e.target === lb) lb.classList.remove('on'); });
+  document.addEventListener('keydown', e => {
+    if (!lb.classList.contains('on')) return;
+    if (e.key === 'Escape') lb.classList.remove('on'); if (e.key === 'ArrowLeft') lbShow(li - 1); if (e.key === 'ArrowRight') lbShow(li + 1);
+  });
+  /* lineup slide */
+  $('#lineup').innerHTML = P.colorways.map((c, i) => `<div><img src="${K.img(c.id, true)}" alt="${c.name}" width="677" height="604">${c.name}${i ? ' · preview' : ''}</div>`).join('');
+
+  /* swatches */
+  const sw = $('#swatches');
+  P.colorways.forEach((c, i) => {
+    const b = document.createElement('button'); b.className = 'swatch'; b.setAttribute('role','radio');
+    b.setAttribute('aria-checked', i === 0); b.setAttribute('aria-pressed', i === 0); b.setAttribute('aria-label', c.name); b.title = c.name;
+    b.innerHTML = `<img src="${K.img(c.id, true)}" alt="" width="677" height="604">`;
+    b.addEventListener('click', () => setWay(c.id));
+    b.addEventListener('mouseenter', () => { if (si === 0) $('#mainImg').src = K.img(c.id); });
+    b.addEventListener('mouseleave', () => { $('#mainImg').src = K.img(S.way); });
+    sw.appendChild(b);
+  });
+  function setWay(id){
+    S.way = id; const c = K.way(id);
+    $$('.swatch').forEach(b => { const on = b.getAttribute('aria-label') === c.name; b.setAttribute('aria-pressed', on); b.setAttribute('aria-checked', on); });
+    $('#wayName').textContent = c.name + (id === 'pg' ? '' : ' · digital preview');
+    $('#mainImg').src = K.img(id); $('#mainImg').alt = 'M92 toy blaster in ' + c.name;
+    document.querySelectorAll('.bximg').forEach(im => im.src = K.img(id, true));
+    $('#stImg').src = K.img(id, true);
+    go(0); drawThumbs(); update();
+  }
+
+  /* bundles */
+  $$('.bundle').forEach(b => b.addEventListener('click', () => {
+    S.bundle = +b.dataset.q; $$('.bundle').forEach(x => x.setAttribute('aria-checked', x === b)); update();
+  }));
+
+  /* add-ons */
+  const ad = $('#addons');
+  ADD.forEach(a => {
+    const l = document.createElement('label'); l.className = 'addon';
+    l.innerHTML = `<input type="checkbox" value="${a.id}"><span>${a.name}</span><b>+${K.money(a.price)}</b>`;
+    l.querySelector('input').addEventListener('change', e => { e.target.checked ? S.addons.add(a.id) : S.addons.delete(a.id); update(); });
+    ad.appendChild(l);
+  });
+
+  /* quantity: multiplies the chosen bundle */
+  $('#qm').addEventListener('click', () => { S.qty = Math.max(1, S.qty - 1); update(); });
+  $('#qp').addEventListener('click', () => { S.qty = Math.min(9, S.qty + 1); update(); });
+
+  /* animated price */
+  let shown = P.price;
+  function tween(el, from, to){
+    if (K.reduced){ el.textContent = K.money(to); return; }
+    const t0 = performance.now();
+    (function f(t){ const k = Math.min(1, (t - t0) / 420), e = 1 - Math.pow(1 - k, 3); el.textContent = K.money(from + (to - from) * e); if (k < 1) requestAnimationFrame(f); })(t0);
+  }
+  function blasters(){ return S.bundle * S.qty; }
+  function total(){
+    const n = blasters(), off = K.bundleOff(n);
+    let t = P.price * n * (1 - off);
+    S.addons.forEach(id => t += K.addon(id).price);
+    return t;
+  }
+  function update(){
+    const n = blasters(), off = K.bundleOff(n), t = total(), cmp = P.compare * n + [...S.addons].reduce((s, id) => s + K.addon(id).price, 0);
+    tween($('#price'), shown, t); shown = t;
+    $('#compare').textContent = K.money(cmp);
+    $('#off').textContent = '−' + Math.round((1 - t / cmp) * 100) + '%';
+    $('#save').textContent = `You save ${K.money(cmp - t)} on this order` + (off ? ` · bundle −${Math.round(off * 100)}% applied` : '');
+    $('#qv').textContent = S.qty; $('#atcP').textContent = K.money(t); $('#stP').textContent = K.money(t);
+    $('#stWay').textContent = `${K.way(S.way).name} · ${n} blaster${n > 1 ? 's' : ''}`;
+  }
+  update();
+
+  /* add to cart with busy → done states */
+  function addFlow(btn){
+    if (btn.classList.contains('busy')) return;
+    btn.classList.add('busy');
+    setTimeout(() => {
+      K.add({variant: S.way, qty: blasters(), addons: [...S.addons], from: $('#mainImg')});
+      btn.classList.remove('busy'); btn.classList.add('done');
+      setTimeout(() => btn.classList.remove('done'), 1500);
+    }, K.reduced ? 0 : 650);
+  }
+  $('#atc').addEventListener('click', e => addFlow(e.currentTarget));
+  $('#stAtc').addEventListener('click', () => K.add({variant: S.way, qty: blasters(), addons: [...S.addons], from: $('#stImg')}));
+  $('#buynow').addEventListener('click', () => { K.add({variant: S.way, qty: blasters(), addons: [...S.addons], silent: true}); K.open(); });
+
+  /* wishlist with burst */
+  let wishN = 0;
+  $('#wish').addEventListener('click', e => {
+    const b = e.currentTarget, on = b.getAttribute('aria-pressed') !== 'true';
+    b.setAttribute('aria-pressed', on); wishN = on ? 1 : 0;
+    $('#wishN').textContent = wishN; $('#wishN').setAttribute('data-count', wishN);
+    K.toast(on ? 'Saved to wishlist' : 'Removed from wishlist');
+    if (on && !K.reduced) for (let i = 0; i < 10; i++){
+      const d = document.createElement('i'); d.className = 'burst'; d.style.background = i % 2 ? 'var(--tip)' : 'var(--lime)'; b.appendChild(d);
+      const a = i / 10 * Math.PI * 2;
+      d.animate([{transform:'translate(0,0) scale(1)', opacity:1},{transform:`translate(${Math.cos(a)*34}px,${Math.sin(a)*34}px) scale(.3)`, opacity:0}], {duration:600, easing:'cubic-bezier(.2,.8,.2,1)'}).onfinish = () => d.remove();
+    }
+  });
+  $('#wishTop').addEventListener('click', () => K.toast(wishN ? '1 item in your wishlist' : 'Your wishlist is empty'));
+
+  /* delivery */
+  $('#eta').textContent = K.deliveryWindow(7, 12);
+  $('#zipf').addEventListener('submit', e => {
+    e.preventDefault(); const v = $('#zip').value.trim();
+    $('#zipr').textContent = v.length < 3 ? 'Enter a valid ZIP or postcode.' : `Estimated delivery to ${v.toUpperCase()}: ${K.deliveryWindow(7, 11)} (estimate).`;
+  });
+
+  /* sticky bar when main ATC leaves the viewport */
+  const sticky = $('#sticky');
+  new IntersectionObserver(([e]) => {
+    const on = !e.isIntersecting && e.boundingClientRect.top < 0;
+    sticky.classList.toggle('on', on); sticky.setAttribute('aria-hidden', !on); $('#stAtc').tabIndex = on ? 0 : -1;
+  }).observe($('#actions'));
+
+  /* frequently bought together */
+  function fbt(){
+    let t = P.price; $$('#fbt .it[data-id]').forEach(it => { const on = it.querySelector('input').checked; it.classList.toggle('off', !on); if (on) t += K.addon(it.dataset.id).price; });
+    $('#fbtT').textContent = K.money(t);
+  }
+  $$('#fbt input').forEach(i => i.addEventListener('change', fbt)); fbt();
+  $('#fbtAdd').addEventListener('click', () => K.add({variant: S.way, qty: 1, addons: $$('#fbt .it[data-id]').filter(it => it.querySelector('input').checked).map(it => it.dataset.id), from: $('#fbt img')}));
+
+  /* reviews (sample) */
+  const dist = [[5, 78], [4, 15], [3, 4], [2, 2], [1, 1]];
+  $('#dist').innerHTML = dist.map(([s, p]) => `<button data-s="${s}"><span>${s} ★</span><i><span style="--w:${p}%"></span></i><span>${p}%</span></button>`).join('');
+  const R = [
+    {n:'A.', s:5, d:3, h:12, t:'The shell ejection is so satisfying. My teen plays with it every evening.', tag:''},
+    {n:'J.', s:5, d:6, h:30, t:'Bought it as a birthday gift and it was the hit of the party. Bundle of two is the way to go.', tag:'gift'},
+    {n:'M.', s:4, d:9, h:7, t:'Great colours. Shells are easy to lose so I grabbed the refill pack.', tag:''},
+    {n:'S.', s:5, d:12, h:18, t:'Packaging was nice enough to give as a gift straight away.', tag:'gift'},
+    {n:'R.', s:4, d:20, h:4, t:'Slide is a little stiff at first, loosens up after a day of play.', tag:''}
+  ];
+  const cols = ['#6d3bd8', '#3f8a3a', '#e4572e', '#b88a2b', '#2b6fd8'];
+  let F = 'all';
+  function drawReviews(){
+    let list = R.filter(r => F === 'all' ? true : F === 'gift' ? r.tag === 'gift' : r.s === +F);
+    list = list.slice().sort((a, b) => $('#sort').value === 'help' ? b.h - a.h : a.d - b.d);
+    $('#rlist').innerHTML = list.map((r, i) => `<article class="rv" style="animation-delay:${i*60}ms"><header><span class="who"><span class="av" style="background:${cols[R.indexOf(r)]}">${r.n}</span>Customer ${r.n}<span class="sample">Sample review</span></span><span class="stars">${'<svg><use href="#i-star"/></svg>'.repeat(r.s)}</span></header><p>${r.t}</p><footer><span>${r.d} days ago</span><button class="helpful" aria-pressed="false" data-h="${r.h}">Helpful (${r.h})</button></footer></article>`).join('') || '<p style="color:var(--mute)">No reviews match this filter.</p>';
+    $$('.helpful').forEach(b => b.addEventListener('click', () => { const on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on); b.textContent = `Helpful (${+b.dataset.h + (on ? 1 : 0)})`; }));
+  }
+  $$('#chips .chip').forEach(c => c.addEventListener('click', () => { F = c.dataset.f; $$('#chips .chip').forEach(x => x.setAttribute('aria-pressed', x === c)); drawReviews(); }));
+  $$('#dist button').forEach(b => b.addEventListener('click', () => { const s = b.dataset.s; const chip = $(`#chips .chip[data-f="${s}"]`); F = chip ? s : 'all'; $$('#chips .chip').forEach(x => x.setAttribute('aria-pressed', x.dataset.f === F)); drawReviews(); }));
+  $('#sort').addEventListener('change', drawReviews);
+  drawReviews();
+
+  /* complete the set */
+  const icons = {refill:'<svg viewBox="0 0 46 26"><use href="#i-bullet"/></svg>', goggles:'<svg viewBox="0 0 24 24" style="width:44px;height:44px;color:var(--grape)"><use href="#i-shield"/></svg>', targets:'<svg viewBox="0 0 40 40" style="width:54px;height:54px"><circle cx="20" cy="20" r="18" fill="#6d3bd8"/><circle cx="20" cy="20" r="12" fill="#fff"/><circle cx="20" cy="20" r="6" fill="#e4572e"/></svg>', wrap:'<svg viewBox="0 0 24 24" style="width:44px;height:44px;color:var(--grape)"><use href="#i-gift"/></svg>'};
+  $('#more').innerHTML = ADD.map(a => `<div class="mc"><div class="im">${icons[a.id]}</div><b>${a.name}</b><div class="r"><span>${K.money(a.price)}</span><button data-a="${a.id}">Quick add</button></div></div>`).join('');
+  $$('#more button').forEach(b => b.addEventListener('click', () => K.add({qty: 0, addons: [b.dataset.a], message: K.addon(b.dataset.a).name + ' added'})));
+})();
+</script>
+</body>
+</html>

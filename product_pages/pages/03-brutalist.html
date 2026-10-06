@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spec Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --lime:#c8f03c;--ink:#0e0b12;--grape:#7b3ff2;--tip:#ff5a2c;--paper:#f7f6ef;--b:3px solid var(--ink);
+  --kit-bg:#f7f6ef;--kit-fg:#0e0b12;--kit-muted:#5d5866;--kit-accent:#7b3ff2;--kit-accent-fg:#fff;--kit-line:rgba(14,11,18,.18);--kit-radius:0;--kit-font:"IBM Plex Mono",monospace;--kit-scrim:rgba(200,240,60,.45);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--lime);color:var(--ink);font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:15px;line-height:1.5;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.blk{font-family:"Archivo Black",Impact,sans-serif;font-weight:400;text-transform:uppercase;line-height:.86;letter-spacing:-.02em}
+.frame{border:var(--b);margin:16px;background:var(--lime)}
+@media (pointer:fine){
+  .cur{position:fixed;left:0;top:0;width:28px;height:28px;margin:-14px 0 0 -14px;background:#fff;mix-blend-mode:difference;pointer-events:none;z-index:9999;transition:width .25s,height .25s,margin .25s,opacity .3s;opacity:0}
+  .cur.on{opacity:1}
+  .cur.big{width:84px;height:84px;margin:-42px 0 0 -42px}
+}
+.cur{display:none}
+@media (pointer:fine){.cur{display:block}}
+
+/* top bar */
+.bar{display:grid;grid-template-columns:auto 1fr auto auto;border-bottom:var(--b)}
+.bar>*{padding:14px 18px;border-right:var(--b);display:flex;align-items:center;gap:10px}
+.bar>*:last-child{border-right:0}
+.bar .logo{font-family:"Archivo Black";font-size:18px;text-decoration:none}
+.bar .sku{justify-content:center;font-size:13px}
+.copy{appearance:none;border:2px solid var(--ink);background:var(--paper);padding:2px 8px;cursor:pointer;font-weight:700;font-size:12px}
+.copy:hover{background:var(--ink);color:var(--lime)}
+.stock{font-weight:700;font-size:13px}
+.stock i{width:10px;height:10px;background:var(--tip);display:inline-block;animation:bl 1s steps(2) infinite}
+@keyframes bl{50%{opacity:0}}
+.cart{appearance:none;border:0;background:var(--ink);color:var(--lime);cursor:pointer;font-weight:700;letter-spacing:.06em;padding:14px 20px!important}
+.cart:hover{background:var(--grape);color:#fff}
+
+/* hero */
+.hero{position:relative;border-bottom:var(--b);overflow:hidden}
+.giant{font-size:clamp(64px,17.5vw,300px);padding:14px 14px 0;margin:0;white-space:nowrap}
+.giant span{display:block}
+.giant .o{-webkit-text-stroke:3px var(--ink);color:transparent}
+.giant .g{color:var(--grape);font-size:.62em;padding-bottom:.12em}
+@supports (animation-timeline:scroll()){
+  .giant span{animation:slide linear both;animation-timeline:scroll(root);animation-range:0 900px}
+  .giant span:nth-child(2){animation-name:slide2}
+  .giant span:nth-child(3){animation-name:slide3}
+  @keyframes slide{to{transform:translateX(-14%)}}
+  @keyframes slide2{to{transform:translateX(10%)}}
+  @keyframes slide3{to{transform:translateX(-6%)}}
+}
+.gl{position:absolute;right:3%;top:5%;width:min(42%,600px);transform:rotate(-8deg);z-index:2}
+.gl img{width:100%;position:relative}
+.gl .r,.gl .c{position:absolute;inset:0;opacity:0;mix-blend-mode:multiply;transition:opacity .15s}
+.gl .r{filter:url(#onlyR)}.gl .c{filter:url(#onlyC)}
+.gl:hover .r,.gl.glitch .r{opacity:.9;animation:gx .35s steps(3) infinite}
+.gl:hover .c,.gl.glitch .c{opacity:.9;animation:gx .35s steps(3) infinite reverse}
+@keyframes gx{0%{transform:translate(-8px,2px)}33%{transform:translate(6px,-3px);clip-path:inset(20% 0 40% 0)}66%{transform:translate(-4px,4px);clip-path:inset(60% 0 5% 0)}100%{transform:translate(8px,0)}}
+.cells{display:grid;grid-template-columns:repeat(4,1fr);border-top:var(--b);position:relative;z-index:3;background:var(--lime)}
+.cell{padding:16px 18px;border-right:var(--b)}
+.cell:last-child{border-right:0}
+.cell small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.cell b{font-family:"Archivo Black";font-weight:400;font-size:clamp(26px,3vw,44px);line-height:1;display:block;margin-top:6px}
+.cell s{font-size:14px}
+.cell.buy{background:var(--ink);color:var(--lime);display:flex;flex-direction:column;justify-content:space-between;gap:10px}
+.btn{appearance:none;border:var(--b);background:var(--grape);color:#fff;font-weight:700;padding:14px 18px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;display:inline-flex;gap:10px;align-items:center;justify-content:center;box-shadow:6px 6px 0 var(--ink);transition:transform .12s,box-shadow .12s;text-decoration:none}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--ink)}
+.btn:active{transform:translate(6px,6px);box-shadow:0 0 0 var(--ink)}
+.btn svg{width:18px;height:18px}
+.cell.buy .btn{border-color:var(--lime);box-shadow:6px 6px 0 var(--lime)}
+
+/* marquee band */
+.band{background:var(--grape);color:#fff;border-bottom:var(--b);overflow:hidden;padding:12px 0;font-family:"Archivo Black";font-size:clamp(22px,3vw,40px);text-transform:uppercase}
+.band .row{display:flex;width:max-content;animation:mq 18s linear infinite}
+.band .row span{padding-right:36px;white-space:nowrap;display:flex;align-items:center;gap:36px}
+.band svg{width:60px;height:24px}
+@keyframes mq{to{transform:translateX(-50%)}}
+.band.rev{background:var(--ink);color:var(--lime)}
+.band.rev .row{animation-direction:reverse;animation-duration:24s}
+
+/* sections */
+.sec{display:grid;grid-template-columns:260px 1fr;border-bottom:var(--b)}
+.sec>.lbl{border-right:var(--b);padding:18px}
+.sec>.lbl b{font-family:"Archivo Black";font-weight:400;font-size:64px;line-height:.85;display:block}
+.sec>.lbl span{display:block;margin-top:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.sec>.lbl p{font-size:13px;margin:12px 0 0}
+
+/* spec table */
+.spec{width:100%;border-collapse:collapse}
+.spec tr{border-bottom:var(--b);cursor:pointer;transition:background .15s,color .15s}
+.spec tr:last-child{border-bottom:0}
+.spec td{padding:16px 18px;vertical-align:top}
+.spec td:first-child{width:60px;font-weight:700}
+.spec td:nth-child(2){width:32%;text-transform:uppercase;letter-spacing:.08em;font-size:13px}
+.spec td:last-child{font-family:"Archivo Black";font-size:clamp(18px,2vw,26px);text-transform:uppercase;line-height:1.1}
+.spec td:last-child small{display:block;font-family:"IBM Plex Mono";font-size:13px;text-transform:none;max-height:0;overflow:hidden;transition:max-height .35s,margin .35s;line-height:1.5}
+.spec tr[aria-expanded="true"] td:last-child small{max-height:120px;margin-top:8px}
+.spec tr:hover,.spec tr:focus-visible{background:var(--ink);color:var(--lime);outline:none}
+
+/* crate builder */
+.builder{display:grid;grid-template-columns:1fr 380px}
+.items{display:grid;grid-template-columns:1fr 1fr;border-right:var(--b)}
+.item{padding:18px;border-right:var(--b);border-bottom:var(--b);position:relative;background:var(--lime);touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;display:flex;flex-direction:column;gap:10px;min-height:250px}
+.item:nth-child(2n){border-right:0}
+.item:nth-last-child(-n+2){border-bottom:0}
+.item.dragging{opacity:.35}
+.item .ph{height:110px;display:grid;place-items:center;border:2px dashed rgba(14,11,18,.35);background:var(--paper)}
+.item .ph img{height:100px;width:auto}
+.item .ph svg{width:90px;height:40px}
+.item h4{margin:0;font-family:"Archivo Black";font-weight:400;text-transform:uppercase;font-size:18px;line-height:1.05}
+.item .row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:auto}
+.item .pr{font-weight:700}
+.step{display:inline-flex;border:var(--b);background:var(--paper)}
+.step button{appearance:none;border:0;background:transparent;width:36px;height:34px;cursor:pointer;display:grid;place-items:center}
+.step button:hover{background:var(--ink);color:var(--lime)}
+.step button svg{width:14px;height:14px}
+.step output{min-width:34px;display:grid;place-items:center;border-inline:var(--b);font-weight:700}
+.ways{display:flex;gap:6px}
+.ways button{appearance:none;width:26px;height:26px;border:2px solid var(--ink);cursor:pointer;background:linear-gradient(135deg,var(--c1) 50%,var(--c2) 50%);padding:0}
+.ways button[aria-pressed="true"]{outline:3px solid var(--ink);outline-offset:2px}
+.drag-hint{font-size:11px;text-transform:uppercase;letter-spacing:.1em;opacity:.7}
+.ghost{position:fixed;z-index:9998;pointer-events:none;width:140px;padding:10px;background:var(--paper);border:var(--b);box-shadow:8px 8px 0 var(--ink);transform:rotate(-6deg);font-family:"Archivo Black";text-transform:uppercase;font-size:13px}
+.receiptwrap{padding:18px;background:var(--ink);position:relative;overflow:hidden}
+.receiptwrap.over{outline:6px dashed var(--lime);outline-offset:-12px}
+.slot{height:10px;background:#000;border:2px solid #333;margin:0 6px}
+.receipt{background:var(--paper);margin:0 14px;padding:18px 16px 26px;font-size:13px;position:relative;
+  -webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 10px) no-repeat,radial-gradient(circle at 6px 100%,transparent 6px,#000 6.5px) bottom/12px 10px repeat-x;
+  mask:linear-gradient(#000 0 0) top/100% calc(100% - 10px) no-repeat,radial-gradient(circle at 6px 100%,transparent 6px,#000 6.5px) bottom/12px 10px repeat-x}
+.receipt.print{animation:print .6s steps(8) both}
+@keyframes print{from{transform:translateY(-40px);clip-path:inset(0 0 85% 0)}}
+.receipt h5{margin:0 0 4px;font-family:"Archivo Black";font-weight:400;font-size:20px;text-align:center}
+.receipt .c{text-align:center;font-size:11px;margin:0 0 12px}
+.receipt .ln{display:flex;justify-content:space-between;gap:8px;padding:3px 0}
+.receipt .ln.s{color:var(--grape);font-weight:700}
+.receipt hr{border:0;border-top:2px dashed var(--ink);margin:10px 0}
+.receipt .tot{font-family:"Archivo Black";font-size:22px}
+.receipt .empty{text-align:center;padding:18px 0;opacity:.7}
+.barcode{height:44px;margin-top:12px;width:100%}
+.receiptwrap .btn{width:calc(100% - 28px);margin:18px 14px 0;border-color:var(--lime);box-shadow:6px 6px 0 var(--lime)}
+
+/* gallery strip */
+.strip{display:grid;grid-template-columns:repeat(4,1fr)}
+.strip button{appearance:none;border:0;border-right:var(--b);background:var(--paper);padding:18px;cursor:pointer;text-align:left;position:relative;overflow:hidden}
+.strip button:last-child{border-right:0}
+.strip img{width:100%;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.strip button:hover img{transform:scale(1.08) rotate(-4deg)}
+.strip span{display:block;font-weight:700;text-transform:uppercase;font-size:12px;margin-top:8px}
+.strip small{font-size:11px}
+
+/* warning */
+.warn{border-bottom:var(--b);display:grid;grid-template-columns:1fr 2fr;background:var(--paper)}
+.tape{background:repeating-linear-gradient(-45deg,var(--tip) 0 26px,var(--ink) 26px 52px);border-right:var(--b);min-height:180px;display:grid;place-items:center;padding:20px}
+.tape b{background:var(--ink);color:var(--tip);font-family:"Archivo Black";font-weight:400;font-size:clamp(28px,4vw,56px);padding:4px 14px;text-transform:uppercase;transform:rotate(-4deg)}
+.warn ol{margin:0;padding:20px 20px 20px 46px;display:grid;gap:8px;align-content:center;font-weight:500}
+.warn li::marker{font-weight:700}
+
+/* faq */
+details{border-bottom:var(--b)}
+details:last-child{border-bottom:0}
+summary{list-style:none;cursor:pointer;padding:18px;font-family:"Archivo Black";text-transform:uppercase;font-size:clamp(17px,2vw,24px);display:flex;justify-content:space-between;gap:16px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:"IBM Plex Mono";font-size:28px;line-height:1;transition:transform .3s}
+details[open] summary::after{transform:rotate(45deg)}
+summary:hover{background:var(--ink);color:var(--lime)}
+details p{margin:0;padding:0 18px 18px;max-width:720px}
+.revs{display:grid;grid-template-columns:repeat(3,1fr)}
+.revs div{padding:18px;border-right:var(--b)}
+.revs div:last-child{border-right:0}
+.revs b{font-family:"Archivo Black";font-weight:400;font-size:20px;text-transform:uppercase;display:block;margin-bottom:8px}
+.revs small{display:inline-block;margin-top:10px;background:var(--ink);color:var(--lime);padding:2px 6px;font-size:11px}
+footer{padding:18px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:12px;padding-bottom:80px}
+.foot-giant{font-size:clamp(60px,19vw,330px);margin:0;padding:6px 8px 0;border-bottom:var(--b);white-space:nowrap;overflow:hidden}
+
+@media (max-width:1000px){
+  .bar{grid-template-columns:1fr auto}
+  .bar .sku,.bar .stock{display:none}
+  .gl{position:relative;right:auto;top:auto;width:86%;margin:-4% auto 4%}
+  .cells{grid-template-columns:1fr 1fr}
+  .cell:nth-child(2){border-right:0}.cell:nth-child(-n+2){border-bottom:var(--b)}
+  .sec{grid-template-columns:1fr}
+  .sec>.lbl{border-right:0;border-bottom:var(--b);display:flex;gap:14px;align-items:end;flex-wrap:wrap}
+  .sec>.lbl b{font-size:48px}
+  .sec>.lbl p{width:100%}
+  .builder{grid-template-columns:1fr}
+  .items{border-right:0;border-bottom:var(--b)}
+  .strip{grid-template-columns:1fr 1fr}.strip button:nth-child(2){border-right:0}.strip button:nth-child(-n+2){border-bottom:var(--b)}
+  .warn{grid-template-columns:1fr}.tape{border-right:0;border-bottom:var(--b);min-height:120px}
+  .revs{grid-template-columns:1fr}.revs div{border-right:0;border-bottom:var(--b)}.revs div:last-child{border-bottom:0}
+}
+@media (max-width:560px){
+  .frame{margin:8px}
+  .items{grid-template-columns:1fr}
+  .item{border-right:0!important;border-bottom:var(--b)!important;min-height:0}
+  .item:last-child{border-bottom:0!important}
+  .spec td:nth-child(2){width:auto}
+  .spec td:first-child{width:40px;padding-right:0}
+  .cells{grid-template-columns:1fr}.cell{border-right:0;border-bottom:var(--b)}.cell:last-child{border-bottom:0}
+  .giant .o{-webkit-text-stroke:2px var(--ink)}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="onlyR"><feColorMatrix values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/></filter>
+  <filter id="onlyC"><feColorMatrix values="0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/></filter>
+</svg>
+<div class="cur" aria-hidden="true"></div>
+
+<div class="frame">
+  <header class="bar">
+    <a class="logo" href="#top">POPSHELL/SPEC</a>
+    <div class="sku">SKU: <b id="sku">PS-M92</b><button class="copy" id="copySku">COPY</button></div>
+    <div class="stock"><i></i> IN STOCK · SHIPS IN 48H</div>
+    <button class="cart" data-cart-open aria-label="Open cart">CART [<span data-cart-count>0</span>]</button>
+  </header>
+
+  <main id="top">
+  <section class="hero">
+    <h1 class="giant blk" aria-label="M92 Shell-Eject Soft Blaster"><span>M92 SHELL</span><span class="o">—EJECT—</span><span class="g">SOFT/BLASTER</span></h1>
+    <div class="gl" id="gl">
+      <img src="../assets/blaster-pg.webp" alt="M92 toy blaster with purple slide and lime grip" width="1354" height="1208">
+      <img class="r" src="../assets/blaster-pg.webp" alt="" width="1354" height="1208">
+      <img class="c" src="../assets/blaster-pg.webp" alt="" width="1354" height="1208">
+    </div>
+    <div class="cells">
+      <div class="cell"><small>Price / unit</small><b>$15.99</b><s>$24.99</s> −36%</div>
+      <div class="cell"><small>In the box</small><b><span class="cu">1</span>+<span class="cu">6</span>+<span class="cu">20</span></b>blaster · shells · bullets</div>
+      <div class="cell"><small>Age rating</small><b>14+</b>adult supervision</div>
+      <div class="cell buy"><small>Bundle: 2 = −10% · 3 = −15%</small><button class="btn" id="heroAdd"><svg><use href="#i-bag"/></svg>Add to cart</button></div>
+    </div>
+  </section>
+
+  <div class="band" aria-hidden="true"><div class="row">
+    <span>Shell ejecting <svg><use href="#i-shell"/></svg> Soft EVA bullets <svg><use href="#i-bullet"/></svg> No batteries <svg><use href="#i-shell"/></svg> Orange tip <svg><use href="#i-bullet"/></svg></span>
+    <span>Shell ejecting <svg><use href="#i-shell"/></svg> Soft EVA bullets <svg><use href="#i-bullet"/></svg> No batteries <svg><use href="#i-shell"/></svg> Orange tip <svg><use href="#i-bullet"/></svg></span>
+  </div></div>
+
+  <section class="sec" id="spec">
+    <div class="lbl"><b>01</b><span>Specification</span><p>Click a row for detail. Values are sample specs for this template.</p></div>
+    <table class="spec">
+      <tbody>
+        <tr tabindex="0" aria-expanded="false"><td>A1</td><td>Model</td><td>M92 / 2011-style<small>Pistol-style toy blaster modelled on a classic double-stack silhouette.</small></td></tr>
+        <tr tabindex="0" aria-expanded="false"><td>A2</td><td>Action</td><td>Manual slide · shell eject<small>Rack the slide to chamber a round. The shell kicks out of the ejection port.</small></td></tr>
+        <tr tabindex="0" aria-expanded="false"><td>A3</td><td>Ammunition</td><td>EVA soft bullets<small>Lightweight foam with a rounded head. 20 included, refills available.</small></td></tr>
+        <tr tabindex="0" aria-expanded="false"><td>A4</td><td>Shells</td><td>6 × brass-look<small>Reusable plastic casings. Load a bullet in each, load the shells in the magazine.</small></td></tr>
+        <tr tabindex="0" aria-expanded="false"><td>A5</td><td>Size / weight</td><td>~22 cm · ~300 g<small>Sized for teen and adult hands. Weights and dimensions are approximate.</small></td></tr>
+        <tr tabindex="0" aria-expanded="false"><td>A6</td><td>Material</td><td>ABS + nylon<small>Smooth slide, textured "scale" grip panels in lime.</small></td></tr>
+        <tr tabindex="0" aria-expanded="false"><td>A7</td><td>Power</td><td>None<small>Fully manual. No batteries, no charging.</small></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="sec" id="crate">
+    <div class="lbl"><b>02</b><span>Build your crate</span><p>Drag a card onto the receipt, or use the steppers. Bundle pricing applies automatically.</p></div>
+    <div class="builder">
+      <div class="items" id="items">
+        <div class="item" data-id="blaster">
+          <div class="ph"><img id="crateImg" src="../assets/blaster-pg-sm.webp" alt="" width="677" height="604"></div>
+          <h4>M92 Blaster</h4>
+          <div class="ways" id="ways" role="group" aria-label="Colourway"></div>
+          <div class="row"><span class="pr">$15.99</span><div class="step"><button data-d="-1" aria-label="Fewer blasters"><svg><use href="#i-minus"/></svg></button><output>1</output><button data-d="1" aria-label="More blasters"><svg><use href="#i-plus"/></svg></button></div></div>
+          <span class="drag-hint">↗ drag to receipt</span>
+        </div>
+        <div class="item" data-id="refill">
+          <div class="ph"><svg viewBox="0 0 46 26"><use href="#i-bullet"/></svg></div>
+          <h4>Refill pack</h4><small>40 bullets + 12 shells</small>
+          <div class="row"><span class="pr">$4.99</span><div class="step"><button data-d="-1" aria-label="Fewer refill packs"><svg><use href="#i-minus"/></svg></button><output>0</output><button data-d="1" aria-label="More refill packs"><svg><use href="#i-plus"/></svg></button></div></div>
+          <span class="drag-hint">↗ drag to receipt</span>
+        </div>
+        <div class="item" data-id="goggles">
+          <div class="ph"><svg viewBox="0 0 24 24" style="width:44px"><use href="#i-shield"/></svg></div>
+          <h4>Safety goggles</h4><small>Kids size, anti-scratch</small>
+          <div class="row"><span class="pr">$3.99</span><div class="step"><button data-d="-1" aria-label="Fewer goggles"><svg><use href="#i-minus"/></svg></button><output>0</output><button data-d="1" aria-label="More goggles"><svg><use href="#i-plus"/></svg></button></div></div>
+          <span class="drag-hint">↗ drag to receipt</span>
+        </div>
+        <div class="item" data-id="targets">
+          <div class="ph"><svg viewBox="0 0 40 40" style="width:44px;height:44px"><circle cx="20" cy="20" r="18" fill="#7b3ff2"/><circle cx="20" cy="20" r="12" fill="#f7f6ef"/><circle cx="20" cy="20" r="6" fill="#ff5a2c"/></svg></div>
+          <h4>Target set</h4><small>Fold-out, 3 targets</small>
+          <div class="row"><span class="pr">$5.49</span><div class="step"><button data-d="-1" aria-label="Fewer target sets"><svg><use href="#i-minus"/></svg></button><output>0</output><button data-d="1" aria-label="More target sets"><svg><use href="#i-plus"/></svg></button></div></div>
+          <span class="drag-hint">↗ drag to receipt</span>
+        </div>
+      </div>
+      <div class="receiptwrap" id="drop">
+        <div class="slot"></div>
+        <div class="receipt" id="receipt" aria-live="polite"></div>
+        <button class="btn" id="crateAdd"><svg><use href="#i-bag"/></svg>Add crate to cart</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="band rev" aria-hidden="true"><div class="row">
+    <span>4 colourways <svg><use href="#i-shell"/></svg> 1 photographed <svg><use href="#i-bullet"/></svg> 3 previews <svg><use href="#i-shell"/></svg></span>
+    <span>4 colourways <svg><use href="#i-shell"/></svg> 1 photographed <svg><use href="#i-bullet"/></svg> 3 previews <svg><use href="#i-shell"/></svg></span>
+  </div></div>
+
+  <section class="sec">
+    <div class="lbl"><b>03</b><span>Colourways</span><p>Click one to load it into the crate. Only Grape / Lime is photographed; the rest are digital previews.</p></div>
+    <div class="strip" id="strip"></div>
+  </section>
+
+  <section class="warn">
+    <div class="tape"><b>Read me</b></div>
+    <ol>
+      <li>Toy blaster. Not a real firearm.</li>
+      <li>Wear eye protection. Never aim at faces or animals.</li>
+      <li>Keep the orange tip on. Never paint or remove it.</li>
+      <li>Do not carry or play in public places.</li>
+      <li>Ages 14+ with adult supervision.</li>
+    </ol>
+  </section>
+
+  <section class="sec">
+    <div class="lbl"><b>04</b><span>FAQ</span></div>
+    <div>
+      <details><summary>How do the shells work?</summary><p>Press a soft bullet into a shell, load the shells into the magazine, then rack the slide. When you fire, the bullet flies and the empty shell kicks out of the ejection port.</p></details>
+      <details><summary>How far does it shoot?</summary><p>Up to around 8 metres in our sample spec. Real-world distance depends on the bullet and how fully the slide is racked.</p></details>
+      <details><summary>Is it safe for kids?</summary><p>It's rated 14+ and should be used with adult supervision and eye protection. Never aim at faces or animals.</p></details>
+      <details><summary>Will I lose the shells?</summary><p>Probably a few. That's why there's a refill pack with 40 bullets and 12 shells.</p></details>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="lbl"><b>05</b><span>Field reports</span></div>
+    <div class="revs">
+      <div><b>★★★★★ Loud fun</b>The shell flying out is the whole reason to buy it.<br><small>SAMPLE REVIEW</small></div>
+      <div><b>★★★★★ Bought 3</b>The 3-pack discount made it an easy party gift.<br><small>SAMPLE REVIEW</small></div>
+      <div><b>★★★★☆ Get refills</b>Shells vanish under the sofa. Grab extras.<br><small>SAMPLE REVIEW</small></div>
+    </div>
+  </section>
+
+  <h2 class="foot-giant blk" aria-hidden="true">POPSHELL</h2>
+  </main>
+  <footer><span>POPSHELL/SPEC · Toy blaster. Not a real firearm.</span><span>Template by js.17 · prices, specs and reviews are sample content.</span></footer>
+</div>
+
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s);
+  K.layoutPill(3);
+  K.countUp(document.querySelectorAll('.cu'));
+
+  /* inverting square cursor */
+  const cur = $('.cur');
+  if (K.finePointer && !K.reduced){
+    let x = innerWidth/2, y = innerHeight/2, cx = x, cy = y;
+    addEventListener('pointermove', e => { x = e.clientX; y = e.clientY; cur.classList.add('on'); });
+    document.documentElement.addEventListener('pointerleave', () => cur.classList.remove('on'));
+    (function f(){ cx += (x-cx)*.25; cy += (y-cy)*.25; cur.style.transform = `translate(${cx}px,${cy}px)`; requestAnimationFrame(f); })();
+    document.addEventListener('pointerover', e => cur.classList.toggle('big', !!e.target.closest('button,a,tr,summary,.item')));
+  }
+
+  /* glitch burst every few seconds */
+  const gl = $('#gl');
+  if (!K.reduced) setInterval(() => { gl.classList.add('glitch'); setTimeout(() => gl.classList.remove('glitch'), 260); }, 3800);
+
+  $('#copySku').addEventListener('click', () => {
+    (navigator.clipboard ? navigator.clipboard.writeText('PS-M92') : Promise.reject()).then(() => K.toast('SKU copied'), () => K.toast('SKU: PS-M92'));
+  });
+
+  let way = 'pg';
+  $('#heroAdd').addEventListener('click', e => K.add({variant: way, from: $('#gl img')}));
+
+  /* spec rows */
+  document.querySelectorAll('.spec tr').forEach(tr => {
+    const t = () => tr.setAttribute('aria-expanded', tr.getAttribute('aria-expanded') !== 'true');
+    tr.addEventListener('click', t);
+    tr.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); t(); } });
+  });
+
+  /* crate state */
+  const prices = {blaster: P.price, refill: 4.99, goggles: 3.99, targets: 5.49};
+  const names = {blaster:'M92 BLASTER', refill:'REFILL PACK', goggles:'GOGGLES', targets:'TARGET SET'};
+  const q = {blaster:1, refill:0, goggles:0, targets:0};
+  function drawReceipt(print){
+    const r = $('#receipt'); let sub = 0, lines = '';
+    Object.keys(q).forEach(k => { if (!q[k]) return; const v = q[k]*prices[k]; sub += v;
+      lines += `<div class="ln"><span>${q[k]} × ${names[k]}${k === 'blaster' ? ' ' + K.way(way).name.toUpperCase() : ''}</span><span>${K.money(v)}</span></div>`; });
+    const off = K.bundleOff(q.blaster), save = q.blaster * P.price * off, total = sub - save;
+    const ship = total >= P.freeShip || total === 0 ? 0 : 3.99;
+    r.innerHTML = `<h5>POPSHELL</h5><p class="c">CRATE RECEIPT · ${new Date().toLocaleDateString()}</p>` +
+      (lines || '<div class="empty">CRATE IS EMPTY</div>') + '<hr>' +
+      `<div class="ln"><span>SUBTOTAL</span><span>${K.money(sub)}</span></div>` +
+      (save ? `<div class="ln s"><span>BUNDLE −${Math.round(off*100)}%</span><span>−${K.money(save)}</span></div>` : '') +
+      `<div class="ln"><span>SHIPPING</span><span>${ship ? K.money(ship) : 'FREE'}</span></div><hr>` +
+      `<div class="ln tot"><span>TOTAL</span><span>${K.money(total + ship)}</span></div>` +
+      `<svg class="barcode" viewBox="0 0 200 44" preserveAspectRatio="none" aria-hidden="true">${barcode(total)}</svg>`;
+    if (print && !K.reduced){ r.classList.remove('print'); void r.offsetWidth; r.classList.add('print'); }
+    document.querySelectorAll('.item').forEach(it => it.querySelector('output').textContent = q[it.dataset.id]);
+  }
+  function barcode(seed){
+    let s = Math.floor(seed*100) + 7, x = 0, out = '';
+    while (x < 200){ s = (s*9301 + 49297) % 233280; const w = 1 + (s % 4); if ((s>>3) % 3) out += `<rect x="${x}" y="0" width="${w}" height="44" fill="#0e0b12"/>`; x += w + 1; }
+    return out;
+  }
+  document.querySelectorAll('.item .step button').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation(); const id = b.closest('.item').dataset.id;
+    q[id] = Math.max(0, Math.min(9, q[id] + +b.dataset.d)); drawReceipt(true);
+  }));
+  drawReceipt(false);
+
+  /* colourways */
+  const ways = $('#ways'), strip = $('#strip');
+  P.colorways.forEach((c, i) => {
+    const b = document.createElement('button'); b.style.setProperty('--c1', c.a); b.style.setProperty('--c2', c.b);
+    b.setAttribute('aria-label', c.name); b.setAttribute('aria-pressed', i === 0);
+    b.addEventListener('click', e => { e.stopPropagation(); setWay(c.id); });
+    ways.appendChild(b);
+    const s = document.createElement('button');
+    s.innerHTML = `<img src="${K.img(c.id, true)}" alt="" width="677" height="604"><span>${c.name}</span><small>${i ? 'Digital preview' : 'Photographed'}</small>`;
+    s.addEventListener('click', () => { setWay(c.id); document.getElementById('crate').scrollIntoView({behavior: K.reduced ? 'auto' : 'smooth'}); });
+    strip.appendChild(s);
+  });
+  function setWay(id){
+    way = id; const c = K.way(id);
+    ways.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.getAttribute('aria-label') === c.name));
+    $('#crateImg').src = K.img(id, true);
+    document.querySelectorAll('#gl img').forEach(im => im.src = K.img(id));
+    drawReceipt(true);
+  }
+
+  $('#crateAdd').addEventListener('click', e => {
+    if (!Object.values(q).some(Boolean)) { K.toast('Crate is empty'); return; }
+    const addons = []; ['refill','goggles','targets'].forEach(k => { for (let i = 0; i < q[k]; i++) addons.push(k); });
+    K.add({variant: way, qty: q.blaster || 0, addons, from: $('#receipt')});
+  });
+
+  /* drag a card onto the receipt (pointer events, works with touch) */
+  const drop = $('#drop');
+  document.querySelectorAll('.item').forEach(it => {
+    let ghost = null, sx = 0, sy = 0, moved = false;
+    it.addEventListener('pointerdown', e => {
+      if (e.target.closest('button')) return;
+      sx = e.clientX; sy = e.clientY; moved = false; it.setPointerCapture(e.pointerId);
+    });
+    it.addEventListener('pointermove', e => {
+      if (!it.hasPointerCapture(e.pointerId)) return;
+      if (!moved && Math.hypot(e.clientX - sx, e.clientY - sy) < 8) return;
+      if (!moved){ moved = true; ghost = document.createElement('div'); ghost.className = 'ghost'; ghost.textContent = '+1 ' + names[it.dataset.id]; document.body.appendChild(ghost); it.classList.add('dragging'); }
+      ghost.style.left = (e.clientX - 70) + 'px'; ghost.style.top = (e.clientY - 20) + 'px';
+      const r = drop.getBoundingClientRect();
+      drop.classList.toggle('over', e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom);
+    });
+    const end = e => {
+      if (!moved) return;
+      const r = drop.getBoundingClientRect();
+      if (e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom){ q[it.dataset.id] = Math.min(9, q[it.dataset.id] + 1); drawReceipt(true); }
+      ghost && ghost.remove(); ghost = null; moved = false; it.classList.remove('dragging'); drop.classList.remove('over');
+    };
+    it.addEventListener('pointerup', end); it.addEventListener('pointercancel', end);
+  });
+})();
+</script>
+</body>
+</html>

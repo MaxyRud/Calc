@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arcade Range</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0c0a12;--bg2:#141020;--ink:#f3eeff;--dim:#8b83a0;--line:rgba(180,245,74,.18);
+  --lime:#b4f54a;--grape:#9b5cf6;--tip:#ff6a3d;--brass:#e2bc5c;
+  --kit-bg:#120f1b;--kit-fg:#f3eeff;--kit-muted:#8b83a0;--kit-accent:#b4f54a;--kit-accent-fg:#0c0a12;--kit-line:rgba(255,255,255,.1);--kit-radius:4px;--kit-font:"Chakra Petch",sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Chakra Petch",system-ui,sans-serif;font-size:17px;line-height:1.5;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button{font:inherit}
+.wrap{width:min(1240px,100% - 32px);margin-inline:auto}
+.disp{font-family:"Bungee",system-ui,sans-serif;font-weight:400;letter-spacing:.01em;line-height:.92}
+.tag{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--lime);font-weight:600}
+.scan{position:fixed;inset:0;pointer-events:none;z-index:50;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);mix-blend-mode:overlay}
+
+/* header */
+.top{position:sticky;top:0;z-index:40;background:rgba(12,10,18,.78);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:24px;height:64px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:Bungee;font-size:20px}
+.logo svg{width:34px;height:14px}
+.nav{display:flex;gap:22px;margin-left:auto;font-size:14px;letter-spacing:.12em;text-transform:uppercase}
+.nav a{text-decoration:none;color:var(--dim);transition:color .2s}.nav a:hover{color:var(--lime)}
+.hi{font-size:13px;color:var(--dim);letter-spacing:.12em;font-variant-numeric:tabular-nums}
+.hi b{color:var(--brass);font-weight:600}
+.cartbtn{appearance:none;border:1px solid var(--lime);background:transparent;color:var(--lime);height:40px;padding:0 14px;display:flex;align-items:center;gap:8px;cursor:pointer;letter-spacing:.1em;font-weight:600;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.cartbtn svg{width:18px;height:18px}
+.cartbtn:hover{background:var(--lime);color:var(--bg)}
+
+/* hero */
+.hero{position:relative;overflow:hidden;padding:56px 0 0;isolation:isolate}
+.hero .wrap{display:grid;grid-template-columns:1.05fr 1fr;align-items:center;gap:24px;min-height:min(640px,78vh)}
+.floor{position:absolute;left:-50%;right:-50%;bottom:-10%;height:62%;z-index:-1;transform:perspective(500px) rotateX(62deg);transform-origin:50% 100%;
+  background-image:linear-gradient(var(--line) 2px,transparent 2px),linear-gradient(90deg,var(--line) 2px,transparent 2px);background-size:64px 64px;
+  -webkit-mask-image:linear-gradient(transparent,#000 60%);mask-image:linear-gradient(transparent,#000 60%);animation:floor 2.4s linear infinite}
+@keyframes floor{to{background-position:0 64px}}
+.sun{position:absolute;right:6%;top:12%;width:min(460px,60vw);aspect-ratio:1;border-radius:50%;z-index:-2;
+  background:radial-gradient(circle at 50% 40%,rgba(155,92,246,.55),rgba(155,92,246,.08) 60%,transparent 70%);filter:blur(10px)}
+.hero h1{font-size:clamp(54px,9vw,128px);margin:18px 0 22px}
+.hero h1 .ln{display:block;white-space:nowrap}
+.hero h1 .c{display:inline-block;animation:drop .7s cubic-bezier(.2,1.4,.4,1) both;animation-delay:calc(var(--i) * 45ms + 150ms)}
+.hero h1 .ln:nth-child(2){color:var(--lime);text-shadow:0 0 28px rgba(180,245,74,.45)}
+.hero h1 .ln:nth-child(3){-webkit-text-stroke:2px var(--ink);color:transparent}
+@keyframes drop{from{transform:translateY(-120%) rotate(-12deg);opacity:0}}
+.lede{max-width:460px;color:#cfc7e3;margin:0 0 26px}
+.price{display:flex;align-items:baseline;gap:14px;margin-bottom:26px}
+.price b{font-family:Bungee;font-size:44px;font-weight:400;color:var(--ink)}
+.price s{color:var(--dim)}
+.price em{font-style:normal;background:var(--tip);color:#160903;font-weight:700;font-size:13px;padding:3px 8px;letter-spacing:.08em}
+.btns{display:flex;flex-wrap:wrap;gap:12px}
+.btn{appearance:none;border:0;cursor:pointer;display:inline-flex;align-items:center;gap:10px;padding:16px 24px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:14px;text-decoration:none;transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s;
+  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.btn svg{width:18px;height:18px}
+.btn-lime{background:var(--lime);color:var(--bg);box-shadow:0 0 0 rgba(180,245,74,0)}
+.btn-lime:hover{box-shadow:0 0 34px rgba(180,245,74,.55)}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--ink);outline:1px solid rgba(255,255,255,.18);outline-offset:-1px}
+.stage{position:relative;aspect-ratio:1354/1208}
+.stage img{width:100%;filter:drop-shadow(0 0 30px rgba(155,92,246,.45)) drop-shadow(0 30px 40px rgba(0,0,0,.6));animation:hover 5s ease-in-out infinite}
+@keyframes hover{50%{transform:translateY(-14px) rotate(-1.5deg)}}
+.orbit{position:absolute;width:64px;height:26px;animation:orb 7s ease-in-out infinite;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
+.orbit.b{width:46px}
+@keyframes orb{50%{transform:translate(var(--x,10px),var(--y,-30px)) rotate(var(--r,40deg))}}
+.hud-chip{position:absolute;font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:6px 10px;border:1px solid var(--line);background:rgba(12,10,18,.7);color:var(--lime)}
+.hud-chip::before{content:"";display:inline-block;width:6px;height:6px;background:var(--lime);margin-right:8px;vertical-align:middle;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ticker */
+.ticker{border-block:1px solid var(--line);background:var(--bg2);overflow:hidden;padding:14px 0;margin-top:40px}
+.ticker .row{display:flex;gap:40px;width:max-content;animation:tick 26s linear infinite;font-family:Bungee;font-size:22px;color:var(--ink)}
+.ticker .row span{display:flex;align-items:center;gap:40px;white-space:nowrap}
+.ticker svg{width:46px;height:18px}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* range */
+section{padding:96px 0}
+.head{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:28px;flex-wrap:wrap}
+.head h2{font-size:clamp(36px,5.5vw,72px);margin:8px 0 0}
+.head p{max-width:420px;color:var(--dim);margin:0}
+.range{position:relative;height:540px;border:1px solid var(--line);background:
+  radial-gradient(ellipse at 50% 120%,rgba(155,92,246,.35),transparent 60%),
+  linear-gradient(180deg,#120e1c,#0b0911);overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none;outline:none}
+.range:focus-visible{box-shadow:0 0 0 3px var(--lime)}
+@media (pointer:fine){.range.live{cursor:none}}
+.lane{position:absolute;left:0;right:0;height:1px;border-top:1px dashed rgba(255,255,255,.08)}
+.target{position:absolute;width:72px;height:72px;margin:-36px 0 0 -36px;transition:transform .25s,opacity .25s}
+.target svg{width:100%;height:100%;display:block}
+.target.down{transform:scale(.1) rotate(90deg);opacity:0}
+.target::after{content:"";position:absolute;left:50%;top:100%;width:3px;height:300px;background:linear-gradient(#3a3150,transparent);transform:translateX(-50%)}
+.gunwrap{position:absolute;right:-30px;bottom:-34px;width:min(330px,52%);transform-origin:76% 60%;transition:transform .12s ease-out;pointer-events:none}
+.gunwrap img{width:100%;filter:drop-shadow(0 0 22px rgba(155,92,246,.4))}
+.gunwrap.kick{animation:kick .16s ease-out}
+@keyframes kick{40%{translate:14px -4px}}
+.cross{position:absolute;left:0;top:0;width:44px;height:44px;margin:-22px 0 0 -22px;pointer-events:none;opacity:0;transition:opacity .2s;z-index:4}
+.range.live .cross{opacity:1}
+.cross svg{width:100%;height:100%}
+.hud{position:absolute;inset:14px 14px auto 14px;display:flex;justify-content:space-between;gap:16px;z-index:5;pointer-events:none;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.hud div{background:rgba(12,10,18,.75);border:1px solid var(--line);padding:8px 12px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.hud b{display:block;font-family:Bungee;font-weight:400;font-size:24px;color:var(--ink);letter-spacing:0;line-height:1.1}
+.hud .ammo{display:flex;gap:2px;margin-top:6px;flex-wrap:wrap;max-width:200px}
+.hud .ammo i{width:6px;height:14px;background:var(--tip);border-radius:3px 3px 1px 1px;transition:opacity .2s}
+.hud .ammo i.used{opacity:.15}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;z-index:6;background:rgba(10,8,16,.55);backdrop-filter:blur(2px);text-align:center;padding:16px}
+.overlay[hidden]{display:none}
+.overlay h3{font-family:Bungee;font-weight:400;font-size:clamp(28px,5vw,48px);margin:0 0 6px}
+.overlay p{color:#cfc7e3;margin:0 0 20px}
+.overlay .code{display:inline-flex;align-items:center;gap:10px;margin:0 0 18px;padding:10px 14px;border:1px dashed var(--lime);color:var(--lime);font-weight:700;letter-spacing:.2em}
+.overlay .code button{background:var(--lime);color:var(--bg);border:0;padding:4px 8px;cursor:pointer;font-weight:700;letter-spacing:.1em}
+.pop{position:absolute;font-family:Bungee;font-size:22px;color:var(--lime);pointer-events:none;z-index:7;animation:pop .8s ease-out forwards;text-shadow:0 0 12px rgba(180,245,74,.6)}
+@keyframes pop{to{transform:translateY(-60px);opacity:0}}
+.reload{position:absolute;right:16px;bottom:16px;z-index:6}
+.keys{margin-top:12px;color:var(--dim);font-size:13px;display:flex;gap:18px;flex-wrap:wrap}
+.keys kbd{font:inherit;border:1px solid rgba(255,255,255,.2);padding:1px 6px;border-bottom-width:3px;color:var(--ink)}
+
+/* loadout cards */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.card{position:relative;padding:26px 22px 24px;background:var(--bg2);border:1px solid rgba(255,255,255,.07);transition:transform .3s cubic-bezier(.2,.8,.2,1);overflow:hidden;isolation:isolate}
+.card::before{content:"";position:absolute;inset:-60%;z-index:-2;background:conic-gradient(from var(--a,0deg),transparent 0 70%,var(--lime) 80%,transparent 90%);opacity:0;transition:opacity .3s;animation:spin 3s linear infinite}
+.card::after{content:"";position:absolute;inset:1px;background:var(--bg2);z-index:-1}
+.card:hover{transform:translateY(-6px)}
+.card:hover::before{opacity:1}
+@property --a{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes spin{to{--a:360deg}}
+.card .lv{font-family:Bungee;color:var(--grape);font-size:14px}
+.card h3{font-family:Bungee;font-weight:400;font-size:22px;margin:16px 0 8px;line-height:1.05}
+.card p{margin:0;color:var(--dim);font-size:15px}
+.card .ico{height:56px;display:flex;align-items:center}
+.card .ico svg{height:30px;width:auto}
+
+/* box + specs */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.box{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.box>div{border:1px solid var(--line);padding:22px 16px;text-align:left;background:linear-gradient(180deg,rgba(180,245,74,.05),transparent)}
+.box b{font-family:Bungee;font-weight:400;font-size:56px;display:block;line-height:1;color:var(--lime)}
+.box span{font-size:14px;color:var(--dim)}
+.box .ic{height:36px;display:flex;align-items:center;margin-bottom:14px}
+.box .ic svg{height:24px;width:auto}
+.box .ic img{height:36px;width:auto}
+.specs{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.specs li{display:flex;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);font-size:15px}
+.specs li span{color:var(--dim);text-transform:uppercase;letter-spacing:.14em;font-size:12px;padding-top:3px}
+.specs .bar{display:block;height:4px;background:rgba(255,255,255,.08);margin-top:8px;width:160px}
+.specs .bar i{display:block;height:100%;background:var(--lime);width:var(--w)}
+
+/* deal */
+.deal{background:var(--bg2);border:1px solid var(--line);padding:clamp(20px,4vw,48px);display:grid;grid-template-columns:1fr 1.1fr;gap:clamp(20px,4vw,56px);align-items:center;position:relative;overflow:hidden}
+.deal .pv{position:relative;aspect-ratio:1354/1208}
+.deal .pv img{position:absolute;inset:0;width:100%;transition:opacity .35s,transform .45s cubic-bezier(.2,.8,.2,1)}
+.deal .pv img.out{opacity:0;transform:scale(.92) rotate(-4deg)}
+.players{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.pl{appearance:none;cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.14);color:var(--ink);padding:14px 10px;text-align:left;transition:border-color .2s,background .2s;position:relative}
+.pl b{display:block;font-family:Bungee;font-weight:400;font-size:20px}
+.pl small{color:var(--dim);font-size:12px;display:block}
+.pl .sv{position:absolute;top:-10px;right:8px;background:var(--tip);color:#160903;font-size:11px;font-weight:700;padding:2px 6px;letter-spacing:.06em}
+.pl[aria-pressed="true"]{border-color:var(--lime);background:rgba(180,245,74,.08)}
+.sw{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 4px}
+.sw button{appearance:none;cursor:pointer;width:44px;height:44px;border-radius:50%;border:2px solid transparent;padding:4px;background:transparent}
+.sw button i{display:block;width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,var(--c1) 50%,var(--c2) 50%)}
+.sw button[aria-pressed="true"]{border-color:var(--lime)}
+.swname{font-size:13px;color:var(--dim)}
+.total{display:flex;align-items:baseline;gap:12px;margin:18px 0}
+.total b{font-family:Bungee;font-weight:400;font-size:40px}
+.total s{color:var(--dim)}
+.note{font-size:12px;color:var(--dim);margin-top:12px}
+
+/* rules + reviews */
+.rules{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid rgba(255,106,61,.35)}
+.rules div{padding:22px;border-right:1px solid rgba(255,106,61,.2)}
+.rules div:last-child{border-right:0}
+.rules b{font-family:Bungee;font-weight:400;color:var(--tip);font-size:15px;display:block;margin-bottom:6px}
+.rules p{margin:0;color:#cfc7e3;font-size:15px}
+.revs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.rev{border:1px solid rgba(255,255,255,.08);padding:22px;background:var(--bg2)}
+.rev .st{display:flex;gap:2px;color:var(--brass)}.rev .st svg{width:16px;height:16px}
+.rev p{margin:12px 0 14px;font-size:16px}
+.rev small{color:var(--dim);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.sample{display:inline-block;border:1px solid var(--dim);color:var(--dim);font-size:10px;letter-spacing:.14em;padding:1px 6px;margin-left:6px;vertical-align:middle}
+footer{border-top:1px solid var(--line);padding:40px 0 90px;color:var(--dim);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+footer .big{font-family:Bungee;font-size:clamp(48px,12vw,160px);color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.18);line-height:.9;margin:0 0 30px;width:100%;white-space:nowrap;overflow:hidden}
+
+/* scroll-driven reveals (no-op where unsupported) */
+@supports (animation-timeline:view()){
+  .rv{animation:rv linear both;animation-timeline:view();animation-range:entry 0% entry 100%}
+  @keyframes rv{from{transform:translateY(70px) scale(.97)}}
+}
+
+@media (max-width:980px){
+  .hero .wrap{grid-template-columns:1fr;min-height:0}
+  .stage{max-width:560px;margin-inline:auto;width:100%}
+  .cards{grid-template-columns:1fr 1fr}
+  .split,.deal{grid-template-columns:1fr}
+  .rules{grid-template-columns:1fr 1fr}.rules div:nth-child(2){border-right:0}.rules div:nth-child(-n+2){border-bottom:1px solid rgba(255,106,61,.2)}
+  .revs{grid-template-columns:1fr}
+  .nav{display:none}
+  .hi{margin-left:auto}
+}
+@media (max-width:560px){
+  body{font-size:16px}
+  .hi{display:none}
+  .top .wrap{justify-content:space-between}
+  .cards,.box{grid-template-columns:1fr}
+  .box{grid-template-columns:repeat(3,1fr)}.box b{font-size:38px}.box>div{padding:16px 10px}
+  .rules{grid-template-columns:1fr}.rules div{border-right:0;border-bottom:1px solid rgba(255,106,61,.2)}
+  .range{height:460px}
+  .players{grid-template-columns:1fr}
+  .hud b{font-size:18px}.hud .ammo{max-width:120px}
+  .gunwrap{width:62%}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<div class="scan" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="wrap">
+    <a class="logo" href="#top"><svg aria-hidden="true"><use href="#i-shell"/></svg>POPSHELL</a>
+    <nav class="nav" aria-label="Sections"><a href="#range">Range</a><a href="#loadout">Loadout</a><a href="#box">In the box</a><a href="#deal">Deal</a></nav>
+    <div class="hi">HI-SCORE <b id="hiTop">0000</b></div>
+    <button class="cartbtn" data-cart-open aria-label="Open cart"><svg><use href="#i-bag"/></svg><span data-cart-count>0</span></button>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero" style="padding-bottom:0">
+  <div class="floor" aria-hidden="true"></div>
+  <div class="sun" aria-hidden="true"></div>
+  <div class="wrap">
+    <div>
+      <div class="tag">Level 01 · M92 Shell-Eject Soft Blaster</div>
+      <h1 class="disp" id="title"><span class="ln">Rack.</span><span class="ln">Eject.</span><span class="ln">Repeat.</span></h1>
+      <p class="lede">A pistol-style toy blaster with a working slide: rack it and a brass-look shell flies out the ejection port, fire it and a soft EVA bullet pops across the room. 6 shells and 20 bullets in the box.</p>
+      <div class="price"><b>$15.99</b><s>$24.99</s><em>−36%</em></div>
+      <div class="btns">
+        <button class="btn btn-lime mag" id="heroAdd"><svg><use href="#i-bag"/></svg>Add to cart</button>
+        <a class="btn btn-ghost mag" href="#range">Play the range <svg><use href="#i-arrow"/></svg></a>
+      </div>
+    </div>
+    <div class="stage" id="heroStage">
+      <img src="../assets/blaster-pg.webp" alt="M92 shell-eject toy blaster with a purple slide, lime-green scaled grip and orange safety tip" width="1354" height="1208">
+      <svg class="orbit" style="left:4%;top:8%;--x:20px;--y:-26px;--r:60deg" aria-hidden="true"><use href="#i-shell"/></svg>
+      <svg class="orbit b" style="left:12%;bottom:4%;--x:-10px;--y:-22px;--r:-30deg;animation-delay:-2s" aria-hidden="true"><use href="#i-bullet"/></svg>
+      <svg class="orbit" style="right:0;top:42%;--x:-16px;--y:24px;--r:-70deg;animation-delay:-4s" aria-hidden="true"><use href="#i-shell"/></svg>
+      <span class="hud-chip" style="left:2%;top:58%">Orange safety tip</span>
+      <span class="hud-chip" style="right:4%;top:2%">Shell ejection</span>
+    </div>
+  </div>
+  <div class="ticker" aria-hidden="true">
+    <div class="row">
+      <span>Real shell ejection <svg><use href="#i-shell"/></svg> Soft EVA bullets <svg><use href="#i-bullet"/></svg> Ages 14+ <svg><use href="#i-shell"/></svg> Keep the orange tip <svg><use href="#i-bullet"/></svg></span>
+      <span>Real shell ejection <svg><use href="#i-shell"/></svg> Soft EVA bullets <svg><use href="#i-bullet"/></svg> Ages 14+ <svg><use href="#i-shell"/></svg> Keep the orange tip <svg><use href="#i-bullet"/></svg></span>
+    </div>
+  </div>
+</section>
+
+<section id="range">
+  <div class="wrap">
+    <div class="head rv">
+      <div><div class="tag">Mini-game</div><h2 class="disp">The Range</h2></div>
+      <p>Twenty soft bullets, thirty seconds. Click to fire, watch the shell kick out of the port. Score 300 to unlock a sample code.</p>
+    </div>
+    <div class="range rv" id="range-box" tabindex="0" aria-label="Shooting range mini-game. Arrow keys aim, Space fires, R reloads.">
+      <div class="hud" aria-live="off">
+        <div>Score<b id="score">0000</b></div>
+        <div>Time<b id="time">30.0</b></div>
+        <div>Shells out<b id="shells">00</b></div>
+        <div>Ammo<b id="ammoN">20</b><span class="ammo" id="ammo"></span></div>
+      </div>
+      <div class="cross" id="cross" aria-hidden="true"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="14" fill="none" stroke="#b4f54a" stroke-width="2"/><path d="M22 2v10M22 32v10M2 22h10M32 22h10" stroke="#b4f54a" stroke-width="2"/><circle cx="22" cy="22" r="2" fill="#ff6a3d"/></svg></div>
+      <div class="gunwrap" id="gun"><img src="../assets/blaster-pg-sm.webp" alt="" width="677" height="604"></div>
+      <div class="overlay" id="start">
+        <div>
+          <h3>Insert coin</h3>
+          <p>Free play. Aim with the mouse (or arrow keys), click or press Space to fire.</p>
+          <button class="btn btn-lime" id="go">Press start</button>
+        </div>
+      </div>
+      <div class="overlay" id="end" hidden>
+        <div>
+          <h3 id="endTitle">Round over</h3>
+          <p id="endText"></p>
+          <div class="code" id="code" hidden>RANGE10 <button id="copy">Copy</button></div><br>
+          <button class="btn btn-lime" id="again">Play again</button>
+        </div>
+      </div>
+      <button class="btn btn-ghost reload" id="reloadBtn" hidden>Reload (R)</button>
+    </div>
+    <div class="keys"><span><kbd>←↑→↓</kbd> aim</span><span><kbd>Space</kbd> fire</span><span><kbd>R</kbd> reload</span><span>Code is sample content for this template.</span></div>
+  </div>
+</section>
+
+<section id="loadout" style="padding-top:0">
+  <div class="wrap">
+    <div class="head rv"><div><div class="tag">Loadout</div><h2 class="disp">Four things it does well</h2></div></div>
+    <div class="cards">
+      <article class="card rv"><div class="lv">LV.01</div><div class="ico"><svg viewBox="0 0 64 26" style="width:64px"><use href="#i-shell"/></svg></div><h3>Shell ejection</h3><p>Rack the slide and a brass-look casing pops out of the port, just like the movies.</p></article>
+      <article class="card rv"><div class="lv">LV.02</div><div class="ico"><svg viewBox="0 0 46 26" style="width:46px"><use href="#i-bullet"/></svg></div><h3>Soft EVA bullets</h3><p>Light foam rounds with a rounded head. Fun for targets, gentle on furniture.</p></article>
+      <article class="card rv"><div class="lv">LV.03</div><div class="ico"><svg viewBox="0 0 24 24" style="width:30px;color:var(--lime)"><use href="#i-arrow"/></svg></div><h3>Slide action</h3><p>A satisfying pull-and-release cycle. No batteries, no charging, no waiting.</p></article>
+      <article class="card rv"><div class="lv">LV.04</div><div class="ico"><svg viewBox="0 0 24 24" style="width:30px;color:var(--lime)"><use href="#i-shield"/></svg></div><h3>Scaled grip</h3><p>Textured lime grip panels that stay put in small and big hands alike.</p></article>
+    </div>
+  </div>
+</section>
+
+<section id="box" style="padding-top:0">
+  <div class="wrap split">
+    <div class="rv">
+      <div class="tag">In the box</div>
+      <h2 class="disp" style="font-size:clamp(34px,5vw,60px);margin:10px 0 24px">Ready player one</h2>
+      <div class="box">
+        <div><div class="ic"><img src="../assets/blaster-pg-sm.webp" alt="" width="677" height="604"></div><b class="cu">1</b><span>Shell-eject blaster</span></div>
+        <div><div class="ic"><svg viewBox="0 0 64 26" style="width:58px"><use href="#i-shell"/></svg></div><b class="cu">6</b><span>Brass-look shells</span></div>
+        <div><div class="ic"><svg viewBox="0 0 46 26" style="width:42px"><use href="#i-bullet"/></svg></div><b class="cu">20</b><span>EVA soft bullets</span></div>
+      </div>
+    </div>
+    <div class="rv">
+      <div class="tag">Stats</div>
+      <ul class="specs" style="margin-top:22px">
+        <li><span>Model</span>M92 / 2011-style</li>
+        <li><span>Action</span>Manual slide, shell ejecting</li>
+        <li><span>Ammo</span>EVA soft foam bullets</li>
+        <li><span>Range</span><div style="text-align:right">up to ~8 m<i class="bar" style="--w:55%"><i></i></i></div></li>
+        <li><span>Length / weight</span>~22 cm · ~300 g</li>
+        <li><span>Power</span>None needed</li>
+        <li><span>Age</span>14+ with supervision</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="deal" style="padding-top:0">
+  <div class="wrap">
+    <div class="deal rv">
+      <div class="pv" id="dealPv"><img src="../assets/blaster-pg.webp" alt="Selected colourway preview" width="1354" height="1208"></div>
+      <div>
+        <div class="tag">Bundle deals</div>
+        <h2 class="disp" style="font-size:clamp(32px,4.4vw,56px);margin:10px 0 4px">Choose players</h2>
+        <div class="players" role="group" aria-label="Number of blasters">
+          <button class="pl" aria-pressed="true" data-q="1"><b>1P</b><small>1 blaster</small></button>
+          <button class="pl" aria-pressed="false" data-q="2"><span class="sv">−10%</span><b>2P</b><small>2 blasters</small></button>
+          <button class="pl" aria-pressed="false" data-q="3"><span class="sv">−15%</span><b>3P</b><small>3 blasters</small></button>
+        </div>
+        <div class="tag" style="color:var(--dim)">Colourway</div>
+        <div class="sw" id="sw" role="group" aria-label="Colourway"></div>
+        <div class="swname" id="swName">Grape / Lime</div>
+        <div class="total"><b id="tot">$15.99</b><s id="was">$24.99</s></div>
+        <button class="btn btn-lime mag" id="dealAdd"><svg><use href="#i-bag"/></svg>Add to cart</button>
+        <p class="note">Colourways other than Grape / Lime are digital previews. Free shipping over $35.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="head rv"><div><div class="tag" style="color:var(--tip)">House rules</div><h2 class="disp">Play safe</h2></div><p>It's a toy, and these rules keep it that way.</p></div>
+    <div class="rules rv">
+      <div><b>Eyes on</b><p>Wear eye protection when playing.</p></div>
+      <div><b>No faces</b><p>Never aim at faces, people who aren't playing, or animals.</p></div>
+      <div><b>Orange tip</b><p>Keep the orange tip on. Never paint or remove it.</p></div>
+      <div><b>Home only</b><p>Play at home or in the yard, never in public places.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="head rv"><div><div class="tag">Player reviews</div><h2 class="disp">From the leaderboard</h2></div></div>
+    <div class="revs">
+      <article class="rev rv"><div class="st" aria-label="5 out of 5"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></div><p>"The shell flying out is the whole point and it never gets old."</p><small>Customer name <span class="sample">Sample review</span></small></article>
+      <article class="rev rv"><div class="st" aria-label="5 out of 5"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></div><p>"Bought two with the bundle so the kids could have a backyard showdown."</p><small>Customer name <span class="sample">Sample review</span></small></article>
+      <article class="rev rv"><div class="st" aria-label="4 out of 5"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg style="opacity:.25"><use href="#i-star"/></svg></div><p>"Colours look even better in person. Grab the refill pack, shells wander."</p><small>Customer name <span class="sample">Sample review</span></small></article>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="big" aria-hidden="true">GAME OVER?</div>
+    <span>POPSHELL · Toy blaster, not a real firearm. Ages 14+.</span>
+    <span>Template by js.17 · prices, specs, codes and reviews are sample content.</span>
+  </div>
+</footer>
+
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, reduced = K.reduced;
+  K.layoutPill(1);
+  const $ = s => document.querySelector(s);
+
+  /* hero title split into chars for the drop-in */
+  let i = 0;
+  document.querySelectorAll('#title .ln').forEach(ln => {
+    const t = ln.textContent; ln.setAttribute('aria-hidden','true'); ln.textContent = '';
+    for (const ch of t){ const s = document.createElement('span'); s.className='c'; s.style.setProperty('--i', i++); s.textContent = ch; ln.appendChild(s); }
+  });
+  $('#title').setAttribute('aria-label','Rack. Eject. Repeat.');
+
+  K.magnetic(document.querySelectorAll('.mag'), .25);
+  K.tilt($('#heroStage'), 8);
+  K.countUp(document.querySelectorAll('.cu'));
+
+  $('#heroAdd').addEventListener('click', e => K.add({variant:'pg', qty:1, from: $('#heroStage img')}));
+
+  /* ---------- bundle / colourway ---------- */
+  let q = 1, wayId = 'pg';
+  const sw = $('#sw');
+  P.colorways.forEach((c, n) => {
+    const b = document.createElement('button');
+    b.style.setProperty('--c1', c.a); b.style.setProperty('--c2', c.b);
+    b.setAttribute('aria-pressed', n === 0); b.setAttribute('aria-label', c.name); b.innerHTML = '<i></i>';
+    b.addEventListener('click', () => setWay(c.id));
+    sw.appendChild(b);
+  });
+  function setWay(id){
+    wayId = id; const c = K.way(id);
+    sw.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.getAttribute('aria-label') === c.name));
+    $('#swName').textContent = c.name + (id === 'pg' ? '' : ' · preview');
+    const pv = $('#dealPv'), old = pv.querySelector('img');
+    const im = new Image(); im.src = K.img(id); im.alt = c.name + ' colourway preview'; im.width = 1354; im.height = 1208; im.className = 'out';
+    pv.appendChild(im); requestAnimationFrame(() => requestAnimationFrame(() => { im.classList.remove('out'); old.classList.add('out'); }));
+    setTimeout(() => old.remove(), 500);
+  }
+  document.querySelectorAll('.pl').forEach(b => b.addEventListener('click', () => {
+    q = +b.dataset.q; document.querySelectorAll('.pl').forEach(x => x.setAttribute('aria-pressed', x === b));
+    const off = K.bundleOff(q);
+    $('#tot').textContent = K.money(P.price * q * (1 - off)); $('#was').textContent = K.money(P.compare * q);
+  }));
+  $('#dealAdd').addEventListener('click', () => K.add({variant: wayId, qty: q, from: $('#dealPv img:last-child')}));
+
+  /* ---------- the range ---------- */
+  const box = $('#range-box'), cross = $('#cross'), gun = $('#gun');
+  const LANES = [{y:.30, v:70, n:4},{y:.52, v:-105, n:3},{y:.74, v:150, n:3}];
+  const TARGET = '<svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="34" fill="#9b5cf6"/><circle cx="36" cy="36" r="25" fill="#f3eeff"/><circle cx="36" cy="36" r="17" fill="#b4f54a"/><circle cx="36" cy="36" r="8" fill="#ff6a3d"/></svg>';
+  const targets = [];
+  LANES.forEach(L => {
+    const lane = document.createElement('div'); lane.className='lane'; lane.style.top = (L.y*100)+'%'; box.appendChild(lane);
+    for (let k=0;k<L.n;k++){
+      const t = document.createElement('div'); t.className='target'; t.innerHTML = TARGET; box.appendChild(t);
+      targets.push({el:t, lane:L, x:k/L.n, down:false});
+    }
+  });
+  let W = box.clientWidth, H = box.clientHeight;
+  new ResizeObserver(() => { W = box.clientWidth; H = box.clientHeight; place(); }).observe(box);
+  function place(){
+    targets.forEach(t => { t.el.style.left = (t.x * (W + 140) - 70) + 'px'; t.el.style.top = (t.lane.y * H) + 'px'; });
+  }
+  place();
+  let visible = false, last = performance.now();
+  new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible) { last = performance.now(); requestAnimationFrame(loop); } }).observe(box);
+  function loop(now){
+    if (!visible) return;
+    const dt = Math.min(.05, (now - last)/1000); last = now;
+    if (!reduced) targets.forEach(t => { t.x += t.lane.v * dt / (W + 140); if (t.x > 1) t.x -= 1; if (t.x < 0) t.x += 1; });
+    place();
+    if (playing){
+      left = Math.max(0, end - now); $('#time').textContent = (left/1000).toFixed(1);
+      if (left <= 0) finish();
+    }
+    requestAnimationFrame(loop);
+  }
+
+  /* aim */
+  let aimX = 0, aimY = 0;
+  function aim(x, y){
+    aimX = Math.max(0, Math.min(W, x)); aimY = Math.max(0, Math.min(H, y));
+    cross.style.transform = `translate(${aimX}px,${aimY}px)`;
+    const g = gun.getBoundingClientRect(), b = box.getBoundingClientRect();
+    const mx = g.left - b.left + g.width*.03, my = g.top - b.top + g.height*.53;
+    const ang = Math.atan2(aimY - my, aimX - mx) * 180/Math.PI;
+    const base = 160.5; let d = ((ang < 0 ? ang + 360 : ang) - base);
+    d = Math.max(-28, Math.min(22, d));
+    if (!reduced) gun.style.transform = `rotate(${d}deg)`;
+  }
+  box.addEventListener('pointermove', e => { const r = box.getBoundingClientRect(); aim(e.clientX - r.left, e.clientY - r.top); });
+
+  /* game state */
+  let playing = false, score = 0, ammo = 20, shellsOut = 0, end = 0, left = 30000, best = 0;
+  try { best = +(localStorage.getItem('popshell-hiscore') || 0); } catch(e){}
+  const pad = (n, l=4) => String(n).padStart(l,'0');
+  $('#hiTop').textContent = pad(best);
+  const ammoEl = $('#ammo');
+  function drawAmmo(){
+    ammoEl.innerHTML = Array.from({length:20}, (_, k) => `<i class="${k >= ammo ? 'used' : ''}"></i>`).join('');
+    $('#ammoN').textContent = ammo; $('#reloadBtn').hidden = !(playing && ammo === 0);
+  }
+  drawAmmo();
+  function start(){
+    score = 0; ammo = 20; shellsOut = 0; playing = true; end = performance.now() + 30000;
+    $('#score').textContent = pad(0); $('#shells').textContent = '00';
+    $('#start').hidden = true; $('#end').hidden = true; box.classList.add('live'); drawAmmo(); box.focus({preventScroll:true});
+    aim(W*.45, H*.5);
+    targets.forEach(t => { t.down = false; t.el.classList.remove('down'); });
+  }
+  function finish(){
+    playing = false; box.classList.remove('live'); $('#reloadBtn').hidden = true;
+    if (score > best){ best = score; try { localStorage.setItem('popshell-hiscore', best); } catch(e){} }
+    $('#hiTop').textContent = pad(best);
+    $('#endTitle').textContent = score >= 300 ? 'Code unlocked' : 'Round over';
+    $('#endText').textContent = `Score ${score} · best ${best} · ${shellsOut} shells ejected` + (score >= 300 ? '' : ' · reach 300 for the code');
+    $('#code').hidden = score < 300; $('#end').hidden = false;
+  }
+  $('#go').addEventListener('click', e => { e.stopPropagation(); start(); });
+  $('#again').addEventListener('click', e => { e.stopPropagation(); start(); });
+  $('#copy').addEventListener('click', e => {
+    e.stopPropagation();
+    (navigator.clipboard ? navigator.clipboard.writeText('RANGE10') : Promise.reject()).then(() => K.toast('Code copied (sample code)'), () => K.toast('Code: RANGE10 (sample)'));
+  });
+  $('#reloadBtn').addEventListener('click', e => { e.stopPropagation(); reload(); });
+
+  function reload(){
+    if (!playing || ammo === 20) return;
+    gun.animate([{translate:'0 0'},{translate:'0 30px', rotate:'8deg'},{translate:'0 0'}],{duration:420,easing:'ease-in-out'});
+    setTimeout(() => { ammo = 20; drawAmmo(); }, 300);
+  }
+
+  function fire(){
+    if (!playing) return;
+    if (ammo <= 0){ K.toast('Out of bullets — press R to reload'); return; }
+    ammo--; drawAmmo();
+    const b = box.getBoundingClientRect(), g = gun.querySelector('img').getBoundingClientRect();
+    // muzzle and ejection port positions follow the rotated image's box closely enough
+    const mx = g.left - b.left + g.width*.03, my = g.top - b.top + g.height*.53;
+    const px = g.left - b.left + g.width*.36, py = g.top - b.top + g.height*.36;
+    gun.classList.remove('kick'); void gun.offsetWidth; gun.classList.add('kick');
+    // bullet
+    const bl = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    bl.setAttribute('viewBox','0 0 46 26'); bl.innerHTML = '<use href="#i-bullet"/>';
+    const ang = Math.atan2(aimY - my, aimX - mx);
+    Object.assign(bl.style,{position:'absolute',left:'0',top:'0',width:'34px',height:'20px',zIndex:3,pointerEvents:'none',transformOrigin:'50% 50%'});
+    box.appendChild(bl);
+    const rot = ang*180/Math.PI + 180;
+    const tx = aimX, ty = aimY;
+    const fl = bl.animate([
+      {transform:`translate(${mx-17}px,${my-10}px) rotate(${rot}deg) scale(1)`},
+      {transform:`translate(${tx-17}px,${ty-10}px) rotate(${rot}deg) scale(.7)`}
+    ],{duration: reduced ? 1 : 170, easing:'linear'});
+    fl.onfinish = () => { bl.remove(); hit(tx, ty); };
+    // shell
+    shellsOut++; $('#shells').textContent = pad(shellsOut,2);
+    const sh = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    sh.setAttribute('viewBox','0 0 64 26'); sh.innerHTML = '<use href="#i-shell"/>';
+    Object.assign(sh.style,{position:'absolute',left:'0',top:'0',width:'30px',height:'12px',zIndex:2,pointerEvents:'none'});
+    box.appendChild(sh);
+    const vx = 60 + Math.random()*90, up = 120 + Math.random()*60, spin = 540 + Math.random()*540;
+    const frames = []; const steps = 12, fall = H - py + 40;
+    for (let s=0;s<=steps;s++){
+      const k = s/steps, x = px + vx*k*2.2, y = py - up*Math.sin(Math.PI*Math.min(k*1.4,1)/2)*(1-k) + (k*k)*fall;
+      frames.push({transform:`translate(${x}px,${y}px) rotate(${spin*k}deg)`});
+    }
+    sh.animate(frames,{duration: reduced ? 1 : 900, easing:'linear'}).onfinish = () => sh.remove();
+  }
+
+  function hit(x, y){
+    let got = null, dist = 99;
+    targets.forEach(t => {
+      if (t.down) return;
+      const tx = t.x*(W+140)-70, ty = t.lane.y*H, d = Math.hypot(tx-x, ty-y);
+      if (d < 36 && d < dist){ dist = d; got = t; }
+    });
+    if (!got) return;
+    const pts = dist < 9 ? 50 : dist < 18 ? 25 : 10;
+    score += pts; $('#score').textContent = pad(score);
+    got.down = true; got.el.classList.add('down');
+    setTimeout(() => { got.down = false; got.el.classList.remove('down'); }, 1300);
+    const p = document.createElement('div'); p.className='pop'; p.textContent = '+' + pts;
+    p.style.left = (x-14)+'px'; p.style.top = (y-30)+'px'; box.appendChild(p); setTimeout(() => p.remove(), 800);
+    if (!reduced) for (let k=0;k<10;k++){
+      const s = document.createElement('i');
+      Object.assign(s.style,{position:'absolute',left:x+'px',top:y+'px',width:'6px',height:'6px',background:k%2?'#b4f54a':'#9b5cf6',zIndex:3,pointerEvents:'none'});
+      box.appendChild(s);
+      const a = Math.random()*Math.PI*2, r = 40 + Math.random()*50;
+      s.animate([{transform:'translate(0,0)',opacity:1},{transform:`translate(${Math.cos(a)*r}px,${Math.sin(a)*r}px) rotate(180deg)`,opacity:0}],{duration:600,easing:'cubic-bezier(.2,.8,.2,1)'}).onfinish = () => s.remove();
+    }
+  }
+
+  box.addEventListener('pointerdown', e => {
+    if (!playing || e.target.closest('button')) return;
+    const r = box.getBoundingClientRect(); aim(e.clientX - r.left, e.clientY - r.top); fire();
+  });
+  box.addEventListener('keydown', e => {
+    const step = 26;
+    if (e.key === 'ArrowLeft'){ aim(aimX-step, aimY); e.preventDefault(); }
+    else if (e.key === 'ArrowRight'){ aim(aimX+step, aimY); e.preventDefault(); }
+    else if (e.key === 'ArrowUp'){ aim(aimX, aimY-step); e.preventDefault(); }
+    else if (e.key === 'ArrowDown'){ aim(aimX, aimY+step); e.preventDefault(); }
+    else if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); if (!playing && !$('#start').hidden) start(); else fire(); }
+    else if (e.key === 'r' || e.key === 'R'){ reload(); }
+  });
+})();
+</script>
+</body>
+</html>

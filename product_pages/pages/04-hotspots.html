@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exploded View</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+@property --e{syntax:"<number>";inherits:true;initial-value:0}
+:root{
+  color-scheme:dark;
+  --bg:#170d2b;--bg2:#21133d;--card:#2a1a4b;--ink:#efe8ff;--dim:#a99bc9;--lime:#b6f05a;--tip:#ff6a3d;--line:rgba(239,232,255,.14);
+  --kit-bg:#21133d;--kit-fg:#efe8ff;--kit-muted:#a99bc9;--kit-accent:#b6f05a;--kit-accent-fg:#170d2b;--kit-line:rgba(239,232,255,.12);--kit-radius:999px;--kit-font:"Work Sans",sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Work Sans",system-ui,sans-serif;font-size:17px;line-height:1.55;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.syne{font-family:"Syne",system-ui,sans-serif;letter-spacing:-.02em}
+.wrap{width:min(1320px,100% - 32px);margin-inline:auto}
+.k{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--lime);font-weight:600}
+
+header{position:sticky;top:0;z-index:30;background:rgba(23,13,43,.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;gap:20px;height:66px}
+.logo{font-family:Syne;font-weight:800;font-size:21px;text-decoration:none;display:flex;gap:8px;align-items:center}
+.logo i{width:12px;height:12px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 4px rgba(182,240,90,.2)}
+header nav{display:flex;gap:6px;margin-left:auto}
+header nav a{text-decoration:none;color:var(--dim);padding:8px 14px;border-radius:99px;font-size:15px;transition:background .2s,color .2s}
+header nav a:hover{background:var(--bg2);color:var(--ink)}
+.cartb{appearance:none;border:0;background:var(--lime);color:var(--bg);height:42px;padding:0 16px;border-radius:99px;display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600}
+.cartb svg{width:18px;height:18px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(300px,.78fr) 1.22fr;gap:32px;align-items:center;padding:40px 0 30px}
+h1{font-family:Syne;font-weight:800;font-size:clamp(42px,5vw,74px);line-height:.95;margin:14px 0 18px;letter-spacing:-.035em}
+h1 .w{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:.04em}
+h1 .w>span{display:inline-block;animation:up .9s cubic-bezier(.2,.8,.1,1) both;animation-delay:calc(var(--i)*80ms)}
+@keyframes up{from{transform:translateY(105%)}}
+h1 em{font-style:normal;color:var(--lime)}
+.intro{color:var(--dim);max-width:440px;margin:0 0 24px}
+.ctrl{background:var(--bg2);border:1px solid var(--line);border-radius:22px;padding:18px;display:grid;gap:14px;max-width:460px}
+.ctrl label{display:flex;justify-content:space-between;font-size:14px;color:var(--dim)}
+.ctrl label b{color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:6px;background:linear-gradient(90deg,var(--lime) calc(var(--v,0)*1%),rgba(239,232,255,.15) 0)}
+input[type=range]::-moz-range-track{height:6px;border-radius:6px;background:rgba(239,232,255,.15)}
+input[type=range]::-moz-range-progress{height:6px;border-radius:6px;background:var(--lime)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--ink);margin-top:-10px;box-shadow:0 0 0 6px rgba(182,240,90,.25);cursor:grab}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--ink);border:0;box-shadow:0 0 0 6px rgba(182,240,90,.25)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{appearance:none;border:1px solid var(--line);background:transparent;border-radius:99px;padding:9px 14px;cursor:pointer;font-size:14px;font-weight:500;display:inline-flex;gap:8px;align-items:center;transition:background .2s,border-color .2s,color .2s}
+.chip:hover{border-color:var(--lime)}
+.chip[aria-pressed="true"]{background:var(--lime);color:var(--bg);border-color:var(--lime)}
+.buyrow{display:flex;align-items:center;gap:16px;margin-top:22px;flex-wrap:wrap}
+.buyrow .p{font-family:Syne;font-weight:800;font-size:38px;line-height:1}
+.buyrow .p s{font-family:"Work Sans";font-weight:400;font-size:16px;color:var(--dim);margin-left:6px}
+.btn{appearance:none;border:0;background:var(--lime);color:var(--bg);border-radius:99px;padding:16px 26px;font-weight:600;cursor:pointer;display:inline-flex;gap:10px;align-items:center;position:relative;overflow:hidden;isolation:isolate;text-decoration:none}
+.btn::after{content:"";position:absolute;inset:0;background:var(--ink);border-radius:inherit;transform:scale(0);transition:transform .45s cubic-bezier(.2,.8,.2,1);z-index:-1}
+.btn:hover::after{transform:scale(1)}
+.btn svg{width:18px;height:18px}
+
+/* stage */
+.stage{position:relative;aspect-ratio:1354/1208;--e:0;transition:--e .9s cubic-bezier(.3,1.3,.4,1)}
+.stage.drag{transition:none}
+.halo{position:absolute;inset:-6% -8%;border-radius:50%;background:radial-gradient(closest-side,rgba(155,92,246,.45),transparent);z-index:0;pointer-events:none}
+.grid{position:absolute;inset:-4%;z-index:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:44px 44px;-webkit-mask:radial-gradient(closest-side,#000,transparent);mask:radial-gradient(closest-side,#000,transparent);opacity:.6;pointer-events:none}
+.parts{position:absolute;inset:0;z-index:1;filter:drop-shadow(0 24px 30px rgba(0,0,0,.45))}
+.part{position:absolute;inset:0;transition:filter .5s}
+.part img{width:100%;height:100%}
+.part.s{clip-path:polygon(0% 0%,100% 0%,100% 14%,89% 16%,80% 21%,75% 24.5%,66% 30%,60% 33%,50% 40%,41% 47%,18% 57%,0% 61%);transform:translate(calc(var(--e)*-3%),calc(var(--e)*-15%)) rotate(calc(var(--e)*-3deg))}
+.part.f{clip-path:polygon(0% 61%,18% 57%,41% 47%,50% 40%,60% 33%,66% 30%,75% 24.5%,80% 21%,89% 16%,100% 14%,100% 69%,96% 69%,93% 71%,90% 80%,84% 85.5%,68% 88%,68% 100%,0% 100%)}
+.part.m{clip-path:polygon(68% 88%,84% 85.5%,90% 80%,93% 71%,96% 69%,100% 69%,100% 100%,68% 100%);transform:translate(calc(var(--e)*1.5%),calc(var(--e)*13%)) rotate(calc(var(--e)*3deg))}
+.xray .part img{filter:grayscale(1) invert(1) brightness(.9) contrast(1.6) sepia(1) hue-rotate(150deg) saturate(3)}
+.xray .parts{filter:drop-shadow(0 0 12px rgba(125,220,255,.5))}
+.xray .grid{opacity:1;background-image:linear-gradient(rgba(125,220,255,.25) 1px,transparent 1px),linear-gradient(90deg,rgba(125,220,255,.25) 1px,transparent 1px)}
+.flyshell{position:absolute;width:9%;height:auto;left:calc(31% + var(--e)*8%);top:calc(33% - var(--e)*22%);transform:rotate(calc(var(--e)*-160deg));opacity:clamp(0,calc(var(--e)*3 - .3),1);z-index:2;pointer-events:none}
+.flybullet{position:absolute;width:6.5%;height:auto;left:calc(1% - var(--e)*9%);top:calc(51% - var(--e)*4%);transform:rotate(180deg);opacity:clamp(0,calc(var(--e)*3 - .3),1);z-index:2;pointer-events:none}
+.plabel{position:absolute;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--lime);opacity:clamp(0,calc(var(--e)*2.4 - .6),1);pointer-events:none;z-index:2;white-space:nowrap}
+.plabel::before{content:"";display:inline-block;width:22px;height:1px;background:currentColor;vertical-align:middle;margin-right:8px}
+.hs{position:absolute;z-index:4;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:0;padding:0;cursor:pointer;background:var(--ink);color:var(--bg);font:700 13px/34px "Syne";
+  left:calc(var(--x) + var(--e)*var(--dx,0%));top:calc(var(--y) + var(--e)*var(--dy,0%));transition:transform .25s,background .25s}
+.hs::before,.hs::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid var(--ink);animation:ping 2.2s cubic-bezier(.2,.8,.2,1) infinite;pointer-events:none}
+.hs::after{animation-delay:1.1s}
+@keyframes ping{from{transform:scale(.7);opacity:1}to{transform:scale(1.9);opacity:0}}
+.hs:hover,.hs[aria-expanded="true"]{background:var(--lime);transform:scale(1.15)}
+.hs[aria-expanded="true"]::before,.hs[aria-expanded="true"]::after{border-color:var(--lime)}
+.card{position:absolute;z-index:6;width:280px;background:rgba(42,26,75,.94);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:20px;padding:18px 18px 14px;box-shadow:0 30px 60px rgba(0,0,0,.4);transition:opacity .25s,transform .35s cubic-bezier(.2,.8,.2,1)}
+.card.hide{opacity:0;transform:translateY(10px) scale(.97);pointer-events:none}
+.card .n{font-size:12px;color:var(--dim);letter-spacing:.14em}
+.card h3{font-family:Syne;font-size:24px;margin:4px 0 6px;line-height:1.05}
+.card p{margin:0;font-size:15px;color:#d9cff0}
+.card nav{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.card nav button{appearance:none;border:1px solid var(--line);background:transparent;border-radius:99px;padding:6px 12px;cursor:pointer;font-size:13px}
+.card nav button:hover{border-color:var(--lime)}
+.card .x{position:absolute;right:10px;top:10px;appearance:none;border:0;background:transparent;width:30px;height:30px;border-radius:50%;cursor:pointer;display:grid;place-items:center}
+.card .x svg{width:14px;height:14px}
+.lens{position:absolute;width:190px;height:190px;border-radius:50%;overflow:hidden;z-index:5;pointer-events:none;border:2px solid var(--lime);box-shadow:0 20px 50px rgba(0,0,0,.5),inset 0 0 0 6px rgba(23,13,43,.4);opacity:0;transition:opacity .2s;background:var(--bg)}
+.lens.on{opacity:1}
+.lens .inner{position:absolute;left:0;top:0;transform-origin:0 0}
+.hint{position:absolute;left:0;bottom:-6px;font-size:13px;color:var(--dim);display:flex;gap:8px;align-items:center}
+
+/* tour list */
+section{padding:90px 0}
+.sh{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:30px;flex-wrap:wrap}
+.sh h2{font-family:Syne;font-weight:800;font-size:clamp(34px,4.6vw,64px);line-height:.95;margin:10px 0 0;letter-spacing:-.03em}
+.sh p{max-width:420px;color:var(--dim);margin:0}
+.tour{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ti{appearance:none;text-align:left;cursor:pointer;background:var(--bg2);border:1px solid var(--line);border-radius:22px;padding:22px;display:grid;gap:8px;transition:transform .35s cubic-bezier(.2,.8,.2,1),border-color .25s,background .25s}
+.ti:hover{transform:translateY(-4px);border-color:var(--lime)}
+.ti b{font-family:Syne;font-size:22px}
+.ti span{color:var(--dim);font-size:15px}
+.ti i{font-style:normal;font-family:Syne;font-weight:800;color:var(--lime);font-size:14px}
+
+/* blueprint dims */
+.bp{position:relative;border-radius:28px;overflow:hidden;background:#0f2a4a;background-image:linear-gradient(rgba(125,220,255,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(125,220,255,.14) 1px,transparent 1px);background-size:32px 32px;padding:clamp(20px,5vw,70px);display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:center;color:#d8f2ff}
+.bp .fig{position:relative}
+.bp .fig img{filter:grayscale(1) invert(1) contrast(1.5) brightness(.95) sepia(1) hue-rotate(160deg) saturate(2.5);mix-blend-mode:screen;opacity:.95}
+.bp svg.dim{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.bp .dim line{stroke:#7ddcff;stroke-width:1.5;vector-effect:non-scaling-stroke}
+.bp .dim text{fill:#d8f2ff;font:600 3.2px "Work Sans"}
+.bp dl{display:grid;grid-template-columns:auto 1fr;gap:12px 22px;margin:0;font-size:15px}
+.bp dt{color:#7ddcff;letter-spacing:.12em;text-transform:uppercase;font-size:12px;padding-top:3px}
+.bp dd{margin:0}
+.bp h3{font-family:Syne;font-size:clamp(28px,3vw,44px);margin:0 0 20px;line-height:1}
+
+/* buy */
+.buy{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.panel{background:var(--bg2);border:1px solid var(--line);border-radius:28px;padding:clamp(20px,3vw,36px)}
+.ways{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 20px}
+.way{appearance:none;border:1px solid var(--line);background:var(--bg);border-radius:18px;padding:8px;cursor:pointer;transition:border-color .2s,transform .3s}
+.way img{width:100%}
+.way small{display:block;font-size:11px;color:var(--dim);margin-top:4px;line-height:1.2}
+.way[aria-pressed="true"]{border-color:var(--lime);transform:translateY(-3px)}
+.qtys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.qty{appearance:none;border:1px solid var(--line);background:transparent;border-radius:16px;padding:14px;text-align:left;cursor:pointer}
+.qty b{display:block;font-family:Syne;font-size:20px}
+.qty small{color:var(--dim)}
+.qty[aria-pressed="true"]{border-color:var(--lime);background:rgba(182,240,90,.08)}
+.box{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.box div{background:var(--bg);border-radius:18px;padding:16px;display:grid;gap:8px}
+.box b{font-family:Syne;font-size:40px;line-height:1;color:var(--lime)}
+.box svg{width:48px;height:20px}
+.safe{display:flex;gap:14px;align-items:flex-start;margin-top:16px;padding:16px;border-radius:18px;border:1px solid rgba(255,106,61,.4);font-size:14px;color:#ffd9cc}
+.safe svg{width:26px;height:26px;flex:none;color:var(--tip)}
+.sample{font-size:11px;letter-spacing:.12em;color:var(--dim);border:1px solid var(--line);border-radius:99px;padding:2px 8px;margin-left:6px}
+.revs{display:grid;gap:12px;margin-top:16px}
+.revs p{margin:0;padding:16px;background:var(--bg);border-radius:18px;font-size:15px}
+footer{border-top:1px solid var(--line);padding:30px 0 90px;color:var(--dim);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@supports (animation-timeline:view()){
+  .rv{animation:rv linear both;animation-timeline:view();animation-range:entry 0% entry 100%}
+  @keyframes rv{from{transform:translateY(60px) scale(.98)}}
+}
+@media (max-width:1000px){
+  .hero{grid-template-columns:1fr}
+  .stage{max-width:720px;width:100%;margin-inline:auto}
+  .tour{grid-template-columns:1fr 1fr}
+  .bp,.buy{grid-template-columns:1fr}
+  header nav{display:none}
+  .cartb{margin-left:auto}
+}
+@media (max-width:640px){
+  .tour{grid-template-columns:1fr}
+  .card{position:relative;left:auto!important;top:auto!important;width:100%;margin-top:16px}
+  .card.hide{display:none}
+  .ways{grid-template-columns:repeat(2,1fr)}
+  .qtys{grid-template-columns:1fr}
+  .plabel{display:none}
+  .hs{width:28px;height:28px;margin:-14px 0 0 -14px;line-height:28px;font-size:11px}
+  .lens{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="logo" href="#top"><i></i>popshell</a>
+    <nav aria-label="Sections"><a href="#tour">Tour</a><a href="#dims">Dimensions</a><a href="#buy">Buy</a></nav>
+    <button class="cartb" data-cart-open aria-label="Open cart"><svg><use href="#i-bag"/></svg><span data-cart-count>0</span></button>
+  </div>
+</header>
+
+<main id="top" class="wrap" style="overflow-x:clip">
+  <section class="hero" style="padding-top:40px">
+    <div>
+      <div class="k">M92 Shell-Eject Soft Blaster</div>
+      <h1 id="h1">Take it apart. <em>See</em> how it works.</h1>
+      <p class="intro">Drag the slider to pull the blaster into its parts, tap the numbered points for a guided tour, or switch on X-ray.</p>
+      <div class="ctrl">
+        <label for="ex">Explode <b id="exv">0%</b></label>
+        <input id="ex" type="range" min="0" max="100" value="0" aria-label="Explode view amount">
+        <div class="chips">
+          <button class="chip" id="xr" aria-pressed="false">X-ray</button>
+          <button class="chip" id="ln" aria-pressed="true">Magnifier</button>
+          <button class="chip" id="tourBtn">Start tour <svg width="16" height="16"><use href="#i-arrow"/></svg></button>
+        </div>
+      </div>
+      <div class="buyrow">
+        <span class="p">$15.99<s>$24.99</s></span>
+        <button class="btn" id="heroAdd"><svg><use href="#i-bag"/></svg>Add to cart</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="stage" id="stage">
+        <div class="halo" aria-hidden="true"></div>
+        <div class="grid" aria-hidden="true"></div>
+        <div class="parts" id="parts">
+          <div class="part f"><img src="../assets/blaster-pg.webp" alt="" width="1354" height="1208"></div>
+          <div class="part m"><img src="../assets/blaster-pg.webp" alt="" width="1354" height="1208"></div>
+          <div class="part s"><img src="../assets/blaster-pg.webp" alt="M92 toy blaster, purple slide and lime grip; parts separate with the explode slider" width="1354" height="1208"></div>
+          <svg class="flyshell" viewBox="0 0 64 26" aria-hidden="true"><use href="#i-shell"/></svg>
+          <svg class="flybullet" viewBox="0 0 46 26" aria-hidden="true"><use href="#i-bullet"/></svg>
+          <span class="plabel" style="left:44%;top:calc(4% - var(--e)*6%)">Slide assembly</span>
+          <span class="plabel" style="left:6%;top:76%">Frame + trigger</span>
+          <span class="plabel" style="left:48%;top:calc(90% + var(--e)*8%)">Magazine</span>
+        </div>
+        <div id="spots"></div>
+        <div class="lens" id="lens" aria-hidden="true"><div class="inner" id="lensIn"></div></div>
+        <div class="card hide" id="card" role="dialog" aria-live="polite" aria-label="Feature detail">
+          <button class="x" id="cardX" aria-label="Close"><svg><use href="#i-x"/></svg></button>
+          <div class="n" id="cardN">01 / 06</div>
+          <h3 id="cardT"></h3>
+          <p id="cardP"></p>
+          <nav><button id="prev">← Prev</button><button id="next">Next →</button></nav>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tour">
+    <div class="sh rv"><div><div class="k">Feature tour</div><h2>Six details,<br>one blaster</h2></div><p>Each card opens the matching point on the model above.</p></div>
+    <div class="tour" id="tourList"></div>
+  </section>
+
+  <section id="dims" style="padding-top:0">
+    <div class="bp rv">
+      <div class="fig">
+        <img src="../assets/blaster-pg.webp" alt="Blueprint view of the blaster with dimension lines" width="1354" height="1208">
+        <svg class="dim" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="0" y1="104" x2="100" y2="104"/><line x1="0" y1="101" x2="0" y2="107"/><line x1="100" y1="101" x2="100" y2="107"/>
+          <line x1="104" y1="0" x2="104" y2="100"/><line x1="101" y1="0" x2="107" y2="0"/><line x1="101" y1="100" x2="107" y2="100"/>
+        </svg>
+        <span style="position:absolute;left:50%;top:104%;transform:translate(-50%,6px);font-size:13px;color:#d8f2ff">≈ 22 cm</span>
+        <span style="position:absolute;left:104%;top:50%;transform:translate(8px,-50%) rotate(90deg);transform-origin:left center;font-size:13px;color:#d8f2ff;white-space:nowrap">≈ 15 cm</span>
+      </div>
+      <div>
+        <div class="k" style="color:#7ddcff">Blueprint</div>
+        <h3>Numbers that matter</h3>
+        <dl>
+          <dt>Length</dt><dd>≈ 22 cm</dd>
+          <dt>Height</dt><dd>≈ 15 cm</dd>
+          <dt>Weight</dt><dd>≈ 300 g</dd>
+          <dt>Ammo</dt><dd>EVA soft bullets in reusable shells</dd>
+          <dt>Range</dt><dd>up to ≈ 8 m</dd>
+          <dt>Power</dt><dd>Manual, no batteries</dd>
+          <dt>Age</dt><dd>14+ with supervision</dd>
+        </dl>
+        <p style="font-size:12px;opacity:.7;margin-top:20px">Sample specifications for this template.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="buy" style="padding-top:0">
+    <div class="sh rv"><div><div class="k">Buy</div><h2>Assemble your order</h2></div></div>
+    <div class="buy">
+      <div class="panel rv">
+        <div class="k">1 · Colourway</div>
+        <div class="ways" id="ways"></div>
+        <div class="k">2 · Bundle</div>
+        <div class="qtys" style="margin-top:14px">
+          <button class="qty" aria-pressed="true" data-q="1"><b>×1</b><small>$15.99</small></button>
+          <button class="qty" aria-pressed="false" data-q="2"><b>×2</b><small>save 10%</small></button>
+          <button class="qty" aria-pressed="false" data-q="3"><b>×3</b><small>save 15%</small></button>
+        </div>
+        <div class="buyrow"><span class="p" id="tot">$15.99</span><button class="btn" id="buyAdd"><svg><use href="#i-bag"/></svg>Add to cart</button></div>
+        <p style="font-size:13px;color:var(--dim);margin:14px 0 0">Grape / Lime is photographed; other colourways are digital previews. Delivery estimate: <span id="eta"></span>.</p>
+      </div>
+      <div class="panel rv">
+        <div class="k">In the box</div>
+        <div class="box">
+          <div><b class="cu">1</b>Blaster</div>
+          <div><svg><use href="#i-shell"/></svg><b class="cu">6</b>Shells</div>
+          <div><svg viewBox="0 0 46 26" style="width:40px"><use href="#i-bullet"/></svg><b class="cu">20</b>Soft bullets</div>
+        </div>
+        <div class="safe"><svg><use href="#i-shield"/></svg><span>Toy blaster, not a real firearm. Wear eye protection, never aim at faces or animals, keep the orange tip on, and don't carry it in public. Ages 14+.</span></div>
+        <div class="revs">
+          <p>"Pulling the slide and watching the shell fly never gets old." <span class="sample">Sample review</span></p>
+          <p>"Bundle of two was perfect for my nephews." <span class="sample">Sample review</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap"><span>Popshell · Exploded View layout</span><span>Template by js.17 · prices, specs and reviews are sample content.</span></div></footer>
+
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s);
+  K.layoutPill(4);
+  K.countUp(document.querySelectorAll('.cu'));
+
+  /* headline word rise */
+  const h = $('#h1'); const html = h.innerHTML; let i = 0;
+  h.setAttribute('aria-label', h.textContent);
+  h.innerHTML = html.replace(/<em>(.*?)<\/em>|([^\s<]+)/g, (m, em, w) => `<span class="w" aria-hidden="true"><span style="--i:${i++}">${em ? '<em>' + em + '</em>' : w}</span></span>`);
+
+  const stage = $('#stage'), ex = $('#ex');
+  function setE(v, instant){
+    stage.classList.toggle('drag', !!instant);
+    stage.style.setProperty('--e', (v/100).toFixed(3));
+    ex.value = v; ex.style.setProperty('--v', v); $('#exv').textContent = Math.round(v) + '%';
+  }
+  ex.addEventListener('input', () => setE(+ex.value, true));
+  ex.addEventListener('change', () => stage.classList.remove('drag'));
+  // a little demo on load so the interaction is discoverable
+  if (!K.reduced){ setTimeout(() => setE(70), 700); setTimeout(() => setE(30), 1900); } else setE(30, true);
+
+  $('#xr').addEventListener('click', e => { const on = e.currentTarget.getAttribute('aria-pressed') !== 'true'; e.currentTarget.setAttribute('aria-pressed', on); stage.classList.toggle('xray', on); });
+
+  /* hotspots */
+  const SP = [
+    {x:'5%', y:'52%', dx:'-3%', dy:'-15%', t:'Orange safety tip', p:'A bright orange muzzle marks it clearly as a toy. It stays on, always.'},
+    {x:'35%', y:'37%', dx:'-3%', dy:'-15%', t:'Ejection port', p:'Rack the slide and the brass-look shell pops out of here with a satisfying clack.'},
+    {x:'76%', y:'15%', dx:'-3%', dy:'-15%', t:'Slide serrations', p:'Deep grooves give fingers something to pull on, even for smaller hands.'},
+    {x:'42.5%', y:'60%', dx:'0%', dy:'0%', t:'Trigger', p:'A light pull fires the soft EVA bullet. No batteries, fully manual.'},
+    {x:'80%', y:'55%', dx:'0%', dy:'0%', t:'Scaled grip', p:'Lime grip panels with a scale texture that stays put when hands get sweaty.'},
+    {x:'80%', y:'92%', dx:'1.5%', dy:'13%', t:'Magazine', p:'Holds the loaded shells. Six come in the box, refills add twelve more.'}
+  ];
+  const spots = $('#spots'), card = $('#card');
+  let cur = -1;
+  SP.forEach((s, n) => {
+    const b = document.createElement('button'); b.className = 'hs'; b.textContent = n + 1;
+    b.style.cssText = `--x:${s.x};--y:${s.y};--dx:${s.dx};--dy:${s.dy}`;
+    b.setAttribute('aria-label', `Feature ${n+1}: ${s.t}`); b.setAttribute('aria-expanded', 'false');
+    b.addEventListener('click', () => cur === n ? close() : open(n));
+    spots.appendChild(b);
+    const ti = document.createElement('button'); ti.className = 'ti rv';
+    ti.innerHTML = `<i>0${n+1}</i><b>${s.t}</b><span>${s.p}</span>`;
+    ti.addEventListener('click', () => { stage.scrollIntoView({behavior: K.reduced ? 'auto' : 'smooth', block:'center'}); setTimeout(() => open(n), 450); });
+    $('#tourList').appendChild(ti);
+  });
+  function open(n){
+    cur = n; const s = SP[n];
+    spots.querySelectorAll('.hs').forEach((b, k) => b.setAttribute('aria-expanded', k === n));
+    $('#cardN').textContent = String(n+1).padStart(2,'0') + ' / 06'; $('#cardT').textContent = s.t; $('#cardP').textContent = s.p;
+    const b = spots.children[n], r = stage.getBoundingClientRect(), br = b.getBoundingClientRect();
+    const x = br.left - r.left, y = br.top - r.top, cw = 280;
+    let left = x > r.width / 2 ? x - cw - 26 : x + 40; left = Math.max(0, Math.min(r.width - cw, left));
+    let top = Math.max(0, Math.min(r.height - 200, y - 60));
+    card.style.left = left + 'px'; card.style.top = top + 'px';
+    card.classList.remove('hide');
+  }
+  function close(){ cur = -1; card.classList.add('hide'); spots.querySelectorAll('.hs').forEach(b => b.setAttribute('aria-expanded', 'false')); }
+  $('#cardX').addEventListener('click', close);
+  $('#next').addEventListener('click', () => open((cur + 1) % 6));
+  $('#prev').addEventListener('click', () => open((cur + 5) % 6));
+  $('#tourBtn').addEventListener('click', () => open(0));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+
+  /* magnifier: a scaled clone of the parts layer so it matches the exploded state */
+  const lens = $('#lens'), lin = $('#lensIn'), Z = 2.4;
+  let lensOn = K.finePointer;
+  $('#ln').setAttribute('aria-pressed', lensOn);
+  $('#ln').addEventListener('click', e => { lensOn = !lensOn; e.currentTarget.setAttribute('aria-pressed', lensOn); if (!lensOn) lens.classList.remove('on'); });
+  const clone = $('#parts').cloneNode(true); clone.removeAttribute('id'); clone.querySelectorAll('.plabel').forEach(p => p.remove());
+  clone.querySelectorAll('img').forEach(im => im.alt = '');
+  lin.appendChild(clone);
+  function sizeClone(){ const r = stage.getBoundingClientRect(); lin.style.width = r.width + 'px'; lin.style.height = r.height + 'px'; clone.style.position = 'absolute'; }
+  sizeClone(); new ResizeObserver(sizeClone).observe(stage);
+  stage.addEventListener('pointermove', e => {
+    if (!lensOn || e.pointerType !== 'mouse' || e.target.closest('.hs,.card')){ lens.classList.remove('on'); return; }
+    const r = stage.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    lens.classList.add('on');
+    lens.style.transform = `translate(${x - 95}px,${y - 95}px)`;
+    lin.style.transform = `translate(${-x*Z + 95}px,${-y*Z + 95}px) scale(${Z})`;
+  });
+  stage.addEventListener('pointerleave', () => lens.classList.remove('on'));
+
+  /* buy panel */
+  let way = 'pg', q = 1;
+  const ways = $('#ways');
+  P.colorways.forEach((c, n) => {
+    const b = document.createElement('button'); b.className = 'way'; b.setAttribute('aria-pressed', n === 0);
+    b.innerHTML = `<img src="${K.img(c.id, true)}" alt="" width="677" height="604"><small>${c.name}${n ? ' · preview' : ''}</small>`;
+    b.setAttribute('aria-label', c.name);
+    b.addEventListener('click', () => {
+      way = c.id; ways.querySelectorAll('.way').forEach(x => x.setAttribute('aria-pressed', x === b));
+      document.querySelectorAll('.parts img').forEach(im => im.src = K.img(c.id));
+    });
+    ways.appendChild(b);
+  });
+  document.querySelectorAll('.qty').forEach(b => b.addEventListener('click', () => {
+    q = +b.dataset.q; document.querySelectorAll('.qty').forEach(x => x.setAttribute('aria-pressed', x === b));
+    $('#tot').textContent = K.money(P.price * q * (1 - K.bundleOff(q)));
+  }));
+  $('#buyAdd').addEventListener('click', e => K.add({variant: way, qty: q, from: e.currentTarget}));
+  $('#heroAdd').addEventListener('click', () => K.add({variant: way, from: stage}));
+  $('#eta').textContent = K.deliveryWindow(7, 12);
+})();
+</script>
+</body>
+</html>

@@ -2,9 +2,11 @@
 from shapely.geometry import Point, LineString, box
 from shapely.ops import unary_union
 
-INK, VOLT, WHITE = "#0A0A0B", "#C8FF2E", "#FFFFFF"
+# Palette sampled from the js.17 website: page background, "Start a project" button, serif headline
+ONYX, IVORY, STONE = "#000000", "#EFECE6", "#ADABA5"
+INK = ONYX
 
-def wrap(path_d, fill=INK, bg=None, size=512, pad=0, rx=0):
+def wrap(path_d, fill=ONYX, bg=None, size=512, pad=0, rx=0):
     """Square SVG with the mark (drawn in 0..100) and an optional rounded background tile."""
     v = 100 + 2 * pad
     tile = f'<rect x="{-pad}" y="{-pad}" width="{v}" height="{v}" rx="{rx}" fill="{bg}"/>' if bg else ""
@@ -41,3 +43,14 @@ CONCEPTS = [
     ("Cut Medal", MEDAL, "An award medal; its cuts hide a “17”"),
     ("Facet 17", FACET, "Monogram of 1, 7 and the dot of js.17"),
 ]
+
+# Two-tone Spark Block: the spark and the block quarter as separate shapes.
+SPARK_ONLY = "M50 0A50 50 0 0 0 100 50L50 50L50 100A50 50 0 0 0 0 50A50 50 0 0 0 50 0Z"
+BLOCK_ONLY = "M50 50H100V100H50Z"
+
+def wrap_two_tone(spark_fill, block_fill, bg=None, size=512, pad=0, rx=0, gap=0):
+    v = 100 + 2 * pad
+    tile = f'<rect x="{-pad}" y="{-pad}" width="{v}" height="{v}" rx="{rx}" fill="{bg}"/>' if bg else ""
+    block = f'M{50 + gap} {50 + gap}H100V100H{50 + gap}Z'
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{-pad} {-pad} {v} {v}" width="{size}" height="{size}">'
+            f'{tile}<path fill="{spark_fill}" d="{SPARK_ONLY}"/><path fill="{block_fill}" d="{block}"/></svg>')

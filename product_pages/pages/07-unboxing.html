@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unboxing Party</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@500;700;800;900&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f2ecff;--bg2:#e7dcff;--ink:#2e1760;--mute:#6c5a96;--grape:#8b4cf0;--grape-d:#5a2bb8;--lime:#a6e35a;--lime-d:#7fbf2e;--tip:#ff6a3d;--pink:#ff8fd0;--white:#fff;
+  --wrap:repeating-radial-gradient(circle at 12px 12px,#a76cff 0 5px,transparent 5.5px 24px) 0 0/24px 24px,#8b4cf0;
+  --ribbon:#a6e35a;
+  --kit-bg:#fff;--kit-fg:#2e1760;--kit-muted:#6c5a96;--kit-accent:#8b4cf0;--kit-accent-fg:#fff;--kit-line:#e4dbf8;--kit-radius:999px;--kit-font:"Nunito",sans-serif;--kit-scrim:rgba(46,23,96,.35);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Nunito",system-ui,sans-serif;font-size:17px;line-height:1.55;overflow-x:hidden;font-weight:500}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button,input,textarea{font:inherit;color:inherit}
+.lil{font-family:"Lilita One",system-ui,sans-serif;font-weight:400;letter-spacing:.005em}
+.wrap{width:min(1240px,100% - 32px);margin-inline:auto}
+.blob{position:absolute;border-radius:50%;filter:blur(40px);opacity:.55;z-index:-1;animation:float 12s ease-in-out infinite}
+@keyframes float{50%{transform:translate(30px,-20px) scale(1.08)}}
+
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:78px}
+.logo{font-family:"Lilita One";font-size:30px;text-decoration:none;color:var(--grape);display:flex;gap:8px;align-items:center}
+.logo span{display:inline-block;transition:transform .3s cubic-bezier(.3,1.8,.5,1)}
+.logo:hover span{transform:translateY(-6px) rotate(-6deg)}
+.logo:hover span:nth-child(even){transform:translateY(-3px) rotate(6deg)}
+.cart{appearance:none;border:0;background:var(--white);border-radius:99px;height:48px;padding:0 18px;display:flex;gap:8px;align-items:center;cursor:pointer;font-weight:800;box-shadow:0 6px 0 var(--bg2);transition:transform .15s,box-shadow .15s}
+.cart:hover{transform:translateY(-2px);box-shadow:0 8px 0 var(--bg2)}
+.cart svg{width:20px;height:20px}
+
+.btn{appearance:none;border:0;border-radius:99px;background:var(--grape);color:#fff;font-weight:900;font-size:18px;padding:16px 28px;cursor:pointer;display:inline-flex;gap:10px;align-items:center;box-shadow:0 7px 0 var(--grape-d);transition:transform .12s,box-shadow .12s;text-decoration:none}
+.btn:hover{transform:translateY(-2px);box-shadow:0 9px 0 var(--grape-d)}
+.btn:active{transform:translateY(6px);box-shadow:0 1px 0 var(--grape-d)}
+.btn svg{width:20px;height:20px}
+.btn.lime{background:var(--lime);color:var(--ink);box-shadow:0 7px 0 var(--lime-d)}
+.btn.lime:hover{box-shadow:0 9px 0 var(--lime-d)}
+.btn.lime:active{box-shadow:0 1px 0 var(--lime-d)}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:0 7px 0 var(--bg2)}
+
+/* hero */
+.hero{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center;padding:20px 0 40px;isolation:isolate}
+.hero h1{font-family:"Lilita One";font-weight:400;font-size:clamp(50px,6.6vw,96px);line-height:.95;margin:12px 0 18px}
+.hero h1 .wob{display:inline-block;color:var(--grape);animation:wob 2.4s ease-in-out infinite}
+@keyframes wob{25%{transform:rotate(-4deg) scale(1.04)}75%{transform:rotate(3deg)}}
+.hero h1 .hl{background:linear-gradient(transparent 62%,var(--lime) 62% 92%,transparent 92%);padding:0 4px}
+.badge{display:inline-flex;gap:8px;align-items:center;background:#fff;border-radius:99px;padding:6px 14px 6px 6px;font-weight:800;font-size:14px;box-shadow:0 4px 0 var(--bg2)}
+.badge i{background:var(--tip);color:#fff;border-radius:99px;padding:2px 10px;font-style:normal}
+.lede{color:var(--mute);max-width:470px;margin:0 0 24px;font-size:18px}
+.pricecard{display:flex;align-items:center;gap:16px;background:#fff;border-radius:26px;padding:12px 18px 12px 12px;box-shadow:0 8px 0 var(--bg2);max-width:470px;margin-bottom:22px}
+.pricecard img{width:96px;background:var(--bg);border-radius:18px;padding:6px}
+.pricecard b{font-family:"Lilita One";font-weight:400;font-size:38px;line-height:1;display:block}
+.pricecard s{color:var(--mute);font-size:15px}
+.pricecard small{display:block;color:var(--mute);font-size:13px}
+.ctas{display:flex;gap:14px;flex-wrap:wrap}
+
+/* 3D box */
+.scene{position:relative;height:520px;perspective:1100px;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none}
+.scene:focus-visible .box{outline:4px solid var(--lime)}
+.rig{transform-style:preserve-3d;transform:rotateX(-22deg) rotateY(-34deg);transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.box{position:relative;width:260px;height:190px;transform-style:preserve-3d;transform:translateY(60px)}
+.box.shake{animation:shake .5s cubic-bezier(.36,.07,.19,.97) 2}
+@keyframes shake{20%{transform:translateY(60px) rotateZ(-4deg)}40%{transform:translateY(54px) rotateZ(4deg)}60%{transform:translateY(60px) rotateZ(-3deg)}80%{transform:translateY(58px) rotateZ(2deg)}}
+.face{position:absolute;background:var(--wrap);backface-visibility:hidden;box-shadow:inset 0 0 0 2px rgba(0,0,0,.06)}
+.face::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent calc(50% - 22px),var(--ribbon) calc(50% - 22px) calc(50% + 22px),transparent calc(50% + 22px))}
+.f-front{width:260px;height:190px;transform:translateZ(130px)}
+.f-back{width:260px;height:190px;transform:rotateY(180deg) translateZ(130px)}
+.f-left{width:260px;height:190px;transform:rotateY(-90deg) translateZ(130px)}
+.f-right{width:260px;height:190px;transform:rotateY(90deg) translateZ(130px)}
+.f-bottom{width:260px;height:260px;transform:rotateX(-90deg) translateZ(60px);top:0;box-shadow:0 0 80px rgba(46,23,96,.4)}
+.f-inside{width:260px;height:260px;transform:rotateX(90deg) translateZ(-50px);top:0;background:#4a2496!important;backface-visibility:visible}
+.f-inside::after{display:none}
+.f-front::before,.f-right::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(0,0,0,.18));z-index:1}
+.f-right::before{background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.3))}
+.lid{position:absolute;left:-8px;top:-34px;width:276px;height:34px;transform-style:preserve-3d;transition:transform 1s cubic-bezier(.5,-0.3,.3,1.4)}
+.lid .face{height:34px;width:276px}
+.l-front{transform:translateZ(138px)}
+.l-back{transform:rotateY(180deg) translateZ(138px)}
+.l-left{transform:rotateY(-90deg) translateZ(138px)}
+.l-right{transform:rotateY(90deg) translateZ(138px)}
+.l-top{height:276px!important;transform:rotateX(90deg) translateZ(17px);top:-121px}
+.l-top::before{content:"";position:absolute;inset:0;background:linear-gradient(0deg,transparent calc(50% - 22px),var(--ribbon) calc(50% - 22px) calc(50% + 22px),transparent calc(50% + 22px));z-index:1}
+.bow{position:absolute;left:50%;top:50%;width:150px;height:80px;margin:-40px 0 0 -75px;z-index:2;transform:translateZ(1px)}
+.bow i{position:absolute;top:0;width:76px;height:80px;border:16px solid var(--ribbon);border-radius:50% 50% 50% 50% / 60% 60% 40% 40%}
+.bow i:first-child{left:0;transform:rotate(-25deg)}.bow i:last-child{right:0;transform:rotate(25deg)}
+.bow b{position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px;border-radius:10px;background:var(--ribbon);box-shadow:inset 0 -6px 0 rgba(0,0,0,.12)}
+.open .lid{transform:translate3d(-40px,-300px,-80px) rotateX(-40deg) rotateZ(-28deg)}
+.tag{position:absolute;right:8%;top:12%;background:#fff8e6;padding:10px 16px 10px 26px;border-radius:6px 14px 14px 6px;font-family:"Caveat",cursive;font-size:26px;color:var(--ink);transform:rotate(8deg);box-shadow:0 8px 20px rgba(46,23,96,.15);animation:swing 3s ease-in-out infinite;transform-origin:0 50%;pointer-events:none}
+.tag::before{content:"";position:absolute;left:8px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:var(--bg)}
+@keyframes swing{50%{transform:rotate(-4deg)}}
+.open .tag{opacity:0;transition:opacity .3s}
+.pop{position:absolute;left:50%;top:44%;width:min(420px,88%);transform:translate(-50%,-10%) scale(.3);opacity:0;pointer-events:none;z-index:5;filter:drop-shadow(0 30px 30px rgba(46,23,96,.3))}
+.open .pop{animation:popup 1.2s .55s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes popup{0%{opacity:0;transform:translate(-50%,-10%) scale(.3) rotate(10deg)}35%{opacity:1}100%{opacity:1;transform:translate(-50%,-78%) scale(1) rotate(-8deg)}}
+.hint{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-weight:800;color:var(--grape);display:flex;align-items:center;gap:8px;white-space:nowrap}
+.hint i{width:10px;height:10px;border-radius:50%;background:var(--grape);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.8);opacity:.3}}
+.again{position:absolute;bottom:0;left:50%;transform:translateX(-50%)}
+canvas#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:9990}
+
+/* tray */
+.tray{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:10px}
+.slot{background:#fff;border-radius:28px;padding:22px;box-shadow:0 8px 0 var(--bg2);display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;transition:transform .5s cubic-bezier(.3,1.8,.5,1)}
+.slot .ic{width:84px;height:70px;border-radius:20px;background:var(--bg);display:grid;place-items:center;overflow:hidden}
+.slot .ic img{width:90%}
+.slot .ic svg{width:56px;height:24px}
+.slot b{font-family:"Lilita One";font-weight:400;font-size:44px;line-height:1;color:var(--grape)}
+.slot span{display:block;color:var(--mute);font-weight:700}
+.slot.hit{transform:translateY(-10px) rotate(-2deg)}
+
+section{padding:80px 0}
+.sh{text-align:left;margin-bottom:30px;max-width:640px}
+.sh h2{font-family:"Lilita One";font-weight:400;font-size:clamp(38px,5vw,64px);line-height:1;margin:8px 0 8px}
+.sh p{color:var(--mute);margin:0}
+.kick{font-weight:900;color:var(--grape);text-transform:uppercase;letter-spacing:.14em;font-size:13px}
+
+/* gift builder */
+.gift{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+.panel{background:#fff;border-radius:32px;padding:clamp(20px,3vw,32px);box-shadow:0 10px 0 var(--bg2)}
+.panel h3{font-family:"Lilita One";font-weight:400;font-size:22px;margin:0 0 12px}
+.row{margin-bottom:22px}
+.papers,.ribbons{display:flex;gap:12px;flex-wrap:wrap}
+.paper{appearance:none;width:74px;height:74px;border-radius:20px;border:4px solid #fff;box-shadow:0 0 0 2px var(--bg2);cursor:pointer;transition:transform .3s cubic-bezier(.3,1.8,.5,1),box-shadow .2s}
+.paper:hover{transform:rotate(-6deg) scale(1.05)}
+.paper[aria-pressed="true"]{box-shadow:0 0 0 4px var(--grape)}
+.ribbon{appearance:none;width:44px;height:44px;border-radius:50%;border:4px solid #fff;box-shadow:0 0 0 2px var(--bg2);cursor:pointer}
+.ribbon[aria-pressed="true"]{box-shadow:0 0 0 4px var(--grape)}
+.field{display:grid;gap:6px;margin-bottom:14px}
+.field label{font-weight:800;font-size:14px}
+.field input,.field textarea{border:2px solid var(--bg2);border-radius:16px;padding:12px 14px;background:var(--bg);outline:none;transition:border-color .2s;resize:vertical}
+.field input:focus,.field textarea:focus{border-color:var(--grape)}
+.count{font-size:12px;color:var(--mute);text-align:right}
+.eta{border-radius:18px;padding:14px 16px;font-weight:800;display:flex;gap:10px;align-items:center;background:var(--bg)}
+.eta.ok{background:#e9f9d6;color:#3b6b0a}
+.eta.late{background:#ffe6dc;color:#a8360f}
+.eta svg{width:20px;height:20px;flex:none}
+/* flip card */
+.cardwrap{perspective:1000px;margin-bottom:18px}
+.card{position:relative;height:300px;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.3,1.3,.4,1);cursor:pointer}
+.card.flip{transform:rotateY(180deg)}
+.card .side{position:absolute;inset:0;border-radius:24px;backface-visibility:hidden;padding:26px;overflow:hidden}
+.card .front{background:var(--wrap);display:grid;place-items:center}
+.card .front::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent calc(50% - 20px),var(--ribbon) calc(50% - 20px) calc(50% + 20px),transparent calc(50% + 20px))}
+.card .front span{position:relative;z-index:1;background:#fff;border-radius:99px;padding:10px 18px;font-family:"Lilita One";font-size:22px}
+.card .back{background:#fffaf0;transform:rotateY(180deg);font-family:"Caveat",cursive;font-size:30px;line-height:1.2;color:var(--ink);display:flex;flex-direction:column;justify-content:space-between;background-image:repeating-linear-gradient(transparent 0 35px,#eadfcf 35px 36px)}
+.card .back small{font-family:Nunito;font-size:13px;color:var(--mute)}
+.flipnote{font-size:13px;color:var(--mute);text-align:center;margin-top:-8px;margin-bottom:16px}
+.qtys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.q{appearance:none;border:3px solid var(--bg2);background:#fff;border-radius:20px;padding:12px;cursor:pointer;text-align:center;font-weight:800;transition:transform .3s cubic-bezier(.3,1.8,.5,1),border-color .2s}
+.q b{display:block;font-family:"Lilita One";font-weight:400;font-size:26px}
+.q small{color:var(--mute);font-weight:700}
+.q:hover{transform:translateY(-3px)}
+.q[aria-pressed="true"]{border-color:var(--grape);background:#f7f2ff}
+.sum{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.sum b{font-family:"Lilita One";font-weight:400;font-size:40px}
+
+/* checklist */
+.check{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center}
+.list{display:grid;gap:12px}
+.li{display:flex;gap:14px;align-items:center;background:#fff;border-radius:22px;padding:16px 18px;cursor:pointer;box-shadow:0 6px 0 var(--bg2);transition:transform .3s cubic-bezier(.3,1.8,.5,1)}
+.li:hover{transform:translateX(6px)}
+.li input{position:absolute;opacity:0;pointer-events:none}
+.li .bx{width:34px;height:34px;border-radius:12px;border:3px solid var(--bg2);display:grid;place-items:center;flex:none;transition:background .2s,border-color .2s}
+.li .bx svg{width:20px;height:20px;color:#fff;transform:scale(0);transition:transform .35s cubic-bezier(.3,1.8,.5,1)}
+.li input:checked+.bx{background:var(--grape);border-color:var(--grape)}
+.li input:checked+.bx svg{transform:scale(1)}
+.li input:focus-visible+.bx{outline:3px solid var(--lime)}
+.meter{background:#fff;border-radius:32px;padding:28px;box-shadow:0 10px 0 var(--bg2);text-align:center}
+.meter .ring{width:180px;height:180px;margin:0 auto 14px;position:relative}
+.meter svg{width:100%;height:100%;transform:rotate(-90deg)}
+.meter circle{fill:none;stroke-width:16}
+.meter .bgc{stroke:var(--bg2)}
+.meter .fg{stroke:var(--lime-d);stroke-linecap:round;transition:stroke-dashoffset .6s cubic-bezier(.3,1.3,.4,1)}
+.meter .pct{position:absolute;inset:0;display:grid;place-items:center;font-family:"Lilita One";font-size:44px}
+.meter .medal{font-family:"Lilita One";font-size:24px;color:var(--grape);min-height:34px}
+
+/* tags reviews */
+.tags{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.gt{background:#fff8e6;border-radius:10px 24px 24px 10px;padding:22px 22px 22px 40px;position:relative;font-family:"Caveat",cursive;font-size:26px;line-height:1.2;transform:rotate(var(--r));transition:transform .5s cubic-bezier(.3,1.8,.5,1);box-shadow:0 10px 24px rgba(46,23,96,.1)}
+.gt::before{content:"";position:absolute;left:14px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--bg);box-shadow:inset 0 0 0 2px var(--bg2)}
+.gt:hover{transform:rotate(0) scale(1.03)}
+.gt small{display:block;font-family:Nunito;font-size:12px;font-weight:800;color:var(--mute);margin-top:10px;letter-spacing:.06em;text-transform:uppercase}
+footer{padding:30px 0 100px;color:var(--mute);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@supports (animation-timeline:view()){
+  .rv{animation:rv linear both;animation-timeline:view();animation-range:entry 0% entry 100%}
+  @keyframes rv{from{transform:translateY(40px) rotate(-1deg)}}
+}
+@media (max-width:980px){
+  .hero,.gift,.check{grid-template-columns:1fr}
+  .scene{height:460px}
+  .tags{grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  .tray{grid-template-columns:1fr}
+  .scene{height:400px}
+  .rig{transform:rotateX(-22deg) rotateY(-34deg) scale(.78)}
+  .qtys{grid-template-columns:1fr 1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .open .pop{opacity:1;transform:translate(-50%,-78%) scale(1) rotate(-8deg)}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<canvas id="confetti" aria-hidden="true"></canvas>
+<header><div class="wrap">
+  <a class="logo" href="#top" aria-label="popshell"><span>p</span><span>o</span><span>p</span><span>s</span><span>h</span><span>e</span><span>l</span><span>l</span></a>
+  <button class="cart" data-cart-open aria-label="Open cart"><svg><use href="#i-bag"/></svg><span data-cart-count>0</span></button>
+</div></header>
+
+<main id="top" style="overflow-x:clip">
+<div class="wrap">
+  <section class="hero" style="padding-top:20px">
+    <div class="blob" style="width:340px;height:340px;background:#c9a8ff;left:-80px;top:20px"></div>
+    <div class="blob" style="width:300px;height:300px;background:#d6f5a8;right:0;bottom:0;animation-delay:-5s"></div>
+    <div>
+      <span class="badge"><i>−36%</i>Birthday favourite</span>
+      <h1>Not just a gift. A whole <span class="wob">birthday</span> in a <span class="hl">box.</span></h1>
+      <p class="lede">The M92 shell-eject soft blaster: rack the slide, watch the shell fly, fire a soft foam bullet. Go on, open the box.</p>
+      <div class="pricecard"><img id="pcImg" src="../assets/blaster-pg-sm.webp" alt="M92 blaster thumbnail" width="677" height="604"><div><b>$15.99 <s>$24.99</s></b><small>1 blaster · 6 shells · 20 soft bullets · ages 14+</small></div></div>
+      <div class="ctas">
+        <button class="btn" id="heroAdd"><svg><use href="#i-bag"/></svg>Add to cart</button>
+        <a class="btn ghost" href="#gift"><svg><use href="#i-gift"/></svg>Gift-wrap it</a>
+      </div>
+    </div>
+    <div class="scene" id="scene" tabindex="0" role="button" aria-label="Open the gift box">
+      <div class="rig" id="rig">
+        <div class="box" id="box">
+          <div class="face f-inside"></div>
+          <div class="face f-bottom"></div>
+          <div class="face f-back"></div>
+          <div class="face f-left"></div>
+          <div class="face f-right"></div>
+          <div class="face f-front"></div>
+          <div class="lid" id="lid">
+            <div class="face l-back"></div><div class="face l-left"></div><div class="face l-right"></div><div class="face l-front"></div>
+            <div class="face l-top"><div class="bow"><i></i><i></i><b></b></div></div>
+          </div>
+        </div>
+      </div>
+      <img class="pop" src="../assets/blaster-pg.webp" alt="" width="1354" height="1208" id="popImg">
+      <div class="tag">Open me!</div>
+      <div class="hint" id="hint"><i></i>Tap the box</div>
+      <button class="btn lime again" id="again" hidden>Pack it again</button>
+    </div>
+  </section>
+
+  <div class="tray" aria-live="polite">
+    <div class="slot rv"><div class="ic"><img id="trayImg" src="../assets/blaster-pg-sm.webp" alt="" width="677" height="604"></div><div><b id="n1">1</b><span>shell-eject blaster</span></div></div>
+    <div class="slot rv"><div class="ic"><svg viewBox="0 0 64 26"><use href="#i-shell"/></svg></div><div><b id="n2">6</b><span>brass-look shells</span></div></div>
+    <div class="slot rv"><div class="ic"><svg viewBox="0 0 46 26" style="width:44px"><use href="#i-bullet"/></svg></div><div><b id="n3">20</b><span>EVA soft bullets</span></div></div>
+  </div>
+
+  <section id="gift">
+    <div class="sh rv"><div class="kick">Gift studio</div><h2>Wrap it your way</h2><p>Pick the paper, the ribbon and write the card. The box at the top updates too.</p></div>
+    <div class="gift">
+      <div class="panel rv">
+        <div class="row"><h3>Paper</h3><div class="papers" id="papers" role="group" aria-label="Wrapping paper"></div></div>
+        <div class="row"><h3>Ribbon</h3><div class="ribbons" id="ribbons" role="group" aria-label="Ribbon colour"></div></div>
+        <div class="field"><label for="to">To</label><input id="to" maxlength="24" placeholder="Birthday star's name"></div>
+        <div class="field"><label for="msg">Message</label><textarea id="msg" rows="3" maxlength="120" placeholder="Happy birthday! Aim for the targets, not your sister."></textarea><div class="count"><span id="cc">0</span>/120</div></div>
+        <div class="field"><label for="bday">Birthday date</label><input id="bday" type="date"></div>
+        <div class="eta" id="eta"><svg><use href="#i-truck"/></svg><span>Pick a date to check if it arrives in time.</span></div>
+      </div>
+      <div class="panel rv">
+        <div class="cardwrap"><div class="card" id="card" tabindex="0" role="button" aria-label="Flip the gift card">
+          <div class="side front"><span>Tap to read the card</span></div>
+          <div class="side back"><div id="cardTxt">Happy birthday! Aim for the targets, not your sister.</div><div>— <span id="cardTo">with love</span><br><small>Printed on the message card (+$2.50)</small></div></div>
+        </div></div>
+        <p class="flipnote">Click the card to flip it</p>
+        <h3>Party size</h3>
+        <div class="qtys">
+          <button class="q" aria-pressed="true" data-q="1"><b>1</b><small>$15.99</small></button>
+          <button class="q" aria-pressed="false" data-q="2"><b>2</b><small>save 10%</small></button>
+          <button class="q" aria-pressed="false" data-q="3"><b>3</b><small>save 15%</small></button>
+        </div>
+        <div class="sum"><div><small style="color:var(--mute);font-weight:800">Total with gift wrap</small><br><b id="tot">$18.49</b></div><button class="btn" id="giftAdd"><svg><use href="#i-gift"/></svg>Add gift to cart</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="sh rv"><div class="kick">Before the party</div><h2>Safety checklist</h2><p>Tick them all to earn the badge. It's a toy, and these keep it that way.</p></div>
+    <div class="check">
+      <div class="list rv" id="list">
+        <label class="li"><input type="checkbox"><span class="bx"><svg><use href="#i-check"/></svg></span>Everyone playing wears eye protection</label>
+        <label class="li"><input type="checkbox"><span class="bx"><svg><use href="#i-check"/></svg></span>Aim at targets only, never faces or pets</label>
+        <label class="li"><input type="checkbox"><span class="bx"><svg><use href="#i-check"/></svg></span>The orange tip stays on</label>
+        <label class="li"><input type="checkbox"><span class="bx"><svg><use href="#i-check"/></svg></span>Play at home or in the garden, not in public</label>
+        <label class="li"><input type="checkbox"><span class="bx"><svg><use href="#i-check"/></svg></span>Players are 14+ or have a grown-up around</label>
+      </div>
+      <div class="meter rv">
+        <div class="ring"><svg viewBox="0 0 180 180"><circle class="bgc" cx="90" cy="90" r="74"/><circle class="fg" id="fg" cx="90" cy="90" r="74" stroke-dasharray="465" stroke-dashoffset="465"/></svg><div class="pct" id="pct">0/5</div></div>
+        <div class="medal" id="medal">Keep going!</div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="sh rv"><div class="kick">Gift tags</div><h2>What people wrote</h2></div>
+    <div class="tags">
+      <div class="gt rv" style="--r:-3deg">"Best present of the party. The shells flying out made everyone scream (happily)."<small>Sample review</small></div>
+      <div class="gt rv" style="--r:2deg">"We got the 3-pack so nobody had to share. Genius."<small>Sample review</small></div>
+      <div class="gt rv" style="--r:-1deg">"Arrived wrapped with the card. Zero effort, maximum aunt points."<small>Sample review</small></div>
+    </div>
+  </section>
+</div>
+</main>
+<footer><div class="wrap"><span>popshell · Toy blaster, not a real firearm. Ages 14+.</span><span>Template by js.17 · prices, delivery estimates and reviews are sample content.</span></div></footer>
+
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  K.layoutPill(7);
+  K.magnetic($$('.btn'), .18);
+
+  /* ---------- confetti ---------- */
+  const cv = $('#confetti'), cx = cv.getContext('2d'); let parts = [], running = false;
+  function resize(){ cv.width = innerWidth * devicePixelRatio; cv.height = innerHeight * devicePixelRatio; }
+  resize(); addEventListener('resize', resize);
+  function burst(x, y, n){
+    if (K.reduced) return;
+    const cols = ['#8b4cf0','#a6e35a','#ff6a3d','#ff8fd0','#ffd84d','#fff'];
+    for (let i = 0; i < n; i++){ const a = -Math.PI/2 + (Math.random()-.5)*2.2, v = 6 + Math.random()*11;
+      parts.push({x, y, vx: Math.cos(a)*v, vy: Math.sin(a)*v, s: 6 + Math.random()*8, r: Math.random()*6, vr: (Math.random()-.5)*.4, c: cols[i % cols.length], life: 0, shape: Math.random() < .3 ? 1 : 0}); }
+    if (!running){ running = true; requestAnimationFrame(tick); }
+  }
+  function tick(){
+    const d = devicePixelRatio; cx.clearRect(0, 0, cv.width, cv.height);
+    parts.forEach(p => { p.vy += .32; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life++;
+      cx.save(); cx.translate(p.x*d, p.y*d); cx.rotate(p.r); cx.fillStyle = p.c;
+      if (p.shape) { cx.beginPath(); cx.arc(0, 0, p.s*d/2.4, 0, Math.PI*2); cx.fill(); } else cx.fillRect(-p.s*d/2, -p.s*d/4, p.s*d, p.s*d/2);
+      cx.restore(); });
+    parts = parts.filter(p => p.y < innerHeight + 40 && p.life < 400);
+    if (parts.length) requestAnimationFrame(tick); else { running = false; cx.clearRect(0, 0, cv.width, cv.height); }
+  }
+
+  /* ---------- the box ---------- */
+  const scene = $('#scene'), box = $('#box'), rig = $('#rig');
+  let opened = false;
+  function openBox(){
+    if (opened) return; opened = true;
+    $('#hint').hidden = true;
+    box.classList.add('shake');
+    setTimeout(() => {
+      scene.classList.add('open');
+      const r = scene.getBoundingClientRect();
+      setTimeout(() => { burst(r.left + r.width/2, r.top + r.height*.45, 140); flyBits(); }, 420);
+      setTimeout(() => { $('#again').hidden = false; }, 1600);
+      countTray();
+    }, K.reduced ? 0 : 1000);
+    scene.setAttribute('aria-label', 'Box opened: 1 blaster, 6 shells, 20 soft bullets');
+  }
+  function closeBox(){
+    opened = false; scene.classList.remove('open'); box.classList.remove('shake'); $('#again').hidden = true; $('#hint').hidden = false;
+    scene.setAttribute('aria-label', 'Open the gift box');
+  }
+  scene.addEventListener('click', e => { if (e.target.closest('#again')) return; openBox(); });
+  scene.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openBox(); } });
+  $('#again').addEventListener('click', e => { e.stopPropagation(); closeBox(); });
+  /* shells and bullets that fly out of the box toward the tray */
+  function flyBits(){
+    if (K.reduced) return;
+    const r = scene.getBoundingClientRect(), slots = $$('.slot');
+    for (let i = 0; i < 16; i++){
+      const shell = i % 2 === 0, el = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      el.setAttribute('viewBox', shell ? '0 0 64 26' : '0 0 46 26'); el.innerHTML = `<use href="#${shell ? 'i-shell' : 'i-bullet'}"/>`;
+      Object.assign(el.style, {position:'fixed', left: (r.left + r.width/2 - 20) + 'px', top: (r.top + r.height*.48) + 'px', width: shell ? '44px' : '32px', height: '18px', zIndex: 9989, pointerEvents: 'none'});
+      document.body.appendChild(el);
+      const t = slots[shell ? 1 : 2].getBoundingClientRect();
+      const tx = t.left + 50 - (r.left + r.width/2 - 20), ty = t.top + 30 - (r.top + r.height*.48);
+      const up = -160 - Math.random()*160, side = (Math.random() - .5) * 400;
+      el.animate([
+        {transform:'translate(0,0) rotate(0) scale(.4)', opacity: 0},
+        {transform:`translate(${side}px,${up}px) rotate(${360 + Math.random()*360}deg) scale(1.2)`, opacity: 1, offset: .4},
+        {transform:`translate(${tx}px,${ty}px) rotate(${900}deg) scale(.6)`, opacity: .9}
+      ], {duration: 1300 + i*50, easing: 'cubic-bezier(.3,.1,.3,1)', delay: i*30, fill: 'both'}).onfinish = () => {
+        el.remove(); const s = slots[shell ? 1 : 2]; s.classList.add('hit'); setTimeout(() => s.classList.remove('hit'), 300);
+      };
+    }
+  }
+  function countTray(){
+    if (K.reduced) return;
+    [['#n1', 1], ['#n2', 6], ['#n3', 20]].forEach(([id, end], k) => {
+      const el = $(id); const t0 = performance.now() + 600 + k*200;
+      (function f(t){ const p = Math.max(0, Math.min(1, (t - t0) / 1100)); el.textContent = Math.round(end * p); if (p < 1) requestAnimationFrame(f); })(performance.now());
+    });
+  }
+  /* tilt the box with the pointer */
+  if (K.finePointer && !K.reduced) scene.addEventListener('pointermove', e => {
+    const r = scene.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+    rig.style.transform = `rotateX(${-22 - y*14}deg) rotateY(${-34 + x*30}deg)`;
+  });
+  scene.addEventListener('pointerleave', () => rig.style.transform = '');
+
+  /* ---------- gift studio ---------- */
+  const PAPERS = [
+    {n:'Grape dots', v:'repeating-radial-gradient(circle at 12px 12px,#a76cff 0 5px,transparent 5.5px 24px) 0 0/24px 24px,#8b4cf0'},
+    {n:'Lime stripes', v:'repeating-linear-gradient(45deg,#a6e35a 0 14px,#c5f08a 14px 28px)'},
+    {n:'Party confetti', v:'radial-gradient(circle at 20% 30%,#ff6a3d 0 4px,transparent 5px) 0 0/40px 40px,radial-gradient(circle at 70% 70%,#8b4cf0 0 4px,transparent 5px) 0 0/40px 40px,radial-gradient(circle at 60% 20%,#a6e35a 0 3px,transparent 4px) 0 0/30px 30px,#ffe6f4'},
+    {n:'Kraft', v:'repeating-linear-gradient(90deg,rgba(0,0,0,.04) 0 2px,transparent 2px 7px),#c99a62'}
+  ];
+  const RIBBONS = [['Lime','#a6e35a'],['Orange','#ff6a3d'],['White','#ffffff'],['Grape','#5a2bb8']];
+  let paper = 0, ribbon = 0;
+  PAPERS.forEach((p, i) => {
+    const b = document.createElement('button'); b.className = 'paper'; b.style.background = p.v; b.setAttribute('aria-label', p.n); b.title = p.n; b.setAttribute('aria-pressed', i === 0);
+    b.addEventListener('click', () => { paper = i; $$('.paper').forEach(x => x.setAttribute('aria-pressed', x === b)); document.documentElement.style.setProperty('--wrap', p.v); });
+    $('#papers').appendChild(b);
+  });
+  RIBBONS.forEach(([n, c], i) => {
+    const b = document.createElement('button'); b.className = 'ribbon'; b.style.background = c; b.setAttribute('aria-label', n + ' ribbon'); b.title = n; b.setAttribute('aria-pressed', i === 0);
+    b.addEventListener('click', () => { ribbon = i; $$('.ribbon').forEach(x => x.setAttribute('aria-pressed', x === b)); document.documentElement.style.setProperty('--ribbon', c); });
+    $('#ribbons').appendChild(b);
+  });
+  const msg = $('#msg'), to = $('#to');
+  function card(){
+    $('#cardTxt').textContent = msg.value.trim() || 'Happy birthday! Aim for the targets, not your sister.';
+    $('#cardTo').textContent = to.value.trim() ? 'for ' + to.value.trim() : 'with love';
+    $('#cc').textContent = msg.value.length;
+  }
+  msg.addEventListener('input', () => { card(); $('#card').classList.add('flip'); });
+  to.addEventListener('input', () => { card(); $('#card').classList.add('flip'); });
+  const flip = () => $('#card').classList.toggle('flip');
+  $('#card').addEventListener('click', flip);
+  $('#card').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); flip(); } });
+
+  /* birthday ETA */
+  const bd = $('#bday'); const today = new Date(); today.setHours(0,0,0,0);
+  bd.min = today.toISOString().slice(0, 10);
+  bd.addEventListener('change', () => {
+    const d = new Date(bd.value + 'T00:00'), latest = new Date(today); latest.setDate(latest.getDate() + 12);
+    const earliest = new Date(today); earliest.setDate(earliest.getDate() + 7);
+    const e = $('#eta'); e.classList.remove('ok', 'late');
+    if (isNaN(d)) return;
+    if (d >= latest){ e.classList.add('ok'); e.querySelector('span').textContent = 'Arrives in time: estimated ' + K.deliveryWindow(7, 12) + '.'; }
+    else if (d >= earliest){ e.classList.add('late'); e.querySelector('span').textContent = 'Cutting it close: estimated ' + K.deliveryWindow(7, 12) + '. Order today.'; }
+    else { e.classList.add('late'); e.querySelector('span').textContent = 'Probably too late for that date (estimate ' + K.deliveryWindow(7, 12) + ').'; }
+    burst(innerWidth/2, innerHeight*.6, d >= latest ? 40 : 0);
+  });
+
+  /* party size + add */
+  let q = 1;
+  function total(){ return P.price * q * (1 - K.bundleOff(q)) + 2.5; }
+  $$('.q').forEach(b => b.addEventListener('click', () => { q = +b.dataset.q; $$('.q').forEach(x => x.setAttribute('aria-pressed', x === b)); $('#tot').textContent = K.money(total()); }));
+  $('#giftAdd').addEventListener('click', e => { K.add({variant:'pg', qty:q, addons:['wrap'], from: $('#card'), message: 'Gift added · wrapped with a card'}); const r = e.currentTarget.getBoundingClientRect(); burst(r.left + r.width/2, r.top, 60); });
+  $('#heroAdd').addEventListener('click', e => { K.add({variant:'pg', from: $('#pcImg')}); const r = e.currentTarget.getBoundingClientRect(); burst(r.left + r.width/2, r.top, 40); });
+
+  /* safety checklist */
+  const boxes = $$('#list input');
+  boxes.forEach(b => b.addEventListener('change', () => {
+    const n = boxes.filter(x => x.checked).length;
+    $('#fg').style.strokeDashoffset = 465 - 465 * n / 5; $('#pct').textContent = n + '/5';
+    $('#medal').textContent = n === 5 ? 'Safety champion!' : n >= 3 ? 'Nearly there…' : 'Keep going!';
+    if (n === 5){ const r = $('.meter').getBoundingClientRect(); burst(r.left + r.width/2, r.top + 60, 120); }
+  }));
+})();
+</script>
+</body>
+</html>

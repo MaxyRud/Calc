@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blaster Configurator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#eceaf1;--panel:#fff;--ink:#16121f;--mute:#6d6880;--line:#dfdbe8;--soft:#f5f3f9;
+  --grape:#7c4deb;--lime:#b8ee55;--tip:#ff6a3d;--c1:#a86cf2;--c2:#9fe35e;
+  --kit-bg:#fff;--kit-fg:#16121f;--kit-muted:#6d6880;--kit-accent:#16121f;--kit-accent-fg:#b8ee55;--kit-line:#e6e2ee;--kit-radius:16px;--kit-font:"Figtree",sans-serif;--kit-scrim:rgba(22,18,31,.35);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Figtree",system-ui,sans-serif;font-size:16px;line-height:1.55;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button,input,textarea{font:inherit;color:inherit}
+.ub{font-family:"Unbounded",system-ui,sans-serif;letter-spacing:-.02em}
+.wrap{width:min(1360px,100% - 32px);margin-inline:auto}
+
+header .wrap{display:flex;align-items:center;gap:18px;height:72px}
+.logo{font-family:Unbounded;font-weight:800;font-size:19px;text-decoration:none;display:flex;align-items:center;gap:10px}
+.logo i{width:26px;height:26px;border-radius:8px;background:conic-gradient(var(--c1) 0 50%,var(--c2) 0);transition:background .6s}
+header nav{margin-left:auto;display:flex;gap:6px}
+header nav a{text-decoration:none;padding:8px 14px;border-radius:99px;color:var(--mute);font-weight:600;font-size:14px}
+header nav a:hover{background:var(--panel);color:var(--ink)}
+.cartb{appearance:none;border:0;background:var(--ink);color:var(--lime);height:44px;border-radius:99px;padding:0 18px;display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700}
+.cartb svg{width:18px;height:18px}
+
+/* app */
+.app{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;align-items:start;padding-bottom:20px}
+.stage{position:sticky;top:16px;height:calc(100vh - 104px);min-height:560px;max-height:820px;border-radius:32px;background:radial-gradient(120% 90% at 50% 20%,#fff,#e2ddec);overflow:hidden;display:grid;grid-template-rows:auto 1fr auto}
+.stage .top{display:flex;justify-content:space-between;align-items:center;padding:20px 22px}
+.stage .top h1{font-family:Unbounded;font-weight:700;font-size:clamp(18px,1.8vw,24px);margin:0;line-height:1.2}
+.stage .top small{display:block;color:var(--mute);font-family:Figtree;font-weight:500;font-size:13px;margin-top:4px;letter-spacing:0}
+.tagp{background:var(--tip);color:#fff;font-weight:700;font-size:13px;border-radius:99px;padding:6px 12px;white-space:nowrap}
+.view{position:relative;display:grid;place-items:center;min-height:0}
+.plinth{position:absolute;left:50%;bottom:9%;width:70%;aspect-ratio:3.4;transform:translateX(-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(22,18,31,.18),transparent);}
+.ring{position:absolute;left:50%;bottom:6%;width:78%;aspect-ratio:3.4;transform:translateX(-50%);overflow:visible}
+.ring ellipse{fill:none;stroke:rgba(124,77,235,.4);stroke-width:1.5;stroke-dasharray:6 8;vector-effect:non-scaling-stroke;animation:ringspin 6s linear infinite}
+@keyframes ringspin{to{stroke-dashoffset:-140}}
+.prod{position:relative;width:min(82%,620px);aspect-ratio:1354/1208;transition:transform .8s cubic-bezier(.3,1.4,.4,1)}
+.prod img{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 30px 30px rgba(22,18,31,.22));transition:opacity .45s,filter .45s,transform .7s cubic-bezier(.3,1.4,.4,1)}
+.prod img.out{opacity:0;filter:blur(14px) drop-shadow(0 30px 30px rgba(22,18,31,.22));transform:scale(.85) rotate(-8deg)}
+.stack{position:absolute;inset:0;pointer-events:none}
+.ghost{position:absolute;width:min(60%,440px);aspect-ratio:1354/1208;opacity:.0;transition:opacity .5s,transform .7s cubic-bezier(.3,1.4,.4,1)}
+.ghost img{width:100%;filter:saturate(.9) brightness(.98)}
+.ghost.g2{left:4%;top:8%;transform:rotate(-14deg) scale(.8)}
+.ghost.g3{right:2%;top:4%;transform:rotate(12deg) scale(.75)}
+.ghost.on{opacity:.55}
+.ghost.g2.on{transform:rotate(-14deg) scale(.86) translateX(-8%)}
+.ghost.g3.on{transform:rotate(12deg) scale(.8) translateX(8%)}
+.chips{position:absolute;left:18px;top:4px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;z-index:2}
+.ch{display:flex;align-items:center;gap:8px;background:var(--panel);border-radius:99px;padding:6px 12px 6px 6px;font-size:13px;font-weight:600;box-shadow:0 6px 16px rgba(22,18,31,.08);animation:chip .5s cubic-bezier(.3,1.6,.5,1) both}
+.ch i{width:26px;height:26px;border-radius:50%;background:var(--soft);display:grid;place-items:center}
+.ch i svg{width:16px;height:16px}
+@keyframes chip{from{opacity:0;transform:translateX(-20px) scale(.8)}}
+.bar{display:flex;align-items:center;gap:16px;margin:0 14px 14px;padding:12px 12px 12px 22px;background:var(--ink);color:#fff;border-radius:22px;flex-wrap:wrap}
+.bar .p{font-family:Unbounded;font-weight:700;font-size:26px;font-variant-numeric:tabular-nums;line-height:1}
+.bar .p s{font-family:Figtree;font-weight:400;font-size:14px;opacity:.55;margin-left:6px}
+.bar .sv{color:var(--lime);font-size:13px;font-weight:600}
+.bar .go{margin-left:auto;appearance:none;border:0;background:var(--lime);color:var(--ink);border-radius:16px;height:50px;padding:0 22px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;transition:transform .2s}
+.bar .go:hover{transform:translateY(-2px)}
+.bar .go svg{width:18px;height:18px}
+
+/* steps panel */
+.panel{background:var(--panel);border-radius:32px;padding:10px}
+.prog{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:12px 12px 4px}
+.prog i{height:5px;border-radius:5px;background:var(--line);overflow:hidden;position:relative}
+.prog i::after{content:"";position:absolute;inset:0;background:var(--grape);transform:scaleX(0);transform-origin:0 50%;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.prog i.done::after{transform:scaleX(1)}
+.step{border-radius:24px;margin:6px;transition:background .3s}
+.step.open{background:var(--soft)}
+.sh{appearance:none;border:0;background:none;width:100%;display:flex;align-items:center;gap:14px;padding:18px;cursor:pointer;text-align:left}
+.sh .n{width:34px;height:34px;border-radius:12px;background:var(--bg);display:grid;place-items:center;font-family:Unbounded;font-weight:700;font-size:13px;transition:background .3s,color .3s}
+.step.open .sh .n{background:var(--grape);color:#fff}
+.step.ok .sh .n{background:var(--lime)}
+.sh b{font-family:Unbounded;font-weight:700;font-size:16px;flex:1}
+.sh .val{color:var(--mute);font-size:14px;font-weight:600;text-align:right}
+.sb{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s cubic-bezier(.2,.8,.2,1)}
+.step.open .sb{grid-template-rows:1fr}
+.sb>div{overflow:hidden;visibility:hidden;transition:visibility 0s .5s}
+.step.open .sb>div{visibility:visible;transition:visibility 0s}
+.sbi{padding:0 18px 20px}
+.ways{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.way{appearance:none;border:2px solid transparent;background:var(--panel);border-radius:20px;padding:10px;cursor:pointer;display:flex;align-items:center;gap:12px;text-align:left;transition:border-color .2s,transform .3s cubic-bezier(.3,1.6,.5,1)}
+.way:hover{transform:translateY(-2px)}
+.way img{width:64px}
+.way b{display:block;font-size:14px}
+.way small{color:var(--mute);font-size:12px}
+.way[aria-pressed="true"]{border-color:var(--grape)}
+.packs{display:grid;gap:10px}
+.pack{appearance:none;border:2px solid transparent;background:var(--panel);border-radius:20px;padding:14px 16px;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:4px 12px;text-align:left;transition:border-color .2s}
+.pack b{font-family:Unbounded;font-weight:700;font-size:15px}
+.pack span{color:var(--mute);font-size:13px}
+.pack em{font-style:normal;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.pack small{text-align:right;color:var(--grape);font-weight:700;font-size:12px}
+.pack[aria-pressed="true"]{border-color:var(--grape)}
+.ex{display:grid;gap:10px}
+.exr{display:flex;align-items:center;gap:12px;background:var(--panel);border-radius:18px;padding:10px 12px}
+.exr .ic{width:44px;height:44px;border-radius:14px;background:var(--soft);display:grid;place-items:center;flex:none}
+.exr .ic svg{width:26px;height:26px}
+.exr>div:not(.stepper){flex:1;min-width:0}
+.stepper{flex:none}
+.exr b{display:block;font-size:14px}
+.exr small{color:var(--mute)}
+.stepper{display:flex;align-items:center;background:var(--soft);border-radius:99px}
+.stepper button{appearance:none;border:0;background:none;width:34px;height:34px;border-radius:50%;cursor:pointer;display:grid;place-items:center}
+.stepper button:hover{background:var(--line)}
+.stepper svg{width:13px;height:13px}
+.stepper output{min-width:22px;text-align:center;font-weight:700}
+.sw{appearance:none;width:52px;height:30px;border-radius:99px;border:0;background:var(--line);position:relative;cursor:pointer;transition:background .3s;flex:none}
+.sw::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.15);transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+.sw[aria-checked="true"]{background:var(--grape)}
+.sw[aria-checked="true"]::after{transform:translateX(22px)}
+.msg{width:100%;margin-top:10px;border:2px solid var(--line);border-radius:16px;padding:10px 12px;resize:none;outline:none;background:var(--panel)}
+.msg:focus{border-color:var(--grape)}
+.next{appearance:none;border:0;background:var(--ink);color:#fff;border-radius:14px;padding:12px 18px;font-weight:700;cursor:pointer;margin-top:14px;display:inline-flex;gap:8px;align-items:center}
+.next svg{width:16px;height:16px}
+.share{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:14px 18px 18px;flex-wrap:wrap;color:var(--mute);font-size:14px}
+.share button{appearance:none;border:2px solid var(--line);background:none;border-radius:12px;padding:8px 14px;cursor:pointer;font-weight:700;color:var(--ink)}
+.share button:hover{border-color:var(--ink)}
+
+section{padding:80px 0 0}
+.st{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:22px;flex-wrap:wrap}
+.st h2{font-family:Unbounded;font-weight:700;font-size:clamp(26px,3.4vw,46px);line-height:1.05;margin:0}
+.st p{color:var(--mute);margin:0;max-width:420px}
+
+/* compare */
+.cmp{background:var(--panel);border-radius:32px;padding:10px;overflow-x:auto}
+table{width:100%;border-collapse:separate;border-spacing:0;min-width:640px}
+th,td{padding:16px 18px;text-align:center;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left;color:var(--mute);font-weight:600}
+thead th{font-family:Unbounded;font-weight:700;font-size:15px;border-bottom:0}
+thead th small{display:block;font-family:Figtree;font-weight:600;color:var(--mute);font-size:13px;margin-top:4px}
+tbody tr:last-child td{border-bottom:0}
+td svg{width:20px;height:20px;color:var(--grape)}
+.col-hi{background:var(--soft)}
+thead th.col-hi{border-radius:20px 20px 0 0}
+tbody tr:last-child td.col-hi{border-radius:0 0 20px 20px}
+.pick{appearance:none;border:2px solid var(--ink);background:none;border-radius:12px;padding:8px 14px;cursor:pointer;font-weight:700}
+.pick:hover{background:var(--ink);color:#fff}
+.flag{display:inline-block;background:var(--lime);color:var(--ink);font-family:Figtree;font-weight:700;font-size:11px;padding:2px 8px;border-radius:99px;margin-left:6px;vertical-align:middle}
+
+/* quiz + faq */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--panel);border-radius:32px;padding:clamp(20px,3vw,32px)}
+.card h3{font-family:Unbounded;font-weight:700;font-size:22px;margin:0 0 6px}
+.qq{display:none}
+.qq.on{display:block;animation:qin .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes qin{from{opacity:0;transform:translateX(20px)}}
+.qq p{font-weight:700;font-size:18px;margin:18px 0 12px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{appearance:none;border:2px solid var(--line);background:var(--panel);border-radius:99px;padding:10px 16px;cursor:pointer;font-weight:600;transition:border-color .2s,background .2s}
+.opt:hover{border-color:var(--grape);background:var(--soft)}
+.qbar{height:6px;border-radius:6px;background:var(--line);margin-top:16px;overflow:hidden}
+.qbar i{display:block;height:100%;width:0;background:var(--grape);transition:width .4s}
+.res{display:grid;grid-template-columns:120px 1fr;gap:16px;align-items:center;margin-top:16px}
+.res img{width:120px}
+.res b{font-family:Unbounded;font-size:20px;display:block}
+.search{position:relative;display:block;margin:14px 0 10px}
+.search input{width:100%;height:48px;border:2px solid var(--line);border-radius:16px;padding:0 14px 0 42px;outline:none;background:var(--soft)}
+.search input:focus{border-color:var(--grape)}
+.search svg{position:absolute;left:14px;top:15px;width:18px;height:18px;color:var(--mute)}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{cursor:pointer;padding:14px 0;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:10px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-family:Unbounded;color:var(--grape);transition:transform .3s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq p{margin:0 0 14px;color:var(--mute)}
+.faq mark{background:var(--lime);border-radius:4px;padding:0 2px}
+.none{color:var(--mute);padding:14px 0}
+.revs{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.rv{background:var(--panel);border-radius:28px;padding:22px}
+.rv .stars{color:#f2a93b;letter-spacing:2px}
+.rv p{margin:8px 0 12px;font-weight:500}
+.rv small{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--grape)}
+.safety{margin-top:16px;background:var(--ink);color:#fff;border-radius:32px;padding:26px 30px;display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center}
+.safety svg{width:40px;height:40px;color:var(--tip)}
+footer{padding:50px 0 100px;color:var(--mute);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (max-width:1000px){
+  .app{grid-template-columns:1fr}
+  .stage{position:relative;top:0;height:auto;min-height:0}
+  .view{min-height:340px;padding:10px 0 20px}
+  .duo,.revs{grid-template-columns:1fr}
+  header nav{display:none}
+  .cartb{margin-left:auto}
+}
+@media (max-width:560px){
+  .ways{grid-template-columns:1fr}
+  .bar .go{margin-left:0;width:100%;justify-content:center}
+  .res{grid-template-columns:80px 1fr}.res img{width:80px}
+  .safety{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="#top"><i></i>popshell/build</a>
+  <nav aria-label="Sections"><a href="#build">Build</a><a href="#compare">Compare</a><a href="#quiz">Quiz</a><a href="#faq">FAQ</a></nav>
+  <button class="cartb" data-cart-open aria-label="Open cart"><svg><use href="#i-bag"/></svg><span data-cart-count>0</span></button>
+</div></header>
+
+<main id="top" class="wrap">
+  <div class="app" id="build">
+    <div class="stage" aria-label="Preview">
+      <div class="top"><h1>M92 Shell-Eject Blaster<small id="cfgName">Grape / Lime · Starter pack</small></h1><span class="tagp">−36%</span></div>
+      <div class="view">
+        <svg class="ring" viewBox="0 0 340 100" preserveAspectRatio="none" aria-hidden="true"><ellipse cx="170" cy="50" rx="169" ry="49"/></svg>
+        <div class="plinth" aria-hidden="true"></div>
+        <div class="stack" aria-hidden="true">
+          <div class="ghost g2"><img src="../assets/blaster-pg-sm.webp" alt="" width="677" height="604"></div>
+          <div class="ghost g3"><img src="../assets/blaster-pg-sm.webp" alt="" width="677" height="604"></div>
+        </div>
+        <div class="prod" id="prod"><img src="../assets/blaster-pg.webp" alt="M92 blaster, Grape / Lime" width="1354" height="1208"></div>
+        <div class="chips" id="chips" aria-live="polite"></div>
+      </div>
+      <div class="bar">
+        <div><div class="p" id="price">$15.99<s>$24.99</s></div><div class="sv" id="save">You save $9.00</div></div>
+        <button class="go" id="add"><svg><use href="#i-bag"/></svg>Add build to cart</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="prog" aria-hidden="true"><i class="done"></i><i></i><i></i><i></i></div>
+      <div class="step open" data-s="0">
+        <button class="sh" aria-expanded="true"><span class="n">1</span><b>Colourway</b><span class="val" id="v0">Grape / Lime</span></button>
+        <div class="sb"><div><div class="sbi">
+          <div class="ways" id="ways" role="group" aria-label="Colourway"></div>
+          <p style="font-size:13px;color:var(--mute);margin:12px 0 0">Grape / Lime is photographed. The others are digital previews.</p>
+          <button class="next" data-next="1">Next: pack size <svg><use href="#i-arrow"/></svg></button>
+        </div></div></div>
+      </div>
+      <div class="step" data-s="1">
+        <button class="sh" aria-expanded="false"><span class="n">2</span><b>Pack size</b><span class="val" id="v1">Starter</span></button>
+        <div class="sb"><div><div class="sbi">
+          <div class="packs" role="group" aria-label="Pack size">
+            <button class="pack" aria-pressed="true" data-q="1"><b>Starter</b><em>$15.99</em><span>1 blaster · 6 shells · 20 bullets</span><small></small></button>
+            <button class="pack" aria-pressed="false" data-q="2"><b>Duo</b><em>$28.78</em><span>2 blasters · 12 shells · 40 bullets</span><small>save 10%</small></button>
+            <button class="pack" aria-pressed="false" data-q="3"><b>Squad</b><em>$40.77</em><span>3 blasters · 18 shells · 60 bullets</span><small>save 15%</small></button>
+          </div>
+          <button class="next" data-next="2">Next: extras <svg><use href="#i-arrow"/></svg></button>
+        </div></div></div>
+      </div>
+      <div class="step" data-s="2">
+        <button class="sh" aria-expanded="false"><span class="n">3</span><b>Ammo &amp; extras</b><span class="val" id="v2">None</span></button>
+        <div class="sb"><div><div class="sbi">
+          <div class="ex">
+            <div class="exr"><span class="ic"><svg viewBox="0 0 46 26"><use href="#i-bullet"/></svg></span><div><b>Refill pack</b><small>40 bullets + 12 shells · $4.99</small></div><div class="stepper"><button data-r="-1" aria-label="Fewer refill packs"><svg><use href="#i-minus"/></svg></button><output id="rq">0</output><button data-r="1" aria-label="More refill packs"><svg><use href="#i-plus"/></svg></button></div></div>
+            <div class="exr"><span class="ic"><svg viewBox="0 0 24 24" style="color:var(--grape)"><use href="#i-shield"/></svg></span><div><b>Safety goggles</b><small>Kids size · $3.99</small></div><button class="sw" role="switch" aria-checked="false" data-x="goggles" aria-label="Safety goggles"></button></div>
+            <div class="exr"><span class="ic"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#7c4deb"/><circle cx="20" cy="20" r="12" fill="#fff"/><circle cx="20" cy="20" r="6" fill="#ff6a3d"/></svg></span><div><b>Target set</b><small>3 fold-out targets · $5.49</small></div><button class="sw" role="switch" aria-checked="false" data-x="targets" aria-label="Target set"></button></div>
+          </div>
+          <button class="next" data-next="3">Next: gift <svg><use href="#i-arrow"/></svg></button>
+        </div></div></div>
+      </div>
+      <div class="step" data-s="3">
+        <button class="sh" aria-expanded="false"><span class="n">4</span><b>Gift options</b><span class="val" id="v3">No wrap</span></button>
+        <div class="sb"><div><div class="sbi">
+          <div class="exr"><span class="ic"><svg viewBox="0 0 24 24" style="color:var(--grape)"><use href="#i-gift"/></svg></span><div><b>Gift wrap + card</b><small>$2.50</small></div><button class="sw" role="switch" aria-checked="false" data-x="wrap" aria-label="Gift wrap"></button></div>
+          <textarea class="msg" id="msg" rows="2" maxlength="100" placeholder="Card message (optional)" disabled></textarea>
+          <button class="next" id="finish">Review build <svg><use href="#i-check"/></svg></button>
+        </div></div></div>
+      </div>
+      <div class="share"><span>Save or share this exact build</span><button id="copy">Copy build link</button></div>
+    </div>
+  </div>
+
+  <section id="compare">
+    <div class="st"><h2>Compare packs</h2><p>Blaster bundles are discounted automatically. Prices are sample prices.</p></div>
+    <div class="cmp">
+      <table id="tbl">
+        <thead><tr><th></th><th data-c="1">Starter<small>$15.99</small></th><th data-c="2">Duo <span class="flag">Popular</span><small>$28.78 · −10%</small></th><th data-c="3">Squad<small>$40.77 · −15%</small></th></tr></thead>
+        <tbody>
+          <tr><td>Blasters</td><td data-c="1">1</td><td data-c="2">2</td><td data-c="3">3</td></tr>
+          <tr><td>Shells</td><td data-c="1">6</td><td data-c="2">12</td><td data-c="3">18</td></tr>
+          <tr><td>Soft bullets</td><td data-c="1">20</td><td data-c="2">40</td><td data-c="3">60</td></tr>
+          <tr><td>Price per blaster</td><td data-c="1">$15.99</td><td data-c="2">$14.39</td><td data-c="3">$13.59</td></tr>
+          <tr><td>Free shipping</td><td data-c="1">—</td><td data-c="2">—</td><td data-c="3"><svg><use href="#i-check"/></svg></td></tr>
+          <tr><td>Good for</td><td data-c="1">Solo target practice</td><td data-c="2">Head-to-head duels</td><td data-c="3">Parties &amp; siblings</td></tr>
+          <tr><td></td><td data-c="1"><button class="pick" data-q="1">Choose</button></td><td data-c="2"><button class="pick" data-q="2">Choose</button></td><td data-c="3"><button class="pick" data-q="3">Choose</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="duo">
+    <div class="card" id="quiz">
+      <h3>Which pack?</h3>
+      <p style="color:var(--mute);margin:0">Three quick questions.</p>
+      <div class="qq on" data-q="0"><p>How many people will play?</p><div class="opts"><button class="opt" data-v="1">Just one</button><button class="opt" data-v="2">Two</button><button class="opt" data-v="3">Three or more</button></div></div>
+      <div class="qq" data-q="1"><p>Where will they play?</p><div class="opts"><button class="opt" data-v="in">Indoors</button><button class="opt" data-v="out">Garden / yard</button></div></div>
+      <div class="qq" data-q="2"><p>Is it a gift?</p><div class="opts"><button class="opt" data-v="y">Yes</button><button class="opt" data-v="n">No, it's for us</button></div></div>
+      <div class="qq" data-q="3"><div class="res"><img id="resImg" src="../assets/blaster-pg-sm.webp" alt="" width="677" height="604"><div><b id="resT">Duo</b><span id="resP" style="color:var(--mute)"></span></div></div><button class="next" id="apply">Apply to my build <svg><use href="#i-arrow"/></svg></button> <button class="opt" id="redo" style="margin-top:14px">Start over</button></div>
+      <div class="qbar"><i id="qbar"></i></div>
+    </div>
+    <div class="card" id="faq">
+      <h3>Questions</h3>
+      <label class="search"><svg viewBox="0 0 20 20"><circle cx="9" cy="9" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M14 14l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><input id="q" type="search" placeholder="Search: shells, range, age…" aria-label="Search questions"></label>
+      <div class="faq" id="faqList">
+        <details><summary>How do the shells work?</summary><p>Press a soft bullet into each shell, load the shells into the magazine, rack the slide and fire. The empty shell ejects out of the port.</p></details>
+        <details><summary>What age is it for?</summary><p>Ages 14+ with adult supervision. Always wear eye protection.</p></details>
+        <details><summary>How far does it shoot?</summary><p>Up to around 8 metres (sample spec). It depends on the bullet and how fully the slide is racked.</p></details>
+        <details><summary>Does it need batteries?</summary><p>No. It's fully manual.</p></details>
+        <details><summary>Can I buy more bullets and shells?</summary><p>Yes, the refill pack adds 40 bullets and 12 shells.</p></details>
+        <details><summary>Is the orange tip removable?</summary><p>It must stay on. The orange tip marks it as a toy. Never paint or remove it.</p></details>
+        <details><summary>When will it arrive?</summary><p>Estimated delivery <span class="eta"></span>. Free shipping over $35.</p></details>
+      </div>
+      <div class="none" id="none" hidden>No questions match. Try "shells" or "age".</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="st"><h2>Builds people liked</h2><p>Sample reviews for this template.</p></div>
+    <div class="revs">
+      <div class="rv"><div class="stars">★★★★★</div><p>"Duo pack plus targets. Best Saturday in ages."</p><small>Sample review</small></div>
+      <div class="rv"><div class="stars">★★★★★</div><p>"Built a Squad with gift wrap for my son's birthday. Arrived ready to hand over."</p><small>Sample review</small></div>
+      <div class="rv"><div class="stars">★★★★☆</div><p>"Starter + refill. The refill is a must, shells disappear."</p><small>Sample review</small></div>
+    </div>
+    <div class="safety"><svg><use href="#i-shield"/></svg><div><b>Play safe.</b> Toy blaster, not a real firearm. Wear eye protection, never aim at faces or animals, keep the orange tip on and don't carry it in public places. Ages 14+.</div></div>
+  </section>
+</main>
+<footer><div class="wrap"><span>popshell/build · Toy blaster.</span><span>Template by js.17 · prices, specs and reviews are sample content.</span></div></footer>
+
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  K.layoutPill(10);
+  const C = {way:'pg', q:1, refill:0, goggles:false, targets:false, wrap:false, msg:''};
+  const PACK = {1:'Starter', 2:'Duo', 3:'Squad'};
+
+  /* steps accordion */
+  function openStep(i){
+    $$('.step').forEach((s, k) => { s.classList.toggle('open', k === i); s.querySelector('.sh').setAttribute('aria-expanded', k === i); if (k < i) s.classList.add('ok'); });
+    $$('.prog i').forEach((b, k) => b.classList.toggle('done', k <= i));
+  }
+  $$('.step .sh').forEach((h, i) => h.addEventListener('click', () => openStep(i)));
+  $$('[data-next]').forEach(b => b.addEventListener('click', () => openStep(+b.dataset.next)));
+  $('#finish').addEventListener('click', () => { $$('.step').forEach(s => s.classList.add('ok')); openStep(-1); $$('.prog i').forEach(b => b.classList.add('done')); K.toast('Build ready · ' + K.money(total()) + ' — add it to your cart'); });
+
+  /* colourways */
+  P.colorways.forEach((c, i) => {
+    const b = document.createElement('button'); b.className = 'way'; b.setAttribute('aria-pressed', i === 0); b.dataset.id = c.id;
+    b.innerHTML = `<img src="${K.img(c.id, true)}" alt="" width="677" height="604"><span><b>${c.name}</b><small>${i ? 'Digital preview' : 'Photographed'}</small></span>`;
+    b.addEventListener('click', () => { C.way = c.id; render(true); });
+    $('#ways').appendChild(b);
+  });
+  /* packs */
+  $$('.pack, .pick').forEach(b => b.addEventListener('click', () => { C.q = +b.dataset.q; render(); if (b.classList.contains('pick')) { openStep(1); $('#build').scrollIntoView({behavior: K.reduced ? 'auto' : 'smooth'}); } }));
+  /* extras */
+  $$('[data-r]').forEach(b => b.addEventListener('click', () => { C.refill = Math.max(0, Math.min(5, C.refill + +b.dataset.r)); render(); }));
+  $$('.sw').forEach(s => s.addEventListener('click', () => { C[s.dataset.x] = !C[s.dataset.x]; render(); }));
+  $('#msg').addEventListener('input', e => C.msg = e.target.value);
+
+  function total(){
+    return P.price * C.q * (1 - K.bundleOff(C.q)) + C.refill * 4.99 + (C.goggles ? 3.99 : 0) + (C.targets ? 5.49 : 0) + (C.wrap ? 2.5 : 0);
+  }
+  function compare(){ return P.compare * C.q + C.refill * 4.99 + (C.goggles ? 3.99 : 0) + (C.targets ? 5.49 : 0) + (C.wrap ? 2.5 : 0); }
+  let shown = P.price, lastWay = 'pg';
+  function render(swap){
+    const c = K.way(C.way);
+    document.documentElement.style.setProperty('--c1', c.a); document.documentElement.style.setProperty('--c2', c.b);
+    $$('.way').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === C.way));
+    $$('.pack').forEach(b => b.setAttribute('aria-pressed', +b.dataset.q === C.q));
+    $$('.sw').forEach(s => s.setAttribute('aria-checked', !!C[s.dataset.x]));
+    $('#rq').textContent = C.refill;
+    $('#msg').disabled = !C.wrap;
+    $('#v0').textContent = c.name; $('#v1').textContent = PACK[C.q];
+    const ex = [C.refill ? C.refill + '× refill' : '', C.goggles ? 'goggles' : '', C.targets ? 'targets' : ''].filter(Boolean);
+    $('#v2').textContent = ex.length ? ex.join(', ') : 'None'; $('#v3').textContent = C.wrap ? 'Wrapped' : 'No wrap';
+    $('#cfgName').textContent = `${c.name}${C.way === 'pg' ? '' : ' (preview)'} · ${PACK[C.q]} pack`;
+    /* product swap with blur morph */
+    if (swap && C.way !== lastWay){
+      const box = $('#prod'), old = box.querySelector('img:last-child');
+      const im = new Image(); im.src = K.img(C.way); im.alt = 'M92 blaster, ' + c.name; im.width = 1354; im.height = 1208; im.className = 'out';
+      box.appendChild(im); requestAnimationFrame(() => requestAnimationFrame(() => { im.classList.remove('out'); old.classList.add('out'); }));
+      setTimeout(() => old.remove(), 700); lastWay = C.way;
+    }
+    $$('.ghost img').forEach(g => g.src = K.img(C.way, true));
+    $('.ghost.g2').classList.toggle('on', C.q >= 2); $('.ghost.g3').classList.toggle('on', C.q >= 3);
+    $('#prod').style.transform = C.q === 1 ? '' : `scale(${C.q === 2 ? .94 : .9})`;
+    /* chips */
+    const want = [];
+    if (C.refill) want.push(['bullet', C.refill + '× refill pack']);
+    if (C.goggles) want.push(['shield', 'Safety goggles']);
+    if (C.targets) want.push(['target', 'Target set']);
+    if (C.wrap) want.push(['gift', 'Gift wrapped']);
+    const chips = $('#chips'), key = want.map(w => w[1]).join('|');
+    if (chips.dataset.key !== key){
+      chips.dataset.key = key;
+      chips.innerHTML = want.map(([ic, t], i) => `<span class="ch" style="animation-delay:${i*60}ms"><i>${ic === 'bullet' ? '<svg viewBox="0 0 46 26"><use href="#i-bullet"/></svg>' : ic === 'target' ? '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="#7c4deb"/><circle cx="20" cy="20" r="11" fill="#fff"/><circle cx="20" cy="20" r="5" fill="#ff6a3d"/></svg>' : `<svg viewBox="0 0 24 24" style="color:var(--grape)"><use href="#i-${ic}"/></svg>`}</i>${t}</span>`).join('');
+    }
+    /* price */
+    const t = total(), cm = compare(), el = $('#price'), from = shown;
+    shown = t;
+    const put = v => el.innerHTML = `${K.money(v)}<s>${K.money(cm)}</s>`;
+    if (K.reduced) put(t); else { const t0 = performance.now(); (function f(n){ const k = Math.min(1, (n - t0) / 450), e = 1 - Math.pow(1 - k, 3); put(from + (t - from) * e); if (k < 1) requestAnimationFrame(f); })(t0); }
+    $('#save').textContent = `You save ${K.money(cm - t)}` + (K.bundleOff(C.q) ? ` · ${PACK[C.q]} bundle −${Math.round(K.bundleOff(C.q) * 100)}%` : '');
+    /* compare table highlight */
+    $$('#tbl [data-c]').forEach(c => c.classList.toggle('col-hi', +c.dataset.c === C.q));
+    /* keep the build in the URL hash */
+    const h = `c=${C.way}-${C.q}-${C.refill}-${+C.goggles}-${+C.targets}-${+C.wrap}`;
+    try { history.replaceState(null, '', '#' + h); } catch(e){}
+  }
+
+  /* restore from hash */
+  const m = (location.hash || '').match(/c=(pg|bm|om|lp)-([123])-(\d)-([01])-([01])-([01])/);
+  if (m){ C.way = m[1]; C.q = +m[2]; C.refill = +m[3]; C.goggles = m[4] === '1'; C.targets = m[5] === '1'; C.wrap = m[6] === '1'; }
+  lastWay = C.way; $('#prod img').src = K.img(C.way);
+  render();
+
+  $('#copy').addEventListener('click', () => {
+    const url = location.href;
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => K.toast('Build link copied'), () => K.toast('Copy this page address to share the build'));
+  });
+  $('#add').addEventListener('click', () => {
+    const addons = []; for (let i = 0; i < C.refill; i++) addons.push('refill');
+    if (C.goggles) addons.push('goggles'); if (C.targets) addons.push('targets'); if (C.wrap) addons.push('wrap');
+    K.add({variant: C.way, qty: C.q, addons, from: $('#prod'), message: `${PACK[C.q]} build added · ${K.money(total())}`});
+  });
+
+  /* quiz */
+  const A = {};
+  const qs = $$('.qq');
+  function showQ(i){ qs.forEach((q, k) => q.classList.toggle('on', k === i)); $('#qbar').style.width = (i / 3 * 100) + '%'; }
+  qs.forEach((q, i) => q.querySelectorAll('.opt[data-v]').forEach(o => o.addEventListener('click', () => {
+    A[i] = o.dataset.v;
+    if (i < 2) showQ(i + 1);
+    else {
+      const qn = +A[0];
+      const rec = {q: qn, targets: A[1] === 'out' || qn > 1, wrap: A[2] === 'y', goggles: true};
+      $('#resT').textContent = PACK[rec.q] + ' pack';
+      $('#resP').textContent = [`${rec.q} blaster${rec.q > 1 ? 's' : ''}`, 'safety goggles', rec.targets ? 'target set' : '', rec.wrap ? 'gift wrap' : ''].filter(Boolean).join(' · ');
+      $('#apply').onclick = () => { C.q = rec.q; C.targets = rec.targets; C.wrap = rec.wrap; C.goggles = true; render(); openStep(2); $('#build').scrollIntoView({behavior: K.reduced ? 'auto' : 'smooth'}); K.toast('Recommendation applied'); };
+      showQ(3);
+    }
+  })));
+  $('#redo').addEventListener('click', () => showQ(0));
+
+  /* faq search with highlight */
+  const items = $$('#faqList details').map(d => ({d, s: d.querySelector('summary'), p: d.querySelector('p'), st: d.querySelector('summary').textContent, pt: d.querySelector('p').innerHTML}));
+  $$('.eta').forEach(e => e.textContent = K.deliveryWindow(7, 12));
+  items.forEach(it => it.pt = it.p.innerHTML);
+  const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  $('#q').addEventListener('input', e => {
+    const v = e.target.value.trim(); let n = 0;
+    items.forEach(it => {
+      const hit = !v || (it.st + ' ' + it.p.textContent).toLowerCase().includes(v.toLowerCase());
+      it.d.hidden = !hit; if (hit) n++;
+      it.s.innerHTML = v ? it.st.replace(new RegExp(esc(v), 'ig'), m => `<mark>${m}</mark>`) : it.st;
+      it.d.open = !!v && hit && it.p.textContent.toLowerCase().includes(v.toLowerCase());
+    });
+    $('#none').hidden = n > 0;
+  });
+})();
+</script>
+</body>
+</html>

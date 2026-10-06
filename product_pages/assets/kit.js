@@ -136,13 +136,13 @@
 
   /* ---------- styles for drawer / toast / layout pill ---------- */
   var CSS =
-    ":root{--kit-bg:#15121c;--kit-fg:#f4f1fa;--kit-muted:#a69fb6;--kit-accent:#a7e35a;--kit-accent-fg:#111;--kit-line:rgba(255,255,255,.12);--kit-radius:14px;--kit-font:inherit;--kit-scrim:rgba(8,6,12,.55)}" +
+    ":where(:root){--kit-bg:#15121c;--kit-fg:#f4f1fa;--kit-muted:#a69fb6;--kit-accent:#a7e35a;--kit-accent-fg:#111;--kit-line:rgba(255,255,255,.12);--kit-radius:14px;--kit-font:inherit;--kit-scrim:rgba(8,6,12,.55)}" +
     ".kit-scrim{position:fixed;inset:0;background:var(--kit-scrim);opacity:0;pointer-events:none;transition:opacity .35s;z-index:9990;backdrop-filter:blur(2px)}" +
     ".kit-scrim.on{opacity:1;pointer-events:auto}" +
     ".kit-drawer{position:fixed;top:0;right:0;height:100%;width:min(420px,100%);background:var(--kit-bg);color:var(--kit-fg);font-family:var(--kit-font);z-index:9991;display:flex;flex-direction:column;transform:translateX(104%);transition:transform .55s cubic-bezier(.2,.8,.2,1),box-shadow .55s}" +
     ".kit-drawer.on{transform:none;box-shadow:-30px 0 60px rgba(0,0,0,.25)}" +
-    ".kit-drawer header{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 12px;border-bottom:1px solid var(--kit-line)}" +
-    ".kit-drawer h2{margin:0;font-size:20px;letter-spacing:-.01em}" +
+    ".kit-head{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 12px;border-bottom:1px solid var(--kit-line)}" +
+    ".kit-title{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em}" +
     ".kit-ib{appearance:none;border:1px solid var(--kit-line);background:transparent;color:inherit;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;cursor:pointer}" +
     ".kit-ib svg{width:16px;height:16px}.kit-ib:hover{border-color:var(--kit-accent)}" +
     ".kit-ship{padding:14px 20px;border-bottom:1px solid var(--kit-line);font-size:13px;color:var(--kit-muted)}" +
@@ -183,7 +183,7 @@
     scrim = el('<div class="kit-scrim" data-kit-close></div>');
     drawer = el(
       '<aside class="kit-drawer" role="dialog" aria-modal="true" aria-label="Shopping cart" aria-hidden="true" tabindex="-1">' +
-      '<header><h2>Your cart</h2><button class="kit-ib" data-kit-close aria-label="Close cart"><svg><use href="#i-x"/></svg></button></header>' +
+      '<div class="kit-head"><div class="kit-title" role="heading" aria-level="2">Your cart</div><button class="kit-ib" data-kit-close aria-label="Close cart"><svg><use href="#i-x"/></svg></button></div>' +
       '<div class="kit-ship"><div class="kit-bar"><i></i></div><p></p></div>' +
       '<ul class="kit-lines"></ul><div class="kit-foot"></div></aside>');
     toastEl = el('<div class="kit-toast" role="status" aria-live="polite"></div>');

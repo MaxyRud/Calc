@@ -1,0 +1,230 @@
+<title>M92 Product Pages</title>
+<meta name="description" content="Ten interactive product page layouts for the M92 shell-eject soft blaster.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#efece6;--card:#f8f6f2;--ink:#0b0b0b;--mute:#6f6c66;--stone:#adaba5;--line:rgba(11,11,11,.12);
+  --grape:#8b4cf0;--lime:#a6e35a;--tip:#e4572e;--brass:#c9a24a;
+  --kit-bg:#f8f6f2;--kit-fg:#0b0b0b;--kit-muted:#6f6c66;--kit-accent:#0b0b0b;--kit-accent-fg:#efece6;--kit-line:rgba(11,11,11,.12);--kit-radius:12px;--kit-font:"Bricolage Grotesque",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0d0c0b;--card:#171614;--ink:#efece6;--mute:#a19d95;--stone:#6f6c66;--line:rgba(239,236,230,.12);
+    --kit-bg:#171614;--kit-fg:#efece6;--kit-muted:#a19d95;--kit-accent:#efece6;--kit-accent-fg:#0d0c0b;--kit-line:rgba(239,236,230,.12);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0d0c0b;--card:#171614;--ink:#efece6;--mute:#a19d95;--stone:#6f6c66;--line:rgba(239,236,230,.12);
+  --kit-bg:#171614;--kit-fg:#efece6;--kit-muted:#a19d95;--kit-accent:#efece6;--kit-accent-fg:#0d0c0b;--kit-line:rgba(239,236,230,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:17px;line-height:1.5;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.wrap{width:min(1320px,100% - 32px);margin-inline:auto}
+
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;height:64px}
+.brand{font-weight:800;font-size:20px;text-decoration:none;letter-spacing:-.02em;display:flex;align-items:baseline;gap:8px}
+.brand span{font-weight:500;font-size:15px;color:var(--mute)}
+.top .sp{margin-left:auto;display:flex;gap:10px;align-items:center}
+.chip{appearance:none;border:1px solid var(--line);background:var(--card);border-radius:99px;height:40px;padding:0 16px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:14px;text-decoration:none}
+.chip:hover{border-color:var(--ink)}
+.chip svg{width:17px;height:17px}
+
+/* intro */
+.intro{display:grid;grid-template-columns:1.35fr .9fr;gap:48px;align-items:end;padding:72px 0 56px}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:0 0 18px;display:flex;align-items:center;gap:10px}
+.eyebrow i{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 4px color-mix(in srgb,var(--lime) 30%,transparent)}
+h1{font-size:clamp(46px,7.2vw,112px);line-height:.92;letter-spacing:-.045em;font-weight:700;margin:0 0 26px}
+h1 .w{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:.05em}
+h1 .w>span{display:inline-block;animation:rise 1s cubic-bezier(.2,.8,.1,1) both;animation-delay:calc(var(--i) * 55ms)}
+@keyframes rise{from{transform:translateY(105%)}}
+h1 em{font-style:normal;background:linear-gradient(100deg,var(--grape),var(--lime));background:linear-gradient(in oklch 100deg,var(--grape),var(--lime));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{max-width:640px;color:var(--mute);margin:0;font-size:18px}
+.lede b{color:var(--ink);font-weight:600}
+.source{margin:0;background:var(--card);border:1px solid var(--line);border-radius:28px;padding:20px;position:relative;overflow:hidden}
+.source .pic{position:relative;aspect-ratio:1354/1208;background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--grape) 22%,transparent),transparent 65%)}
+.source .pic img{position:absolute;inset:0;width:100%;transition:opacity .6s,transform .8s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 20px 24px rgba(0,0,0,.18))}
+.source .pic img.out{opacity:0;transform:rotate(-6deg) scale(.94)}
+.source figcaption{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-top:10px;font-size:13px;color:var(--mute)}
+.source figcaption b{display:block;color:var(--ink);font-size:15px;font-weight:600}
+.pal{display:flex;gap:6px}
+.pal i{width:22px;height:22px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.cw{display:flex;gap:6px;margin-top:12px}
+.cw button{appearance:none;border:1px solid var(--line);background:transparent;border-radius:99px;padding:5px 10px 5px 6px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
+.cw button i{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--c1) 50%,var(--c2) 50%)}
+.cw button[aria-pressed="true"]{border-color:var(--ink);background:var(--bg)}
+
+/* stats strip */
+.strip{display:grid;grid-template-columns:repeat(4,1fr);border-block:1px solid var(--line)}
+.strip div{padding:22px 0;border-right:1px solid var(--line);padding-left:20px}
+.strip div:first-child{padding-left:0}
+.strip div:last-child{border-right:0}
+.strip b{display:block;font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.strip span{color:var(--mute);font-size:14px}
+
+/* gallery */
+.gal{display:grid;grid-template-columns:1fr 1fr;gap:28px 28px;padding:64px 0 40px}
+.gal .card:nth-child(even){transform:translateY(90px)}
+.card{display:block;text-decoration:none;background:var(--card);border:1px solid var(--line);border-radius:28px;padding:12px;transition:border-color .3s,box-shadow .4s;position:relative}
+.card:hover,.card:focus-visible{border-color:var(--ac);box-shadow:0 30px 60px -30px color-mix(in srgb,var(--ac) 70%,transparent);outline:none}
+.shot{position:relative;aspect-ratio:16/10;border-radius:18px;overflow:hidden;background:var(--sb)}
+.shot img{width:100%;height:100%;object-fit:cover;object-position:top;transition:transform 1.1s cubic-bezier(.2,.8,.2,1)}
+.card:hover .shot img,.card:focus-visible .shot img{transform:scale(1.045)}
+.shot .open{position:absolute;right:14px;bottom:14px;background:var(--ac);color:var(--af);border-radius:99px;padding:10px 16px;font-weight:700;font-size:14px;display:flex;gap:8px;align-items:center;transform:translateY(12px);opacity:0;transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .3s}
+.shot .open svg{width:16px;height:16px}
+.card:hover .open,.card:focus-visible .open{transform:none;opacity:1}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;padding:18px 10px 10px}
+.no{font-size:14px;font-weight:700;color:var(--mute);padding-top:9px;font-variant-numeric:tabular-nums}
+.meta h2{font-size:clamp(26px,2.6vw,34px);letter-spacing:-.03em;line-height:1.05;margin:0;font-weight:700}
+.meta p{grid-column:2;margin:6px 0 0;color:var(--mute);font-size:16px}
+.tags{grid-column:2;display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:12px 0 0;padding:0}
+.tags li{font-size:12px;font-weight:600;border:1px solid var(--line);border-radius:99px;padding:4px 10px}
+.foot{grid-column:2;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--mute)}
+
+/* notes */
+.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:150px 0 40px}
+.note{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:24px}
+.note h3{margin:0 0 8px;font-size:20px;letter-spacing:-.02em}
+.note p{margin:0;color:var(--mute);font-size:15px}
+.note .ic{width:42px;height:42px;border-radius:14px;background:var(--bg);display:grid;place-items:center;margin-bottom:16px}
+.note .ic svg{width:24px;height:20px}
+footer{border-top:1px solid var(--line);padding:28px 0 50px;color:var(--mute);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@supports (animation-timeline:view()){
+  .rv{animation:rv linear both;animation-timeline:view();animation-range:entry 0% entry 90%}
+  @keyframes rv{from{translate:0 60px}}
+}
+@media (max-width:960px){
+  .intro{grid-template-columns:1fr;padding-top:48px}
+  .gal{grid-template-columns:1fr}
+  .gal .card:nth-child(even){transform:none}
+  .notes{grid-template-columns:1fr;padding-top:40px}
+  .strip{grid-template-columns:1fr 1fr}
+  .strip div:nth-child(2){border-right:0}
+  .strip div:nth-child(3){padding-left:0}
+  .strip div:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .top .brand span{display:none}
+}
+@media (max-width:560px){
+  .meta{grid-template-columns:1fr}
+  .meta p,.tags,.foot{grid-column:1}
+  .no{padding-top:0}
+  .top .chip.t{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top">js.17 <span>/ product page lab</span></a>
+    <div class="sp">
+      <button class="chip t" id="theme" aria-label="Toggle colour theme">Theme</button>
+      <button class="chip" data-cart-open aria-label="Open shared cart"><svg><use href="#i-bag"/></svg>Cart <span data-cart-count>0</span></button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="wrap intro">
+    <div>
+      <p class="eyebrow"><i></i>One product · ten product pages</p>
+      <h1 id="h1">Ten ways to sell one <em>shell-ejecting</em> blaster.</h1>
+      <p class="lede">From a single supplier photo of the <b>2011/M92 shell-ejecting soft blaster</b>: cut out, logo removed, orange safety tip kept, recoloured into four colourways, then built into ten interactive layouts. Each one has its own type, palette and signature interaction. <b>They share one cart</b>, so whatever you add in one layout is still there in the next.</p>
+    </div>
+    <figure class="source">
+      <div class="pic" id="pic"><img src="assets/blaster-pg.webp" alt="M92 shell-eject soft blaster, purple slide, lime scaled grip, orange tip" width="1354" height="1208"></div>
+      <figcaption><span><b>M92 Shell-Eject Soft Blaster</b>1 blaster · 6 shells · 20 EVA bullets</span><span class="pal" aria-label="Product palette"><i style="background:#9b5cf6"></i><i style="background:#a6e35a"></i><i style="background:#e4572e"></i><i style="background:#c9a24a"></i></span></figcaption>
+      <div class="cw" id="cw" role="group" aria-label="Colourway preview"></div>
+    </figure>
+  </section>
+
+  <div class="wrap strip">
+    <div><b>10</b><span>layouts, each a full product page</span></div>
+    <div><b>4</b><span>colourways (1 photographed, 3 previews)</span></div>
+    <div><b>1</b><span>shared cart across every layout</span></div>
+    <div><b>0</b><span>build step: plain HTML, CSS and JS</span></div>
+  </div>
+
+  <section class="wrap gal" id="gal" aria-label="Layouts"></section>
+
+  <section class="wrap notes">
+    <div class="note rv"><div class="ic"><svg viewBox="0 0 24 24" width="22" height="22"><use href="#i-bag"/></svg></div><h3>One cart, ten storefronts</h3><p>The cart drawer, bundle maths (2 blasters −10%, 3 −15%) and free-shipping bar are shared. Each layout themes the drawer to match its own look.</p></div>
+    <div class="note rv"><div class="ic"><svg viewBox="0 0 64 26"><use href="#i-shell"/></svg></div><h3>Built from one photo</h3><p>The supplied image was cut out from its background, the printed logo removed, and recoloured. Only Grape / Lime is the real photo; the other colourways are labelled as previews.</p></div>
+    <div class="note rv"><div class="ic"><svg viewBox="0 0 24 24" width="22" height="22"><use href="#i-shield"/></svg></div><h3>Sample content</h3><p>Prices, specs, ratings, reviews and codes are placeholders for the customer to replace. Every page keeps the toy-safety copy: ages 14+, eye protection, orange tip on.</p></div>
+  </section>
+</main>
+
+<footer><div class="wrap"><span>js.17 · product page lab · M92 Shell-Eject Soft Blaster</span><span>Template by js.17 · prices, specs and reviews are sample content.</span></div></footer>
+
+<script src="assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, $ = s => document.querySelector(s);
+  const L = [
+    {f:'01-arcade', n:'Arcade Range', d:'Neon shooting-range hero with a playable mini-game: aim, fire soft bullets, watch shells eject, hit 300 points for a code.', t:['Mini-game','Crosshair aim','Bundle picker'], ty:'Bungee · Chakra Petch', ac:'#b4f54a', af:'#0c0a12', sb:'#0c0a12', pal:['#0c0a12','#b4f54a','#9b5cf6','#ff6a3d']},
+    {f:'02-editorial', n:'The Shell Issue', d:'A magazine cover story with drop caps, footnotes, scroll-spy chapters, a labelled anatomy plate and a classifieds buy box.', t:['Editorial','Scroll-spy','Leader lines'], ty:'Bodoni Moda · Manrope', ac:'#7a3fe0', af:'#fff', sb:'#efe9f6', pal:['#efe9f6','#1d1430','#7a3fe0','#b7e35b']},
+    {f:'03-brutalist', n:'Spec Sheet', d:'Raw grid, giant type, glitching product and a drag-to-crate bundle builder that prints a live receipt.', t:['Drag & drop','Receipt','Inverting cursor'], ty:'Archivo Black · IBM Plex Mono', ac:'#7b3ff2', af:'#fff', sb:'#c8f03c', pal:['#c8f03c','#0e0b12','#7b3ff2','#ff5a2c']},
+    {f:'04-hotspots', n:'Exploded View', d:'Slide the blaster apart into slide, frame and magazine, take the numbered hotspot tour, or switch on X-ray and the magnifier.', t:['Explode slider','Hotspots','Magnifier'], ty:'Syne · Work Sans', ac:'#b6f05a', af:'#170d2b', sb:'#170d2b', pal:['#170d2b','#efe8ff','#b6f05a','#ff6a3d']},
+    {f:'05-commerce', n:'Classic PDP', d:'A polished store page: zoom gallery and lightbox, bundle cards, add-ons, sticky add-to-cart, reviews filter and delivery check.', t:['Zoom gallery','Sticky ATC','Reviews filter'], ty:'Sora', ac:'#6d3bd8', af:'#fff', sb:'#fbf9f6', pal:['#fbf9f6','#20172e','#6d3bd8','#b5eb5f']},
+    {f:'06-scroll-story', n:'Scroll Story', d:'A pinned, scrubbed sequence that loads, racks and fires the blaster as you scroll, then a horizontal feature run.', t:['ScrollTrigger','Pinned sequence','Horizontal scroll'], ty:'Big Shoulders · Barlow', ac:'#ff6a3d', af:'#0e0c10', sb:'#0e0c10', pal:['#0e0c10','#f6f1ea','#ff6a3d','#8e55f0']},
+    {f:'07-unboxing', n:'Unboxing', d:'Open a 3D gift box, catch the confetti, design the wrapping and card, check if it arrives before the birthday.', t:['3D box','Gift studio','Checklist'], ty:'Lilita One · Nunito', ac:'#8b4cf0', af:'#fff', sb:'#f2ecff', pal:['#f2ecff','#2e1760','#8b4cf0','#a6e35a']},
+    {f:'08-kinetic', n:'Kinetic Pop', d:'Scroll-reactive marquees, a blob cursor, throwable stickers and a colour "vibe" switch that repaints the whole page.', t:['Velocity marquee','Draggable stickers','Page recolour'], ty:'Anton · Rubik', ac:'#120c1c', af:'#c5f25a', sb:'#9b5cf6', pal:['#9b5cf6','#c5f25a','#120c1c','#ff6a3d']},
+    {f:'09-spotlight', n:'Spotlight', d:'A dark, quiet luxury page: a flashlight reveals the product, a loupe inspects details, a presentation box with a hand-written card.', t:['Cursor spotlight','Loupe','Gift card'], ty:'Cormorant Garamond · Jost', ac:'#c9a24a', af:'#0b0a0f', sb:'#0b0a0f', pal:['#0b0a0f','#efe7da','#c9a24a','#7b5cc4']},
+    {f:'10-configurator', n:'Configurator', d:'Build the order step by step with a live stage, compare packs, take a 3-question quiz, search the FAQ, share the build link.', t:['Step builder','Quiz','Shareable link'], ty:'Unbounded · Figtree', ac:'#16121f', af:'#b8ee55', sb:'#eceaf1', pal:['#eceaf1','#16121f','#7c4deb','#b8ee55']}
+  ];
+  $('#gal').innerHTML = L.map((l, i) => `
+    <a class="card rv" href="pages/${l.f}.html" style="--ac:${l.ac};--af:${l.af};--sb:${l.sb}">
+      <div class="shot"><img src="assets/thumbs/${l.f}.webp" alt="Screenshot of the ${l.n} layout" width="960" height="600" loading="eager"><span class="open">Open layout <svg><use href="#i-arrow"/></svg></span></div>
+      <div class="meta">
+        <span class="no">${String(i + 1).padStart(2, '0')}</span>
+        <h2>${l.n}</h2>
+        <p>${l.d}</p>
+        <ul class="tags">${l.t.map(t => `<li>${t}</li>`).join('')}</ul>
+        <div class="foot"><span>${l.ty}</span><span class="pal" aria-hidden="true">${l.pal.map(c => `<i style="background:${c}"></i>`).join('')}</span></div>
+      </div>
+    </a>`).join('');
+
+  /* headline word rise */
+  const h = $('#h1'); let n = 0; h.setAttribute('aria-label', h.textContent);
+  h.innerHTML = h.innerHTML.replace(/<em>(.*?)<\/em>|([^\s<]+)/g, (m, em, w) => `<span class="w" aria-hidden="true"><span style="--i:${n++}">${em ? '<em>' + em + '</em>' : w}</span></span>`);
+
+  /* colourway preview on the source card */
+  let cur = 'pg';
+  K.PRODUCT.colorways.forEach((c, i) => {
+    const b = document.createElement('button'); b.setAttribute('aria-pressed', i === 0);
+    b.style.setProperty('--c1', c.a); b.style.setProperty('--c2', c.b);
+    b.innerHTML = `<i></i>${i ? c.name.split(' / ')[0] : 'Photo'}`; b.title = c.name + (i ? ' (digital preview)' : ' (photographed)');
+    b.addEventListener('click', () => {
+      if (cur === c.id) return; cur = c.id;
+      document.querySelectorAll('#cw button').forEach(x => x.setAttribute('aria-pressed', x === b));
+      const pic = $('#pic'), old = pic.querySelector('img:last-child');
+      const im = new Image(); im.src = K.img(c.id); im.alt = 'M92 blaster, ' + c.name; im.width = 1354; im.height = 1208; im.className = 'out';
+      pic.appendChild(im); requestAnimationFrame(() => requestAnimationFrame(() => { im.classList.remove('out'); old.classList.add('out'); }));
+      setTimeout(() => old.remove(), 800);
+    });
+    $('#cw').appendChild(b);
+  });
+
+  /* theme toggle (remembered per viewer) */
+  const root = document.documentElement;
+  try { const t = localStorage.getItem('js17-lab-theme'); if (t) root.setAttribute('data-theme', t); } catch(e){}
+  $('#theme').addEventListener('click', () => {
+    const dark = root.getAttribute('data-theme') ? root.getAttribute('data-theme') === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    const t = dark ? 'light' : 'dark'; root.setAttribute('data-theme', t);
+    try { localStorage.setItem('js17-lab-theme', t); } catch(e){}
+  });
+})();
+</script>

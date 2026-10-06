@@ -1,3 +1,5 @@
+# Cut the blaster out of the supplier photo, inpaint the printed slide logo, save a transparent 2x WebP.
+# usage: python3 cutout.py <source.png> <out_dir>   (needs pillow, numpy, scipy, opencv-python-headless)
 import sys, numpy as np, cv2
 from PIL import Image, ImageFilter
 from scipy import ndimage as ndi

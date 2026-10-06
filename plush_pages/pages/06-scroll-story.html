@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unwind Story</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,400..900&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f3f4f6;--ink:#101114;--dim:#686c76;--line:rgba(16,17,20,.12);--pink:#ff6f9c;--ice:#5aa9f0;--mint:#5fbf7a;
+  --kit-bg:#fff;--kit-fg:#101114;--kit-muted:#686c76;--kit-accent:#101114;--kit-accent-fg:#fff;--kit-line:rgba(16,17,20,.1);--kit-radius:999px;--kit-font:"Onest",sans-serif;--kit-scrim:rgba(16,17,20,.3);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Onest",system-ui,sans-serif;font-size:18px;line-height:1.5;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.any{font-family:"Anybody",system-ui,sans-serif;font-weight:900;text-transform:uppercase;line-height:.84}
+.k{font-size:13px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--pink)}
+header{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;gap:16px;padding:16px clamp(16px,3vw,40px)}
+header .logo{font-family:Anybody;font-weight:900;font-stretch:130%;font-size:22px;text-decoration:none;text-transform:uppercase;letter-spacing:.02em;background:rgba(243,244,246,.8);backdrop-filter:blur(8px);padding:6px 12px;border-radius:99px}
+header button{margin-left:auto;appearance:none;border:0;background:var(--ink);color:#fff;height:42px;padding:0 16px;border-radius:99px;display:flex;gap:8px;align-items:center;cursor:pointer;font-weight:600}
+header button svg{width:18px;height:18px}
+.prog{position:fixed;left:0;top:0;height:3px;width:100%;background:linear-gradient(90deg,var(--ice),var(--pink));transform-origin:0 50%;transform:scaleX(0);z-index:41}
+@supports (animation-timeline:scroll()){.prog{animation:pg linear both;animation-timeline:scroll(root)}@keyframes pg{to{transform:scaleX(1)}}}
+
+/* intro */
+.intro{min-height:100svh;position:relative;display:grid;place-items:center;overflow:hidden;padding:90px 16px 70px;text-align:center}
+.intro h1{font-size:clamp(90px,18.5vw,330px);font-stretch:150%;margin:0;letter-spacing:-.02em;line-height:.8;position:relative;z-index:1;color:var(--ink)}
+.intro h1 span{display:inline-block}
+.intro .sub{position:relative;z-index:3;font-size:clamp(18px,2vw,24px);font-weight:500;margin:22px 0 0}
+.intro .sub b{color:var(--pink)}
+.intro .can0{position:absolute;left:50%;top:50%;height:min(62vh,560px);width:auto;transform:translate(-50%,-50%);z-index:2;filter:drop-shadow(0 40px 40px rgba(16,17,20,.25))}
+.cue{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:3}
+.cue i{width:22px;height:36px;border:2px solid var(--dim);border-radius:12px;position:relative}
+.cue i::after{content:"";position:absolute;left:50%;top:6px;width:4px;height:8px;margin-left:-2px;border-radius:2px;background:var(--dim);animation:wheel 1.6s ease-in-out infinite}
+@keyframes wheel{50%{transform:translateY(10px);opacity:.2}}
+.pricechip{position:absolute;right:clamp(16px,3vw,40px);bottom:24px;z-index:3;text-align:right}
+.pricechip b{font-family:Anybody;font-weight:900;font-stretch:80%;font-size:46px;line-height:1;display:block}
+.pricechip s{color:var(--dim);font-size:15px}
+
+/* crack sequence */
+.crack{position:relative;background:#e9ecf1;border-block:1px solid var(--line)}
+.cr-in{display:grid;grid-template-columns:minmax(280px,.8fr) 1.2fr;gap:4vw;align-items:center;padding:80px clamp(16px,4vw,60px);max-width:1400px;margin:0 auto}
+.step{padding:22px 0;border-top:1px solid var(--line)}
+.step b{font-size:14px;color:var(--pink);font-weight:700;letter-spacing:.14em}
+.step h3{font-family:Anybody;font-weight:900;text-transform:uppercase;font-size:clamp(64px,8vw,130px);line-height:.85;margin:6px 0 10px;font-stretch:120%}
+.step p{margin:0;color:var(--dim);max-width:400px}
+.bars{display:none;gap:6px;margin-bottom:20px}
+.bars i{flex:1;height:4px;background:var(--line);border-radius:4px;overflow:hidden}
+.bars i span{display:block;height:100%;background:var(--ink);transform-origin:0 50%;transform:scaleX(0)}
+.stage{position:relative;height:min(76vh,680px);display:grid;place-items:center}
+.stage .halo{position:absolute;width:80%;aspect-ratio:1;border-radius:50%;background:radial-gradient(closest-side,#fff,transparent);pointer-events:none}
+.stage svg.can{position:absolute;height:86%;width:auto;filter:drop-shadow(0 30px 30px rgba(16,17,20,.2))}
+.stage img.plush{position:absolute;height:84%;width:auto;max-width:none;opacity:0;filter:drop-shadow(0 30px 30px rgba(16,17,20,.2))}
+.bub{position:absolute;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff,rgba(255,255,255,.4) 40%,rgba(160,190,220,.35));box-shadow:inset 0 0 0 1px rgba(255,255,255,.7);opacity:0;pointer-events:none}
+.tsss{position:absolute;top:6%;left:50%;transform:translateX(-50%);font-family:Anybody;font-weight:900;font-stretch:150%;font-size:clamp(40px,6vw,90px);color:var(--ice);opacity:0;pointer-events:none;white-space:nowrap}
+.gs .crack{height:100vh;overflow:hidden}
+.gs .cr-in{height:100%;padding-top:70px;padding-bottom:30px}
+.gs .bars{display:flex}
+.gs .txt{position:relative;min-height:300px}
+.gs .step{position:absolute;inset:0 0 auto 0;border:0;padding:0;opacity:0}
+.gs .step:first-of-type{opacity:1}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line)}
+.stat{padding:70px clamp(16px,3vw,40px);border-right:1px solid var(--line)}
+.stat:last-child{border-right:0}
+.stat b{font-family:Anybody;font-weight:900;font-size:clamp(90px,12vw,190px);line-height:.85;display:block;font-stretch:70%}
+.stat span{color:var(--dim)}
+.stat:nth-child(1) b{color:var(--ice)}.stat:nth-child(2) b{color:var(--pink)}
+
+/* horizontal flavours */
+.hz{position:relative;overflow:hidden}
+.track{display:flex;width:max-content}
+.no-gs .hz{overflow-x:auto;scroll-snap-type:x mandatory}
+.no-gs .panel{scroll-snap-align:start}
+.panel{width:100vw;height:min(100vh,860px);min-height:560px;flex:none;position:relative;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:80px clamp(16px,6vw,100px);background:var(--c)}
+.panel .nm{font-family:Anybody;font-weight:900;text-transform:uppercase;font-size:clamp(80px,13vw,230px);line-height:.82;margin:0;font-stretch:var(--w,100%)}
+.panel p{max-width:380px;margin:20px 0 24px;color:rgba(16,17,20,.7)}
+.panel .pic{position:relative;height:100%;display:grid;place-items:center}
+.panel .pic img{height:min(78vh,640px);width:auto;max-width:none;filter:drop-shadow(0 40px 40px rgba(16,17,20,.25))}
+.panel .big{position:absolute;right:-4vw;bottom:-6vw;font-family:Anybody;font-weight:900;font-size:40vw;line-height:.8;color:rgba(255,255,255,.35);pointer-events:none}
+.pbtn{appearance:none;border:0;background:var(--ink);color:#fff;border-radius:99px;height:56px;padding:0 26px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:10px;transition:transform .2s}
+.pbtn:hover{transform:scale(1.05)}
+.pbtn svg{width:18px;height:18px}
+.tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;background:rgba(255,255,255,.7);padding:4px 10px;border-radius:99px}
+
+/* buy */
+.buy{display:grid;grid-template-columns:1fr 1fr;gap:5vw;align-items:center;padding:110px clamp(16px,5vw,80px);max-width:1440px;margin:0 auto}
+.buy h2{font-size:clamp(70px,10vw,170px);margin:12px 0 24px;font-stretch:110%}
+.buy h2 em{font-style:normal;color:var(--pink)}
+.bimg{position:relative;height:min(70vh,600px);display:grid;place-items:center}
+.bimg img{position:absolute;height:100%;width:auto;max-width:none;transition:opacity .4s,transform .6s cubic-bezier(.3,1.5,.4,1)}
+.bimg img.out{opacity:0;transform:scale(.8) rotate(-8deg)}
+.opt{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
+.opt button{appearance:none;border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:10px 16px;cursor:pointer;font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px}
+.opt button i{width:16px;height:16px;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.opt button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.total{display:flex;align-items:baseline;gap:12px;margin:12px 0 22px}
+.total b{font-family:Anybody;font-weight:900;font-stretch:80%;font-size:76px;line-height:1}
+.total s{color:var(--dim)}
+.fine{font-size:13px;color:var(--dim);margin-top:16px}
+.quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw;padding:80px clamp(16px,5vw,80px);border-top:1px solid var(--line)}
+.quotes blockquote{margin:0;font-family:Anybody;font-weight:800;font-stretch:80%;text-transform:uppercase;font-size:clamp(28px,3vw,42px);line-height:1}
+.quotes cite{display:block;margin-top:12px;font-family:Onest;font-style:normal;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:600}
+footer{border-top:1px solid var(--line);padding:30px clamp(16px,5vw,80px) 100px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--dim)}
+
+@media (max-width:900px){
+  .cr-in{grid-template-columns:1fr;gap:6px}
+  .gs .cr-in{grid-template-rows:auto 1fr;align-items:start}
+  .gs .txt{min-height:210px}
+  .step h3{font-size:clamp(56px,16vw,90px)}
+  .stage{height:min(52vh,460px)}
+  .stats{grid-template-columns:1fr}.stat{border-right:0;border-bottom:1px solid var(--line);padding:44px 16px}
+  .panel{grid-template-columns:1fr;grid-template-rows:auto 1fr;align-content:start;padding-top:90px}
+  .panel .pic img{height:min(46vh,380px)}
+  .buy{grid-template-columns:1fr}
+  .bimg{height:min(56vh,460px)}
+  .quotes{grid-template-columns:1fr}
+  .intro .can0{height:min(46vh,380px)}
+  .pricechip{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body class="no-gs">
+<div class="prog" aria-hidden="true"></div>
+<!-- the drawn can, reused -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="body" x1="0" x2="1"><stop offset="0" stop-color="#c3c8d0"/><stop offset=".18" stop-color="#f7f8fa"/><stop offset=".5" stop-color="#eceef2"/><stop offset=".82" stop-color="#d9dde3"/><stop offset="1" stop-color="#a9b0ba"/></linearGradient>
+    <linearGradient id="rim" x1="0" x2="1"><stop offset="0" stop-color="#8d949e"/><stop offset=".3" stop-color="#e8ebef"/><stop offset=".7" stop-color="#c9ced6"/><stop offset="1" stop-color="#7e858f"/></linearGradient>
+    <linearGradient id="tabg" x1="0" x2="1"><stop offset="0" stop-color="#9aa1ab"/><stop offset=".5" stop-color="#eef0f3"/><stop offset="1" stop-color="#8d949e"/></linearGradient>
+    <symbol id="canart" viewBox="0 0 300 520">
+      <path d="M40 60q0-18 18-24l40-12h104l40 12q18 6 18 24v400q0 18-18 24l-40 12H98l-40-12q-18-6-18-24z" fill="url(#body)"/>
+      <ellipse cx="150" cy="44" rx="104" ry="22" fill="url(#rim)"/>
+      <ellipse cx="150" cy="44" rx="92" ry="17" fill="#d7dbe1"/>
+      <ellipse cx="150" cy="44" rx="86" ry="14" fill="none" stroke="#b6bcc5" stroke-width="2"/>
+      <text x="150" y="150" text-anchor="middle" font-family="Anybody, sans-serif" font-weight="900" font-size="25" font-stretch="100%" fill="#25272c" letter-spacing="1">ZERO SUGAR</text>
+      <text x="150" y="330" text-anchor="middle" font-family="Anybody, sans-serif" font-weight="900" font-size="150" font-stretch="70%" fill="#ff8fb2">0</text>
+      <circle cx="112" cy="360" r="11" fill="#141519"/><circle cx="188" cy="360" r="11" fill="#141519"/><circle cx="115" cy="356" r="3.5" fill="#fff"/><circle cx="191" cy="356" r="3.5" fill="#fff"/>
+      <path d="M134 376q16 14 32 0" fill="none" stroke="#141519" stroke-width="5" stroke-linecap="round"/>
+      <rect x="58" y="70" width="18" height="380" rx="9" fill="#fff" opacity=".55"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header>
+  <a class="logo" href="#top">softdrink</a>
+  <button data-cart-open aria-label="Open cart"><svg><use href="#i-bag"/></svg><span data-cart-count>0</span></button>
+</header>
+
+<main id="top">
+  <section class="intro" id="intro">
+    <h1 class="any" aria-label="Zero"><span id="zero">ZERO</span></h1>
+    <svg class="can0" id="can0" viewBox="0 0 300 520" role="img" aria-label="Illustrated soft drink can"><use href="#canart"/></svg>
+    <p class="sub" style="position:absolute;bottom:80px;left:0;right:0">Zero sugar. Zero caffeine. <b>One very soft can.</b></p>
+    <div class="cue" aria-hidden="true"><i></i>Scroll to open</div>
+    <div class="pricechip"><b>$12.99</b><s>$19.99</s></div>
+  </section>
+
+  <section class="crack" id="crack" aria-label="How it opens">
+    <div class="cr-in">
+      <div>
+        <div class="bars" aria-hidden="true"><i><span></span></i><i><span></span></i><i><span></span></i></div>
+        <div class="txt">
+          <div class="step"><b>01 / 03</b><h3>Pull</h3><p>Every can starts the same way: a finger under the tab.</p></div>
+          <div class="step"><b>02 / 03</b><h3>Fizz</h3><p>That little hiss. Except there's nothing inside but fluff.</p></div>
+          <div class="step"><b>03 / 03</b><h3>Pop!</h3><p>Out comes the Zero Can plush: 25 cm of short-pile softness with a stitched smile.</p></div>
+        </div>
+      </div>
+      <div class="stage" id="stage">
+        <div class="halo" aria-hidden="true"></div>
+        <svg class="can" id="can" viewBox="0 0 300 520" aria-hidden="true">
+          <use href="#canart"/>
+          <g id="tab" style="transform-origin:150px 44px"><path d="M126 34h48a10 10 0 0 1 10 10v2a10 10 0 0 1-10 10h-48a10 10 0 0 1-10-10v-2a10 10 0 0 1 10-10z" fill="url(#tabg)" stroke="#8d949e" stroke-width="1.5"/><rect x="134" y="40" width="22" height="10" rx="5" fill="#b9bfc8"/></g>
+        </svg>
+        <img class="plush" id="plush" src="../assets/plush-ar.webp" alt="Zero Can plush, Arctic" width="742" height="1036">
+        <div class="tsss" id="tsss" aria-hidden="true">tssst!</div>
+        <div id="bubbles" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats" aria-label="Per can">
+    <div class="stat"><b>0g</b><span>sugar per can</span></div>
+    <div class="stat"><b>0mg</b><span>caffeine per can</span></div>
+    <div class="stat"><b class="cu">25</b><span>centimetres of squish (40 cm option)</span></div>
+  </section>
+
+  <section class="hz" id="hz" aria-label="Flavours">
+    <div class="track" id="track"></div>
+  </section>
+
+  <section class="buy" id="buy">
+    <div class="bimg" id="bimg"><img src="../assets/plush-ar.webp" alt="Selected colour" width="742" height="1036"></div>
+    <div>
+      <div class="k">Your round</div>
+      <h2 class="any">Crack <em>one</em> open.</h2>
+      <div class="opt" id="ways" role="group" aria-label="Colour"></div>
+      <div class="opt" id="sizes" role="group" aria-label="Size"><button aria-pressed="true" data-s="25">25 cm</button><button aria-pressed="false" data-s="40">40 cm · +$10</button></div>
+      <div class="opt" id="qs" role="group" aria-label="Pack"><button aria-pressed="true" data-q="1">Single</button><button aria-pressed="false" data-q="2">2-pack −10%</button><button aria-pressed="false" data-q="3">3-pack −15%</button></div>
+      <div class="total"><b id="tot">$12.99</b><s id="was">$19.99</s></div>
+      <button class="pbtn" id="add"><svg><use href="#i-bag"/></svg>Add to cart</button>
+      <p class="fine">Arctic is photographed; other colours are previews · delivery <span id="eta"></span> · free over $30.</p>
+    </div>
+  </section>
+
+  <section class="quotes" aria-label="Reviews">
+    <blockquote>"I opened the box and actually laughed."<cite>Sample review</cite></blockquote>
+    <blockquote>"Softest thing in the house. Sorry, cat."<cite>Sample review</cite></blockquote>
+    <blockquote>"Matching Blush and Arctic for me and my bestie."<cite>Sample review</cite></blockquote>
+  </section>
+</main>
+<footer><span>softdrink · Zero Can plush · not a beverage</span><span>Template by js.17 · prices, specs and reviews are sample content.</span></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  K.layoutPill(6);
+  K.countUp($$('.cu'));
+  const S = {way:'ar', size:'25', q:1};
+  const BG = {ar:'#e9edf2', bl:'#ffd6e4', gl:'#d4e9fb', ma:'#d6f0d9'};
+  const COPY = {ar:'The original. Cool, clean, photographed exactly as it comes.', bl:'A soft pink take for the sweet-tooth with zero sugar.', gl:'Icy blue, like the first sip from a fridge-cold can.', ma:'A calm, leafy green for the desk that needs some zen.'};
+
+  /* flavour panels */
+  $('#track').innerHTML = P.colorways.map((c, i) => `
+    <div class="panel" style="--c:${BG[c.id]};--w:${[150, 110, 130, 90][i]}%">
+      <span class="big" aria-hidden="true">${i + 1}</span>
+      <div><span class="tag">${i ? 'Colour preview' : 'Photographed'}</span><h2 class="nm">${c.name}</h2><p>${COPY[c.id]}</p><button class="pbtn" data-id="${c.id}"><svg><use href="#i-bag"/></svg>Add ${c.name}</button></div>
+      <div class="pic"><img class="par" src="${K.img(c.id)}" alt="Zero Can plush in ${c.name}" width="742" height="1036" loading="lazy"></div>
+    </div>`).join('');
+  $$('#track .pbtn').forEach(b => b.addEventListener('click', () => K.add({variant: b.dataset.id, from: b.closest('.panel').querySelector('img')})));
+
+  /* buy panel */
+  P.colorways.forEach((c, i) => {
+    const b = document.createElement('button'); b.setAttribute('aria-pressed', i === 0); b.style.setProperty('--c', BG[c.id]); b.innerHTML = `<i></i>${c.name}`;
+    b.addEventListener('click', () => {
+      S.way = c.id; $$('#ways button').forEach(x => x.setAttribute('aria-pressed', x === b));
+      const box = $('#bimg'), old = box.querySelector('img:last-child'), im = new Image();
+      im.src = K.img(c.id); im.alt = c.name; im.width = 742; im.height = 1036; im.className = 'out'; box.appendChild(im);
+      requestAnimationFrame(() => requestAnimationFrame(() => { im.classList.remove('out'); old.classList.add('out'); })); setTimeout(() => old.remove(), 600);
+    });
+    $('#ways').appendChild(b);
+  });
+  function total(){ const u = P.price + K.size(S.size).add; $('#tot').textContent = K.money(u * S.q * (1 - K.bundleOff(S.q))); $('#was').textContent = K.money((P.compare + K.size(S.size).add) * S.q); }
+  $$('#sizes button').forEach(b => b.addEventListener('click', () => { S.size = b.dataset.s; $$('#sizes button').forEach(x => x.setAttribute('aria-pressed', x === b)); total(); }));
+  $$('#qs button').forEach(b => b.addEventListener('click', () => { S.q = +b.dataset.q; $$('#qs button').forEach(x => x.setAttribute('aria-pressed', x === b)); total(); }));
+  $('#add').addEventListener('click', () => K.add({variant: S.way, size: S.size, qty: S.q, from: $('#bimg img:last-child')}));
+  $('#eta').textContent = K.deliveryWindow(6, 11);
+
+  /* ---------- scroll motion ---------- */
+  if (!window.gsap || !window.ScrollTrigger || K.reduced){ $('#plush').style.opacity = 1; $('#can').style.opacity = .0; return; }
+  gsap.registerPlugin(ScrollTrigger);
+  document.body.classList.remove('no-gs'); document.documentElement.classList.add('gs');
+
+  /* intro: ZERO squeezes from wide to narrow, the can drops in */
+  gsap.from('#can0', {y: -window.innerHeight, rotate: -25, duration: 1.2, ease: 'bounce.out', delay: .2});
+  gsap.fromTo('#zero', {fontStretch: '150%'}, {fontStretch: '50%', ease: 'none', scrollTrigger: {trigger: '#intro', start: 'top top', end: 'bottom top', scrub: true}});
+  gsap.to('#can0', {y: () => window.innerHeight * .5, scale: .8, rotate: 10, ease: 'none', scrollTrigger: {trigger: '#intro', start: 'top top', end: 'bottom top', scrub: true}});
+
+  /* bubbles */
+  const bw = $('#bubbles'); const bubs = [];
+  for (let i = 0; i < 26; i++){ const b = document.createElement('i'); b.className = 'bub'; const s = 8 + Math.random() * 30; Object.assign(b.style, {width: s + 'px', height: s + 'px', left: (42 + Math.random() * 16) + '%', top: '16%'}); bw.appendChild(b); bubs.push(b); }
+
+  const steps = gsap.utils.toArray('.step'), bars = gsap.utils.toArray('.bars i span');
+  const tl = gsap.timeline({defaults: {ease: 'none'}, scrollTrigger: {trigger: '#crack', start: 'top top', end: '+=300%', pin: true, scrub: .6}});
+  tl.to(bars[0], {scaleX: 1, duration: 1}, 0)
+    .to('#tab', {rotateX: 0, rotate: -38, y: -14, duration: .8, ease: 'power2.inOut'}, .1)
+    .to('#can', {rotate: -4, duration: .4, yoyo: true, repeat: 1}, .5)
+    .to(steps[0], {opacity: 0, y: -24, duration: .2}, 1.05).fromTo(steps[1], {opacity: 0, y: 24}, {opacity: 1, y: 0, duration: .2}, 1.15)
+    .to(bars[1], {scaleX: 1, duration: 1}, 1.1)
+    .fromTo('#tsss', {opacity: 0, scale: .6, y: 20}, {opacity: 1, scale: 1, y: 0, duration: .3, ease: 'back.out(2)'}, 1.2)
+    .to('#tsss', {opacity: 0, y: -40, duration: .3}, 1.8);
+  bubs.forEach((b, i) => {
+    tl.fromTo(b, {opacity: 0, y: 0, x: 0}, {opacity: 1, y: -(120 + Math.random() * 260), x: (Math.random() - .5) * 220, duration: .5, ease: 'power1.out'}, 1.2 + (i % 8) * .06)
+      .to(b, {opacity: 0, duration: .2}, 1.65 + (i % 8) * .06);
+  });
+  tl.to('#can', {x: () => (Math.random() - .5) * 6, duration: .05, repeat: 9, yoyo: true}, 1.3)
+    .to(steps[1], {opacity: 0, y: -24, duration: .2}, 2.1).fromTo(steps[2], {opacity: 0, y: 24}, {opacity: 1, y: 0, duration: .2}, 2.2)
+    .to(bars[2], {scaleX: 1, duration: .9}, 2.1)
+    .to('#can', {scaleY: .6, scaleX: 1.15, y: 60, opacity: 0, transformOrigin: '50% 100%', duration: .4, ease: 'power2.in'}, 2.15)
+    .fromTo('#plush', {opacity: 0, scale: .4, y: 120}, {opacity: 1, scale: 1, y: 0, duration: .45, ease: 'back.out(1.8)'}, 2.4)
+    .to('#crack', {backgroundColor: '#ffe3ec', duration: .5}, 2.3)
+    .to({}, {duration: .3});
+
+  /* horizontal flavours */
+  const track = $('#track'), dist = () => track.scrollWidth - window.innerWidth;
+  const hz = gsap.to(track, {x: () => -dist(), ease: 'none', scrollTrigger: {trigger: '#hz', start: 'top top', end: () => '+=' + dist(), pin: true, scrub: .8, invalidateOnRefresh: true}});
+  gsap.utils.toArray('#track .par').forEach(el => gsap.fromTo(el, {xPercent: 25, rotate: 8}, {xPercent: -25, rotate: -8, ease: 'none', scrollTrigger: {trigger: el.closest('.panel'), containerAnimation: hz, start: 'left right', end: 'right left', scrub: true}}));
+  gsap.utils.toArray('#track .nm').forEach(el => gsap.from(el, {xPercent: -30, opacity: .2, ease: 'none', scrollTrigger: {trigger: el.closest('.panel'), containerAnimation: hz, start: 'left 85%', end: 'left 30%', scrub: true}}));
+  gsap.from('.buy h2', {yPercent: 30, ease: 'none', scrollTrigger: {trigger: '#buy', start: 'top bottom', end: 'top 40%', scrub: true}});
+  addEventListener('load', () => ScrollTrigger.refresh());
+})();
+</script>
+</body>
+</html>

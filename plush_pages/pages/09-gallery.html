@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exhibit Zero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --wall:#f6f5f1;--floor:#e9e6df;--ink:#121212;--mute:#77746d;--line:rgba(18,18,18,.12);--dot:#d6402e;
+  --kit-bg:#fbfaf7;--kit-fg:#121212;--kit-muted:#77746d;--kit-accent:#121212;--kit-accent-fg:#fbfaf7;--kit-line:rgba(18,18,18,.1);--kit-radius:0px;--kit-font:"Geist",sans-serif;--kit-scrim:rgba(18,18,18,.25);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--wall);color:var(--ink);font-family:"Geist",system-ui,sans-serif;font-weight:400;font-size:16px;line-height:1.6;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+.nw{font-family:"Newsreader",Georgia,serif;font-weight:300;letter-spacing:-.015em}
+.wrap{width:min(1320px,100% - 32px);margin-inline:auto}
+.sm{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+
+header .wrap{display:flex;align-items:center;gap:20px;height:72px;border-bottom:1px solid var(--line)}
+.logo{font-weight:600;letter-spacing:.3em;text-transform:uppercase;font-size:13px;text-decoration:none}
+header nav{display:flex;gap:26px;margin-left:auto;font-size:13px}
+header nav a{text-decoration:none;color:var(--mute)}
+header nav a:hover{color:var(--ink)}
+.bag{appearance:none;border:0;background:none;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px}
+.bag span{display:inline-grid;place-items:center;min-width:22px;height:22px;border:1px solid var(--ink);border-radius:50%;font-size:11px}
+
+/* room */
+.room{position:relative;height:max(86svh,640px);min-height:600px;overflow:hidden;background:linear-gradient(var(--wall) 0 72%,var(--floor) 72%)}
+.room::before{content:"";position:absolute;left:0;right:0;top:72%;height:1px;background:rgba(18,18,18,.08)}
+.cone{position:absolute;left:50%;top:-10%;width:min(70vw,780px);height:100%;transform:translateX(-50%);background:radial-gradient(ellipse 50% 70% at 50% 0,rgba(255,250,236,.95),rgba(255,250,236,0) 70%);pointer-events:none;mix-blend-mode:normal;opacity:0;animation:on 1.6s .3s ease-out forwards}
+@keyframes on{0%{opacity:0}10%{opacity:.6}14%{opacity:.1}22%{opacity:.9}100%{opacity:1}}
+.pool{position:absolute;left:50%;top:76%;width:min(46vw,520px);height:70px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(255,250,236,.95),transparent)}
+.plinth{position:absolute;left:50%;bottom:16%;width:min(26vw,250px);height:min(28vh,230px);transform:translateX(-50%);background:linear-gradient(90deg,#f1efe9,#fdfcfa 40%,#e8e5de);box-shadow:0 30px 40px -20px rgba(18,18,18,.25)}
+.plinth::before{content:"";position:absolute;left:-2px;right:-2px;top:-8px;height:10px;background:#fdfcfa;box-shadow:0 1px 0 rgba(18,18,18,.06)}
+.art{position:absolute;left:50%;bottom:calc(16% + min(28vh,230px) + 2px);height:min(40vh,360px);width:auto;max-width:none;transform:translateX(-50%);transform-origin:50% 100%;filter:drop-shadow(0 18px 14px rgba(18,18,18,.18));cursor:zoom-in;transition:transform .8s cubic-bezier(.2,.8,.2,1)}
+.art:hover{transform:translateX(-50%) scale(1.03)}
+.label{position:absolute;right:max(16px,calc((100% - 1320px)/2 + 16px));top:26%;width:290px;background:#fff;padding:20px 22px;box-shadow:0 1px 0 rgba(18,18,18,.05),0 10px 30px -10px rgba(18,18,18,.15);font-size:13px;line-height:1.55}
+.label .t{font-family:Newsreader;font-style:italic;font-size:24px;line-height:1.15;margin:4px 0 10px}
+.label .m{color:var(--mute)}
+.label .p{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.label .p b{font-weight:500;font-size:16px}
+.reddot{width:14px;height:14px;border-radius:50%;background:var(--dot);display:inline-block;transform:scale(0);transition:transform .5s cubic-bezier(.3,1.8,.5,1);vertical-align:middle}
+.reddot.on{transform:scale(1)}
+.intro{position:absolute;left:max(16px,calc((100% - 1320px)/2 + 16px));top:12%;max-width:420px}
+.intro h1{font-family:Newsreader;font-weight:300;font-size:clamp(46px,6vw,92px);line-height:.95;margin:10px 0 16px;letter-spacing:-.03em}
+.intro h1 em{font-style:italic}
+.intro p{color:var(--mute);margin:0 0 22px}
+.btn{appearance:none;border:1px solid var(--ink);background:var(--ink);color:var(--wall);padding:14px 22px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:10px;transition:background .3s,color .3s;text-decoration:none}
+.btn:hover{background:transparent;color:var(--ink)}
+.btn.o{background:transparent;color:var(--ink)}
+.btn.o:hover{background:var(--ink);color:var(--wall)}
+.btn svg{width:16px;height:16px}
+.guide{position:absolute;left:max(16px,calc((100% - 1320px)/2 + 16px));bottom:5%;display:flex;align-items:center;gap:14px;max-width:min(520px,calc(100% - 32px))}
+.play{appearance:none;width:52px;height:52px;border-radius:50%;border:1px solid var(--ink);background:#fff;cursor:pointer;display:grid;place-items:center;flex:none}
+.play svg{width:18px;height:18px}
+.guide .tx{font-family:Newsreader;font-style:italic;font-size:17px;line-height:1.4;min-height:48px}
+.guide .tx .cur{display:inline-block;width:1px;height:1em;background:var(--ink);vertical-align:-2px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
+section{padding:110px 0}
+.sh{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end;margin-bottom:40px}
+.sh h2{font-family:Newsreader;font-weight:300;font-size:clamp(40px,5vw,76px);line-height:1;margin:10px 0 0;letter-spacing:-.025em}
+.sh h2 em{font-style:italic}
+.sh p{color:var(--mute);margin:0;max-width:440px;justify-self:end}
+
+/* corridor */
+.corr{display:flex;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;cursor:grab;scrollbar-width:none;border-block:1px solid var(--line)}
+.corr::-webkit-scrollbar{display:none}
+.corr.drag{cursor:grabbing;scroll-snap-type:none}
+.bay{flex:none;width:min(560px,86vw);scroll-snap-align:center;position:relative;height:620px;background:linear-gradient(var(--wall) 0 70%,var(--floor) 70%);border-right:1px solid var(--line);user-select:none;-webkit-user-select:none}
+.bay .lamp{position:absolute;left:50%;top:-8%;width:80%;height:90%;transform:translateX(-50%);background:radial-gradient(ellipse 50% 70% at 50% 0,rgba(255,250,236,.9),transparent 70%);pointer-events:none}
+.bay .pl{position:absolute;left:50%;bottom:14%;width:160px;height:170px;transform:translateX(-50%);background:linear-gradient(90deg,#f1efe9,#fdfcfa 40%,#e8e5de)}
+.bay img{position:absolute;left:50%;bottom:calc(14% + 170px);height:250px;width:auto;max-width:none;transform:translateX(-50%);filter:drop-shadow(0 14px 12px rgba(18,18,18,.18));pointer-events:none}
+.bay .lb{position:absolute;right:24px;top:30px;width:200px;background:#fff;padding:14px 16px;font-size:12px;line-height:1.5;box-shadow:0 8px 24px -10px rgba(18,18,18,.18)}
+.bay .lb i{font-family:Newsreader;font-size:19px;display:block;margin:2px 0 6px}
+.bay .lb .rw{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.bay .lb button{appearance:none;border:0;background:none;padding:0;text-decoration:underline;cursor:pointer;font-size:12px}
+.bay .no{position:absolute;left:24px;bottom:22px;font-family:Newsreader;font-size:60px;font-weight:300;color:rgba(18,18,18,.12);line-height:1}
+.ctrls{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:16px}
+.ctrls .arr{display:flex;gap:8px}
+.ctrls button{appearance:none;width:46px;height:46px;border:1px solid var(--ink);background:transparent;border-radius:50%;cursor:pointer;display:grid;place-items:center}
+.ctrls button svg{width:16px;height:16px}
+.ctrls .pv svg{transform:rotate(180deg)}
+.ctrls .pg{height:1px;flex:1;background:var(--line);position:relative;max-width:420px}
+.ctrls .pg i{position:absolute;left:0;top:-1px;height:3px;background:var(--ink);width:25%;transition:left .3s}
+
+/* studies */
+.studies{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.frame{background:#fff;padding:clamp(14px,2.4vw,30px);box-shadow:0 1px 0 rgba(18,18,18,.06),0 20px 50px -24px rgba(18,18,18,.3);margin:0}
+.frame .mat{overflow:hidden;background:#eee}
+.frame img{width:100%;transition:transform 1.4s cubic-bezier(.2,.8,.2,1)}
+.frame:hover img{transform:scale(1.06)}
+.frame figcaption{margin-top:14px;font-size:13px;color:var(--mute)}
+.frame figcaption i{font-family:Newsreader;font-size:18px;color:var(--ink)}
+.studies .frame:nth-child(2){margin-top:120px}
+
+/* acquire */
+.acq{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,80px);align-items:start;border-top:1px solid var(--ink);padding-top:40px}
+.acq h2{font-family:Newsreader;font-weight:300;font-size:clamp(40px,5vw,72px);line-height:1;margin:0;letter-spacing:-.025em}
+.acq h2 em{font-style:italic}
+.form{display:grid;gap:22px}
+.fs{border:0;padding:0;margin:0}
+.fs legend{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:10px;padding:0}
+.opts{display:grid;gap:0;border-top:1px solid var(--line)}
+.op{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.op input{accent-color:var(--ink);width:16px;height:16px;margin:0 12px 0 0}
+.op span{flex:1}
+.op small{color:var(--mute)}
+.tot{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--ink);padding-top:16px}
+.tot b{font-family:Newsreader;font-weight:300;font-size:44px}
+.book{display:grid;grid-template-columns:repeat(3,1fr);gap:40px}
+.book blockquote{margin:0;font-family:Newsreader;font-style:italic;font-size:24px;line-height:1.3;font-weight:300}
+.book cite{display:block;margin-top:12px;font-family:Geist;font-style:normal;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.zoom{position:fixed;inset:0;z-index:9000;background:rgba(246,245,241,.97);display:grid;place-items:center;opacity:0;pointer-events:none;transition:opacity .4s;cursor:zoom-out}
+.zoom.on{opacity:1;pointer-events:auto}
+.zoom img{max-height:88vh;width:auto;transform:scale(.94);transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.zoom.on img{transform:none}
+footer{border-top:1px solid var(--line);padding:30px 0 100px;font-size:12px;color:var(--mute);letter-spacing:.06em}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@supports (animation-timeline:view()){
+  .rv{animation:rv linear both;animation-timeline:view();animation-range:entry 0% entry 100%}
+  @keyframes rv{from{transform:translateY(40px)}}
+}
+@media (max-width:1000px){
+  header nav{display:none}
+  .bag{margin-left:auto}
+  .label{top:auto;bottom:4%;right:16px;width:240px;padding:14px 16px}
+  .label .t{font-size:20px}
+  .guide{display:none}
+  .sh,.studies,.acq{grid-template-columns:1fr}
+  .sh p{justify-self:start}
+  .studies .frame:nth-child(2){margin-top:0}
+  .book{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .room{height:auto;min-height:0;padding:30px 16px 0;background:linear-gradient(var(--wall) 0 78%,var(--floor) 78%)}
+  .intro,.label{position:static;width:auto;max-width:none}
+  .stagewrap{position:relative;height:440px;margin:10px -16px 0}
+  .label{margin:0 0 20px}
+  .art{height:220px;bottom:calc(10% + 130px)}
+  .plinth{width:150px;height:130px;bottom:10%}
+  .pool{top:auto;bottom:6%}
+  .bay{height:600px}
+  .bay .lb{left:16px;right:16px;width:auto;top:16px}
+  .bay .pl{height:110px;width:130px}
+  .bay img{height:200px;bottom:calc(14% + 110px)}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .cone{opacity:1}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="#top">softdrink · gallery</a>
+  <nav aria-label="Sections"><a href="#room">Room I</a><a href="#corridor">The series</a><a href="#studies">Studies</a><a href="#acquire">Acquire</a></nav>
+  <button class="bag" data-cart-open aria-label="Open cart">Acquisitions <span data-cart-count>0</span></button>
+</div></header>
+
+<main id="top">
+  <section class="room" id="room" style="padding-block:0" aria-label="Room I">
+    <div class="intro">
+      <div class="sm">Room I · Now showing</div>
+      <h1><em>Zero</em>, a study<br>in softness.</h1>
+      <p>A single plush can on a single plinth. Short-pile polyester, PP cotton, a stitched smile. Approach slowly.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="heroAdd"><svg><use href="#i-bag"/></svg>Acquire · $12.99</button><a class="btn o" href="#corridor">View the series</a></div>
+    </div>
+    <div class="stagewrap">
+      <div class="cone" aria-hidden="true"></div>
+      <div class="pool" aria-hidden="true"></div>
+      <div class="plinth" aria-hidden="true"></div>
+      <img class="art" id="art" src="../assets/plush-ar.webp" alt="Zero Can plush displayed on a white gallery plinth" width="742" height="1036">
+    </div>
+    <aside class="label" aria-label="Wall label">
+      <div class="sm">softdrink studio (est. 2026)</div>
+      <div class="t">Untitled (Zero), 2026</div>
+      <div class="m">Polyester plush, PP cotton, embroidery<br>≈ 25 × 12 × 10 cm<br>Edition of ∞ · Arctic</div>
+      <div class="p"><b>$12.99</b><span><span class="reddot" id="dot0" title="Reserved"></span> <span id="dotTxt" class="m">Available</span></span></div>
+    </aside>
+    <div class="guide">
+      <button class="play" id="play" aria-label="Play audio guide"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
+      <div class="tx" id="tx" aria-live="polite">Audio guide · press play</div>
+    </div>
+  </section>
+
+  <section id="corridor" style="padding-bottom:60px">
+    <div class="wrap sh rv"><div><div class="sm">The series</div><h2>Four works, <em>one smile</em></h2></div><p>Drag to walk the corridor. Arctic is the photographed original; the others are digital studies in colour.</p></div>
+    <div class="corr" id="corr" tabindex="0" aria-label="Series corridor, scroll horizontally"></div>
+    <div class="wrap ctrls"><span class="sm" id="bayNo">Work 1 of 4</span><span class="pg"><i id="pgI"></i></span><span class="arr"><button class="pv" id="pv" aria-label="Previous work"><svg><use href="#i-arrow"/></svg></button><button id="nx" aria-label="Next work"><svg><use href="#i-arrow"/></svg></button></span></div>
+  </section>
+
+  <section id="studies" style="padding-top:60px">
+    <div class="wrap">
+      <div class="sh rv"><div><div class="sm">Room II · Studies</div><h2>From <em>life</em></h2></div><p>Photographs of the work (label artwork removed for this template).</p></div>
+      <div class="studies">
+        <figure class="frame rv"><div class="mat"><img src="../assets/plush-hand.webp" alt="The plush held in one hand" width="740" height="776" loading="lazy"></div><figcaption><i>Study with hand</i> · scale reference, about 25 cm</figcaption></figure>
+        <figure class="frame rv"><div class="mat"><img src="../assets/plush-face.webp" alt="Detail of the embroidered eyes and smile" width="800" height="440" loading="lazy"></div><figcaption><i>Detail: the smile</i> · embroidered thread on short-pile plush</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="acquire" style="padding-top:0">
+    <div class="wrap acq">
+      <div class="rv"><div class="sm">Acquisition</div><h2>Take a work <em>home</em></h2><p style="color:var(--mute);max-width:420px">Each work ships in a plain white box. Estimated arrival <span id="eta"></span>. Free shipping over $30.</p></div>
+      <form class="form rv" id="form">
+        <fieldset class="fs"><legend>Work</legend><div class="opts" id="works"></div></fieldset>
+        <fieldset class="fs"><legend>Scale</legend><div class="opts">
+          <label class="op"><input type="radio" name="sz" value="25" checked><span>Classic · 25 cm</span><small>—</small></label>
+          <label class="op"><input type="radio" name="sz" value="40"><span>Monumental · 40 cm</span><small>+$10.00</small></label>
+        </div></fieldset>
+        <fieldset class="fs"><legend>Edition</legend><div class="opts">
+          <label class="op"><input type="radio" name="q" value="1" checked><span>Single work</span><small>—</small></label>
+          <label class="op"><input type="radio" name="q" value="2"><span>Diptych · 2 works</span><small>−10%</small></label>
+          <label class="op"><input type="radio" name="q" value="3"><span>Triptych · 3 works</span><small>−15%</small></label>
+        </div></fieldset>
+        <fieldset class="fs"><legend>Presentation</legend><div class="opts"><label class="op"><input type="checkbox" id="gb"><span>Gift box + message card</span><small>+$3.50</small></label></div></fieldset>
+        <div class="tot"><span class="sm">Total</span><b id="tot">$12.99</b></div>
+        <button class="btn" type="submit" style="justify-content:center"><svg><use href="#i-bag"/></svg>Acquire</button>
+      </form>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="sm rv" style="margin-bottom:24px">Visitor book</div>
+      <div class="book">
+        <blockquote class="rv">"I came for the drinks, I left with the can."<cite>Sample review</cite></blockquote>
+        <blockquote class="rv">"Smaller and softer than I imagined. Perfect."<cite>Sample review</cite></blockquote>
+        <blockquote class="rv">"The Blush study now hangs out on my bookshelf."<cite>Sample review</cite></blockquote>
+      </div>
+    </div>
+  </section>
+</main>
+<footer><div class="wrap"><span>SOFTDRINK GALLERY · ZERO CAN PLUSH · AGES 3+</span><span>Template by js.17 · prices, specs and reviews are sample content</span></div></footer>
+<div class="zoom" id="zoom" role="dialog" aria-modal="true" aria-label="Enlarged view"><img id="zoomImg" src="../assets/plush-ar.webp" alt="" width="742" height="1036"></div>
+
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  K.layoutPill(9);
+  const TITLES = {ar:'Untitled (Zero)', bl:'Zero, Blushing', gl:'Zero on Ice', ma:'Zero in Green'};
+  const NOTES = {ar:'The original work, photographed as it is.', bl:'A digital study in pink.', gl:'A digital study in cool blue.', ma:'A digital study in soft green.'};
+  const reserved = new Set();
+
+  /* reserve dots follow the cart */
+  function markReserved(id){ reserved.add(id); if (id === 'ar'){ $('#dot0').classList.add('on'); $('#dotTxt').textContent = 'Reserved'; } $$(`.reddot[data-id="${id}"]`).forEach(d => d.classList.add('on')); }
+  $('#heroAdd').addEventListener('click', () => { K.add({variant:'ar', from: $('#art')}); markReserved('ar'); });
+
+  /* zoom */
+  const zoom = $('#zoom');
+  $('#art').addEventListener('click', () => { $('#zoomImg').src = $('#art').src; zoom.classList.add('on'); });
+  zoom.addEventListener('click', () => zoom.classList.remove('on'));
+  addEventListener('keydown', e => { if (e.key === 'Escape') zoom.classList.remove('on'); });
+
+  /* audio guide: typewriter transcript, optional speech */
+  const LINES = [
+    'Welcome to Room One.',
+    'Before you is Untitled (Zero), a plush can, twenty-five centimetres tall.',
+    'Note the embroidered smile: two stitched eyes, one modest curve.',
+    'The artist offers zero sugar and zero caffeine. Only softness remains.',
+    'Visitors are encouraged to squeeze. Gently.'
+  ];
+  let playing = false, li = 0, timer;
+  const tx = $('#tx');
+  function type(line, done){
+    let i = 0; clearInterval(timer);
+    if (K.reduced){ tx.textContent = line; done && setTimeout(done, 1800); return; }
+    timer = setInterval(() => { i++; tx.innerHTML = line.slice(0, i) + '<span class="cur"></span>'; if (i >= line.length){ clearInterval(timer); done && setTimeout(done, 1500); } }, 34);
+  }
+  function next(){
+    if (!playing) return;
+    if (li >= LINES.length){ stop(); tx.textContent = 'End of guide · press play to hear it again'; return; }
+    const line = LINES[li++];
+    if ('speechSynthesis' in window){ try { const u = new SpeechSynthesisUtterance(line); u.rate = .95; speechSynthesis.speak(u); } catch(e){} }
+    type(line, next);
+  }
+  function stop(){ playing = false; li = 0; clearInterval(timer); try { speechSynthesis.cancel(); } catch(e){} $('#play').innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>'; $('#play').setAttribute('aria-label', 'Play audio guide'); }
+  $('#play').addEventListener('click', () => {
+    if (playing){ stop(); tx.textContent = 'Audio guide paused'; return; }
+    playing = true; $('#play').innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>'; $('#play').setAttribute('aria-label', 'Stop audio guide'); next();
+  });
+
+  /* corridor */
+  const corr = $('#corr');
+  corr.innerHTML = P.colorways.map((c, i) => `
+    <div class="bay" data-i="${i}">
+      <div class="lamp" aria-hidden="true"></div><div class="pl" aria-hidden="true"></div>
+      <img src="${K.img(c.id)}" alt="${TITLES[c.id]}: Zero Can plush in ${c.name}" width="742" height="1036" loading="lazy">
+      <div class="lb"><span class="sm">Work ${i + 1}</span><i>${TITLES[c.id]}, 2026</i>${NOTES[c.id]}<br>${c.name}${i ? ' · colour preview' : ''}<div class="rw"><span>$12.99 <span class="reddot" data-id="${c.id}" title="Reserved"></span></span><button data-id="${c.id}">Acquire</button></div></div>
+      <span class="no" aria-hidden="true">0${i + 1}</span>
+    </div>`).join('');
+  $$('.bay .lb button').forEach(b => b.addEventListener('click', () => { K.add({variant: b.dataset.id, from: b.closest('.bay').querySelector('img')}); markReserved(b.dataset.id); }));
+  /* drag to scroll */
+  let dx = null, sl = 0, moved = false;
+  corr.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.target.closest('button')) return; dx = e.clientX; sl = corr.scrollLeft; moved = false; corr.classList.add('drag'); });
+  addEventListener('pointermove', e => { if (dx === null) return; const d = e.clientX - dx; if (Math.abs(d) > 3) moved = true; corr.scrollLeft = sl - d; });
+  addEventListener('pointerup', () => { if (dx === null) return; dx = null; corr.classList.remove('drag'); snap(); });
+  function bayW(){ return corr.querySelector('.bay').offsetWidth; }
+  function cur(){ return Math.round(corr.scrollLeft / bayW()); }
+  function snap(){ corr.scrollTo({left: cur() * bayW(), behavior: K.reduced ? 'auto' : 'smooth'}); }
+  corr.addEventListener('scroll', () => { const n = Math.min(3, Math.max(0, cur())); $('#bayNo').textContent = `Work ${n + 1} of 4`; $('#pgI').style.left = (n * 25) + '%'; }, {passive: true});
+  $('#nx').addEventListener('click', () => corr.scrollTo({left: Math.min(3, cur() + 1) * bayW(), behavior: K.reduced ? 'auto' : 'smooth'}));
+  $('#pv').addEventListener('click', () => corr.scrollTo({left: Math.max(0, cur() - 1) * bayW(), behavior: K.reduced ? 'auto' : 'smooth'}));
+
+  /* acquisition form */
+  $('#works').innerHTML = P.colorways.map((c, i) => `<label class="op"><input type="radio" name="w" value="${c.id}" ${i ? '' : 'checked'}><span><i class="nw" style="font-size:19px">${TITLES[c.id]}</i></span><small>${c.name}${i ? ' · preview' : ''}</small></label>`).join('');
+  const form = $('#form');
+  const val = n => (form.querySelector(`input[name="${n}"]:checked`) || {}).value;
+  function total(){ const u = P.price + K.size(val('sz')).add, q = +val('q'); $('#tot').textContent = K.money(u * q * (1 - K.bundleOff(q)) + ($('#gb').checked ? 3.5 : 0)); }
+  form.addEventListener('change', e => { total(); if (e.target.name === 'w') $('#art').src = K.img(e.target.value); });
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    K.add({variant: val('w'), size: val('sz'), qty: +val('q'), addons: $('#gb').checked ? ['giftbox'] : [], from: form.querySelector('button[type=submit]')});
+    markReserved(val('w'));
+  });
+  total();
+  $('#eta').textContent = K.deliveryWindow(6, 11);
+})();
+</script>
+</body>
+</html>

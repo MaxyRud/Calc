@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Y2K Sticker Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Krona+One&family=Urbanist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+@property --ang{syntax:"<angle>";inherits:false;initial-value:0deg}
+:root{
+  color-scheme:light;
+  --ink:#1a1626;--mute:#5d5770;--hot:#ff4fb3;--cy:#34d6ff;--lil:#b89cff;--lem:#fff27a;--line:rgba(26,22,38,.14);
+  --holo:linear-gradient(115deg,#ffd1f0,#c8f3ff 25%,#e6dcff 45%,#fff6c8 65%,#c9ffe6 85%,#ffd1f0);
+  --chrome:linear-gradient(180deg,#ffffff 0%,#b9c0cc 36%,#3d4452 50%,#dfe4ec 60%,#7d8596 100%);
+  --kit-bg:#fdfbff;--kit-fg:#1a1626;--kit-muted:#5d5770;--kit-accent:#ff4fb3;--kit-accent-fg:#fff;--kit-line:rgba(26,22,38,.12);--kit-radius:999px;--kit-font:"Urbanist",sans-serif;--kit-scrim:rgba(26,22,38,.3);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;color:var(--ink);font-family:"Urbanist",system-ui,sans-serif;font-size:18px;line-height:1.5;overflow-x:hidden;background:#f6f1ff}
+body::before{content:"";position:fixed;inset:-20%;z-index:-2;background:conic-gradient(from var(--ang) at 30% 40%,#ffd1f0,#c8f3ff,#e6dcff,#fff6c8,#c9ffe6,#ffd1f0);filter:blur(60px);opacity:.75;animation:spin 18s linear infinite}
+@keyframes spin{to{--ang:360deg}}
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,.9) 1px,transparent 1.5px);background-size:22px 22px;opacity:.35}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.kr{font-family:"Krona One",system-ui,sans-serif;font-weight:400;letter-spacing:-.02em;text-transform:uppercase}
+.chrome{background:var(--chrome);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:1.5px var(--ink);filter:drop-shadow(0 2px 0 rgba(26,22,38,.35)) drop-shadow(0 8px 18px rgba(26,22,38,.18))}
+.wrap{width:min(1240px,100% - 32px);margin-inline:auto}
+.spark{position:fixed;width:14px;height:14px;pointer-events:none;z-index:9999;color:#fff;filter:drop-shadow(0 0 4px var(--hot))}
+
+header{position:sticky;top:12px;z-index:30}
+header .wrap{display:flex;align-items:center;gap:14px;height:60px;padding:0 10px 0 20px;border-radius:99px;background:rgba(255,255,255,.55);backdrop-filter:blur(14px);border:1.5px solid rgba(255,255,255,.9);box-shadow:0 10px 30px rgba(26,22,38,.08)}
+.logo{font-family:"Krona One";font-size:15px;text-decoration:none;text-transform:uppercase}
+header nav{display:flex;gap:4px;margin-left:auto}
+header nav a{text-decoration:none;font-weight:700;padding:8px 14px;border-radius:99px;font-size:15px}
+header nav a:hover{background:#fff}
+.cart{appearance:none;border:0;background:var(--ink);color:#fff;height:44px;padding:0 16px;border-radius:99px;display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700}
+.cart svg{width:18px;height:18px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:30px;align-items:center;padding:50px 0 60px}
+.hero h1{font-size:clamp(46px,7vw,112px);line-height:.88;margin:16px 0 20px}
+.tagrow{display:flex;gap:8px;flex-wrap:wrap}
+.tg{font-weight:800;font-size:13px;padding:6px 12px;border-radius:99px;background:#fff;border:1.5px solid var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.tg.h{background:var(--hot);color:#fff}
+.tg.c{background:var(--cy)}
+#sz .tg[aria-pressed="true"]{background:var(--ink);color:#fff}
+.lede{max-width:460px;color:var(--mute);margin:0 0 24px;font-weight:500;font-size:19px}
+.btn{appearance:none;border:2px solid var(--ink);background:var(--hot);color:#fff;border-radius:99px;height:58px;padding:0 26px;font-weight:800;font-size:17px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:5px 5px 0 var(--ink);transition:transform .15s,box-shadow .15s;text-decoration:none}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+.btn:active{transform:translate(4px,4px);box-shadow:1px 1px 0 var(--ink)}
+.btn svg{width:19px;height:19px}
+.btn.w{background:#fff;color:var(--ink)}
+.price{display:flex;align-items:baseline;gap:12px;margin-bottom:20px}
+.price b{font-family:"Krona One";font-size:38px}
+.price s{color:var(--mute)}
+
+/* holo card */
+.cardstage{perspective:1100px;display:grid;place-items:center}
+.holo{--mx:50%;--my:50%;--rx:0deg;--ry:0deg;position:relative;width:min(400px,86vw);aspect-ratio:63/88;border-radius:24px;transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform .2s ease-out;background:#fff;box-shadow:0 30px 60px -10px rgba(26,22,38,.35);padding:14px;border:2px solid var(--ink);transform-style:preserve-3d}
+.holo .face{position:relative;height:100%;border-radius:14px;overflow:hidden;background:var(--holo);display:grid;grid-template-rows:auto 1fr auto;padding:14px;border:2px solid var(--ink)}
+.holo .face::after{content:"";position:absolute;inset:0;pointer-events:none;mix-blend-mode:color-dodge;opacity:.65;
+  background:radial-gradient(circle at var(--mx) var(--my),rgba(255,255,255,.85),transparent 40%),repeating-linear-gradient(115deg,transparent 0 6px,rgba(255,255,255,.25) 6px 8px,transparent 8px 14px),linear-gradient(115deg,transparent 20%,rgba(255,79,179,.35) 40%,rgba(52,214,255,.35) 55%,transparent 75%);
+  background-size:auto,auto,250% 250%;background-position:center,center,var(--mx) var(--my)}
+.holo .top{display:flex;justify-content:space-between;align-items:center;font-weight:800}
+.holo .top .kr{font-size:15px}
+.holo .top span{font-size:13px;background:var(--ink);color:var(--lem);padding:2px 8px;border-radius:99px}
+.holo .pic{display:grid;place-items:center;position:relative}
+.holo .pic img{height:96%;width:auto;max-height:340px;filter:drop-shadow(0 18px 18px rgba(26,22,38,.25));transform:translateZ(40px)}
+.holo .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:rgba(255,255,255,.75);border-radius:10px;padding:8px;border:1.5px solid var(--ink)}
+.holo .stats div{text-align:center;font-size:12px;font-weight:700;line-height:1.1}
+.holo .stats b{display:block;font-family:"Krona One";font-size:17px}
+
+/* marquee */
+.mq{overflow:hidden;border-block:2px solid var(--ink);background:var(--lem);padding:12px 0;transform:rotate(-1.5deg);margin:20px -20px}
+.mq .row{display:flex;gap:30px;width:max-content;animation:mq 22s linear infinite}
+.mq span{font-family:"Krona One";font-size:clamp(18px,2.4vw,30px);text-transform:uppercase;white-space:nowrap;display:flex;align-items:center;gap:30px}
+.mq svg{width:26px;height:26px;color:var(--hot)}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+section{padding:90px 0}
+.sh{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:30px;flex-wrap:wrap}
+.sh h2{font-size:clamp(34px,4.6vw,66px);line-height:.92;margin:12px 0 0}
+.sh p{max-width:420px;color:var(--mute);margin:0;font-weight:500}
+
+/* flip cards */
+.deck{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.fc{perspective:900px;aspect-ratio:63/88;cursor:pointer;appearance:none;border:0;background:none;padding:0;display:block;width:100%;font:inherit;color:inherit}
+.fc .in{display:block;position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .8s cubic-bezier(.3,1.3,.4,1)}
+.fc.flip .in{transform:rotateY(180deg)}
+.fc .s{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;border:2px solid var(--ink);box-shadow:5px 5px 0 var(--ink);overflow:hidden;padding:12px;display:grid;grid-template-rows:auto 1fr auto;text-align:left}
+.fc .fr{background:var(--bgc)}
+.fc .fr img{height:100%;max-height:250px;width:auto;margin:0 auto;filter:drop-shadow(0 10px 10px rgba(26,22,38,.2))}
+.fc .fr b{font-family:"Krona One";font-size:15px;text-transform:uppercase}
+.fc .fr small{font-weight:700;font-size:12px}
+.fc .bk{transform:rotateY(180deg);background:var(--ink);color:#fff;grid-template-rows:auto 1fr auto}
+.fc .bk b{font-family:"Krona One";font-size:15px;text-transform:uppercase;color:var(--lem)}
+.bars{display:grid;gap:8px;align-content:center}
+.bars div{font-size:13px;font-weight:700}
+.bars i{display:block;height:8px;border-radius:8px;background:rgba(255,255,255,.15);margin-top:3px;overflow:hidden}
+.bars i span{display:block;height:100%;background:linear-gradient(90deg,var(--cy),var(--hot));width:var(--w);transition:width 1s .3s}
+.fc:not(.flip) .bars i span{width:0}
+.fc .bk .add{appearance:none;border:0;background:var(--hot);color:#fff;border-radius:99px;padding:8px;font-weight:800;cursor:pointer}
+
+/* sticker board */
+.board{position:relative;height:560px;border-radius:30px;border:2px solid var(--ink);box-shadow:8px 8px 0 var(--ink);background:#fff;overflow:hidden;touch-action:none}
+.board .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(26,22,38,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(26,22,38,.06) 1px,transparent 1px);background-size:28px 28px}
+.board .prod{position:absolute;left:50%;bottom:0;height:88%;width:auto;max-width:none;transform:translateX(-50%);pointer-events:none}
+.tray{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.tray button.stk-src{appearance:none;width:64px;height:64px;border-radius:16px;border:2px solid var(--ink);background:#fff;cursor:pointer;display:grid;place-items:center;box-shadow:3px 3px 0 var(--ink);font-family:"Krona One";font-size:11px}
+.tray .clear{margin-left:auto}
+.st{position:absolute;left:0;top:0;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;filter:drop-shadow(3px 4px 0 rgba(26,22,38,.85));display:grid;place-items:center;font-family:"Krona One";text-transform:uppercase;line-height:1}
+.st:active{cursor:grabbing}
+.st svg{width:100%;height:100%}
+
+/* buy */
+.buy{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+.panel{background:rgba(255,255,255,.7);backdrop-filter:blur(12px);border-radius:30px;border:2px solid var(--ink);box-shadow:8px 8px 0 var(--ink);padding:clamp(20px,3vw,32px)}
+.pick{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.pk{appearance:none;border:2px solid var(--ink);border-radius:16px;background:var(--bgc);padding:8px;cursor:pointer;position:relative}
+.pk img{height:90px;width:auto;margin:0 auto}
+.pk small{display:block;font-weight:800;font-size:12px;text-align:center}
+.pk .n{position:absolute;top:-10px;right:-8px;min-width:26px;height:26px;border-radius:99px;background:var(--hot);color:#fff;font-weight:800;font-size:13px;display:grid;place-items:center;border:2px solid var(--ink);transform:scale(0);transition:transform .3s cubic-bezier(.3,1.8,.5,1)}
+.pk.on .n{transform:scale(1)}
+.sum{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}
+.sum b{font-family:"Krona One";font-size:34px}
+.hint{font-size:14px;color:var(--mute);font-weight:600}
+.win{background:#fff;border:2px solid var(--ink);border-radius:12px;box-shadow:5px 5px 0 var(--ink);overflow:hidden;margin-bottom:16px}
+.win .tb{display:flex;align-items:center;gap:8px;padding:6px 10px;background:linear-gradient(90deg,var(--cy),var(--lil));border-bottom:2px solid var(--ink);font-weight:800;font-size:13px}
+.win .tb i{width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);background:#fff}
+.win .tb i:first-child{background:var(--hot)}
+.win .tb span{margin-left:6px}
+.win p{margin:0;padding:12px 14px;font-weight:600}
+.win small{display:block;padding:0 14px 10px;font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--mute)}
+footer{padding:40px 0 100px;font-size:13px;color:var(--mute);font-weight:600}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@supports (animation-timeline:view()){
+  .rv{animation:rv linear both;animation-timeline:view();animation-range:entry 0% entry 100%}
+  @keyframes rv{from{transform:translateY(60px) rotate(-2deg)}}
+}
+@media (max-width:980px){
+  .hero,.buy{grid-template-columns:1fr}
+  .deck{grid-template-columns:1fr 1fr}
+  header nav{display:none}
+  .cart{margin-left:auto}
+}
+@media (max-width:560px){
+  .board{height:440px}
+  .pick{grid-template-columns:repeat(2,1fr)}
+  .tray button.stk-src{width:54px;height:54px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="#top">softdrink ✦ club</a>
+  <nav aria-label="Sections"><a href="#deck">Collect</a><a href="#board">Stickers</a><a href="#buy">Buy</a></nav>
+  <button class="cart" data-cart-open aria-label="Open cart"><svg><use href="#i-bag"/></svg><span data-cart-count>0</span></button>
+</div></header>
+
+<main id="top" class="wrap" style="overflow-x:clip">
+  <section class="hero">
+    <div>
+      <div class="tagrow"><span class="tg h">NEW DROP</span><span class="tg c">0 SUGAR</span><span class="tg">25 CM</span></div>
+      <h1 class="kr chrome">Zero Can<br>Club</h1>
+      <p class="lede">The softest can on the internet. Stitched smile, chubby arms, silver-white plush. Collect all four colours.</p>
+      <div class="price"><b>$12.99</b><s>$19.99</s></div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap"><button class="btn" id="heroAdd"><svg><use href="#i-bag"/></svg>Add to cart</button><a class="btn w" href="#deck">See the set</a></div>
+    </div>
+    <div class="cardstage">
+      <div class="holo" id="holo">
+        <div class="face">
+          <div class="top"><span class="kr">Zero Can</span><span>#001 · RARE</span></div>
+          <div class="pic"><img id="holoImg" src="../assets/plush-ar.webp" alt="Zero Can plush on a holographic trading card" width="742" height="1036"></div>
+          <div class="stats"><div><b>99</b>squish</div><div><b>0g</b>sugar</div><div><b>∞</b>cute</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div style="overflow-x:clip;padding:14px 0"><div class="mq" aria-hidden="true"><div class="row">
+  <span>Collect them all <svg viewBox="0 0 24 24"><use href="#i-spark"/></svg> 2 for −10% <svg viewBox="0 0 24 24"><use href="#i-heart"/></svg> 3 for −15% <svg viewBox="0 0 24 24"><use href="#i-spark"/></svg> free ship $30+ <svg viewBox="0 0 24 24"><use href="#i-heart"/></svg></span>
+  <span>Collect them all <svg viewBox="0 0 24 24"><use href="#i-spark"/></svg> 2 for −10% <svg viewBox="0 0 24 24"><use href="#i-heart"/></svg> 3 for −15% <svg viewBox="0 0 24 24"><use href="#i-spark"/></svg> free ship $30+ <svg viewBox="0 0 24 24"><use href="#i-heart"/></svg></span>
+</div></div></div>
+
+<div class="wrap">
+  <section id="deck">
+    <div class="sh rv"><div><span class="tg h">THE SET</span><h2 class="kr">Flip a card</h2></div><p>Four colours. Arctic is photographed; Blush, Glacier and Matcha are colour previews. Click a card for its stats.</p></div>
+    <div class="deck" id="deckEl"></div>
+  </section>
+
+  <section id="board" style="padding-top:0">
+    <div class="sh rv"><div><span class="tg c">JUST FOR FUN</span><h2 class="kr">Sticker bomb</h2></div><p>Drag stickers from the tray onto the board. They stay put next time you visit. Want real ones? The sticker sheet is an add-on.</p></div>
+    <div class="board rv" id="boardEl"><div class="grid" aria-hidden="true"></div><img class="prod" id="boardImg" src="../assets/plush-ar.webp" alt="" width="742" height="1036"></div>
+    <div class="tray" id="tray"><button class="btn w clear" id="clear" style="height:46px;font-size:15px">Clear board</button></div>
+  </section>
+
+  <section id="buy" style="padding-top:0">
+    <div class="buy">
+      <div class="panel rv">
+        <span class="tg h">BUILD A SET</span>
+        <h2 class="kr" style="font-size:clamp(28px,3.4vw,44px);line-height:.95;margin:14px 0 4px">Pick up to 3</h2>
+        <p class="hint">Tap colours to add them to your set. Click again to add another of the same.</p>
+        <div class="pick" id="pick"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" role="group" aria-label="Size" id="sz"><button class="tg" aria-pressed="true" data-s="25" style="cursor:pointer">25 cm</button><button class="tg" aria-pressed="false" data-s="40" style="cursor:pointer">40 cm · +$10</button></div>
+        <div class="sum"><div><span class="hint" id="setTxt">1 in your set</span><br><b id="tot">$12.99</b></div><button class="btn" id="setAdd"><svg><use href="#i-bag"/></svg>Add set</button></div>
+        <p class="hint" style="margin:12px 0 0">Delivery <span id="eta"></span> · free over $30 · <button class="tg" id="reset" style="cursor:pointer;box-shadow:none;padding:2px 8px">reset</button></p>
+      </div>
+      <div class="rv">
+        <div class="win"><div class="tb"><i></i><i></i><i></i><span>bestie_99 says:</span></div><p>omg the blush one!!! ordered the 2-pack so we match ✿</p><small>SAMPLE REVIEW</small></div>
+        <div class="win"><div class="tb"><i></i><i></i><i></i><span>deskgoblin says:</span></div><p>it's SO soft. lives on my monitor now. 10/10</p><small>SAMPLE REVIEW</small></div>
+        <div class="win"><div class="tb"><i></i><i></i><i></i><span>xo_collector says:</span></div><p>got all four colours + the sticker sheet. no regrets</p><small>SAMPLE REVIEW</small></div>
+        <div class="win"><div class="tb"><i></i><i></i><i></i><span>care_info.txt</span></div><p>Short-pile plush · PP cotton · embroidered face · hand wash cold · ages 3+</p></div>
+      </div>
+    </div>
+  </section>
+</div>
+<footer><div class="wrap"><span>softdrink club · Zero Can plush</span><span>Template by js.17 · prices, specs and reviews are sample content.</span></div></footer>
+
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  K.layoutPill(8);
+  const BG = {ar:'linear-gradient(160deg,#ffffff,#dfe5ee)', bl:'linear-gradient(160deg,#ffe3ee,#ffb8d3)', gl:'linear-gradient(160deg,#e6f4ff,#a9d6ff)', ma:'linear-gradient(160deg,#e9fbe9,#b3e8b9)'};
+  const STAT = {ar:[99, 92, 100], bl:[97, 100, 98], gl:[98, 95, 99], ma:[96, 97, 100]};
+
+  /* holo card tilt + shine */
+  const holo = $('#holo');
+  function tilt(x, y){ holo.style.setProperty('--mx', x * 100 + '%'); holo.style.setProperty('--my', y * 100 + '%'); holo.style.setProperty('--ry', ((x - .5) * 22).toFixed(2) + 'deg'); holo.style.setProperty('--rx', ((.5 - y) * 22).toFixed(2) + 'deg'); }
+  if (!K.reduced){
+    holo.parentElement.addEventListener('pointermove', e => { const r = holo.getBoundingClientRect(); tilt(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), Math.max(0, Math.min(1, (e.clientY - r.top) / r.height))); });
+    holo.parentElement.addEventListener('pointerleave', () => tilt(.5, .5));
+    let t = 0, idle = true; holo.parentElement.addEventListener('pointerenter', () => idle = false); holo.parentElement.addEventListener('pointerleave', () => idle = true);
+    (function f(){ if (idle){ t += .012; tilt(.5 + Math.sin(t) * .3, .5 + Math.cos(t * .8) * .2); } requestAnimationFrame(f); })();
+  }
+  $('#heroAdd').addEventListener('click', () => K.add({variant:'ar', from: $('#holoImg')}));
+
+  /* sparkle cursor trail */
+  if (K.finePointer && !K.reduced){
+    let last = 0;
+    addEventListener('pointermove', e => {
+      const now = performance.now(); if (now - last < 45) return; last = now;
+      const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('class', 'spark'); s.setAttribute('viewBox', '0 0 24 24'); s.innerHTML = '<use href="#i-spark"/>';
+      s.style.left = e.clientX - 7 + 'px'; s.style.top = e.clientY - 7 + 'px'; s.style.color = ['#fff', '#ff4fb3', '#34d6ff', '#fff27a'][Math.floor(Math.random() * 4)];
+      document.body.appendChild(s);
+      s.animate([{transform:'scale(1) rotate(0)', opacity:1},{transform:`translate(${(Math.random() - .5) * 30}px,${20 + Math.random() * 20}px) scale(0) rotate(90deg)`, opacity:0}], {duration:700, easing:'ease-out'}).onfinish = () => s.remove();
+    });
+  }
+
+  /* flip deck */
+  $('#deckEl').innerHTML = P.colorways.map((c, i) => {
+    const [sq, so, cu] = STAT[c.id];
+    return `<button class="fc rv" style="--bgc:${BG[c.id]}" data-id="${c.id}" aria-label="${c.name} card, click to flip">
+      <span class="in"><span class="s fr"><span style="display:flex;justify-content:space-between"><b>${c.name}</b><small>#00${i + 1}</small></span><img src="${K.img(c.id, true)}" alt="" width="371" height="518"><small>${i ? 'COLOUR PREVIEW' : 'PHOTOGRAPHED'} · $12.99</small></span>
+      <span class="s bk"><b>${c.name} stats</b><span class="bars"><div>Squish<i><span style="--w:${sq}%"></span></i></div><div>Softness<i><span style="--w:${so}%"></span></i></div><div>Cuteness<i><span style="--w:${cu}%"></span></i></div><div>Sugar<i><span style="--w:0%"></span></i></div></span><span class="add" data-add="${c.id}" role="button" tabindex="0">+ Add ${c.name}</span></span></span></button>`;
+  }).join('');
+  $$('.fc').forEach(b => b.addEventListener('click', e => {
+    const add = e.target.closest('[data-add]');
+    if (add){ e.stopPropagation(); K.add({variant: add.dataset.add, from: b}); return; }
+    b.classList.toggle('flip');
+  }));
+
+  /* sticker board */
+  const board = $('#boardEl');
+  const STK = [
+    {k:'heart', w:70, html:'<svg viewBox="0 0 24 24" style="color:#ff4fb3"><use href="#i-heart"/></svg>'},
+    {k:'spark', w:70, html:'<svg viewBox="0 0 24 24" style="color:#fff27a"><use href="#i-spark"/></svg>'},
+    {k:'zero', w:110, html:'<span style="background:#34d6ff;border:3px solid #1a1626;border-radius:99px;padding:8px 14px;font-size:16px">ZERO</span>'},
+    {k:'xoxo', w:100, html:'<span style="background:#ff4fb3;color:#fff;border:3px solid #1a1626;border-radius:12px;padding:8px 12px;font-size:16px;transform:rotate(-6deg)">XOXO</span>'},
+    {k:'star', w:90, html:'<svg viewBox="0 0 24 24" style="color:#b89cff"><use href="#i-star"/></svg>'},
+    {k:'can', w:56, html:'<svg viewBox="0 0 40 64"><use href="#i-can"/></svg>'},
+    {k:'cool', w:120, html:'<span style="background:#fff27a;border:3px solid #1a1626;border-radius:50%;width:110px;height:110px;display:grid;place-items:center;font-size:14px;text-align:center">STAY<br>COOL</span>'}
+  ];
+  let placed = []; try { placed = JSON.parse(localStorage.getItem('softdrink-stickers') || '[]'); } catch(e){}
+  const save = () => { try { localStorage.setItem('softdrink-stickers', JSON.stringify(placed)); } catch(e){} };
+  function mk(p){
+    const def = STK.find(s => s.k === p.k); if (!def) return;
+    const el = document.createElement('div'); el.className = 'st'; el.innerHTML = def.html; el.style.width = def.w + 'px'; el.style.height = (def.k === 'zero' || def.k === 'xoxo') ? 'auto' : def.w + 'px'; el.setAttribute('aria-hidden', 'true');
+    const pos = () => el.style.transform = `translate(${p.x * board.clientWidth - def.w / 2}px,${p.y * board.clientHeight - def.w / 2}px) rotate(${p.r}deg) scale(${p.s || 1})`;
+    pos(); board.appendChild(el); p.pos = pos;
+    let drag = false, ox = 0, oy = 0;
+    el.addEventListener('pointerdown', e => { drag = true; el.setPointerCapture(e.pointerId); const r = board.getBoundingClientRect(); ox = e.clientX - r.left - p.x * r.width; oy = e.clientY - r.top - p.y * r.height; board.appendChild(el); p.s = 1.12; pos(); });
+    el.addEventListener('pointermove', e => { if (!drag) return; const r = board.getBoundingClientRect(); p.x = Math.max(.03, Math.min(.97, (e.clientX - r.left - ox) / r.width)); p.y = Math.max(.04, Math.min(.96, (e.clientY - r.top - oy) / r.height)); pos(); });
+    const up = () => { if (!drag) return; drag = false; p.s = 1; pos(); if (!K.reduced) el.animate([{scale:'1.15'},{scale:'.95'},{scale:'1'}], {duration:300}); save(); };
+    el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+    el.addEventListener('dblclick', () => { placed = placed.filter(q => q !== p); el.remove(); save(); });
+    return el;
+  }
+  if (!placed.length) placed = [{k:'heart', x:.2, y:.25, r:-12}, {k:'zero', x:.78, y:.2, r:8}, {k:'spark', x:.82, y:.62, r:14}, {k:'cool', x:.17, y:.7, r:-8}];
+  placed.forEach(mk);
+  new ResizeObserver(() => placed.forEach(p => p.pos && p.pos())).observe(board);
+  STK.forEach(s => {
+    const b = document.createElement('button'); b.className = 'stk-src'; b.setAttribute('aria-label', 'Add ' + s.k + ' sticker');
+    b.innerHTML = s.k === 'zero' || s.k === 'xoxo' || s.k === 'cool' ? s.k.toUpperCase() : `<span style="width:36px;height:36px;display:block">${s.html}</span>`;
+    b.addEventListener('click', () => {
+      const p = {k: s.k, x: .2 + Math.random() * .6, y: .15 + Math.random() * .5, r: Math.round((Math.random() - .5) * 30)};
+      placed.push(p); const el = mk(p); save();
+      if (!K.reduced && el) el.animate([{opacity:0, scale:'2'},{opacity:1, scale:'1'}], {duration:350, easing:'cubic-bezier(.3,1.6,.5,1)'});
+    });
+    $('#tray').insertBefore(b, $('#clear'));
+  });
+  $('#clear').addEventListener('click', () => { placed = []; save(); board.querySelectorAll('.st').forEach(e => e.remove()); });
+
+  /* build a set */
+  const set = ['ar']; let size = '25';
+  $('#pick').innerHTML = P.colorways.map(c => `<button class="pk" data-id="${c.id}" style="--bgc:${BG[c.id]}" aria-label="Add ${c.name} to set"><span class="n">0</span><img src="${K.img(c.id, true)}" alt="" width="371" height="518"><small>${c.name}</small></button>`).join('');
+  function drawSet(){
+    $$('.pk').forEach(b => { const n = set.filter(x => x === b.dataset.id).length; b.classList.toggle('on', n > 0); b.querySelector('.n').textContent = n; });
+    const q = set.length, u = P.price + K.size(size).add;
+    $('#tot').textContent = K.money(u * q * (1 - K.bundleOff(q)));
+    $('#setTxt').textContent = q ? `${q} in your set${K.bundleOff(q) ? ' · −' + Math.round(K.bundleOff(q) * 100) + '%' : ''}` : 'Your set is empty';
+  }
+  $$('.pk').forEach(b => b.addEventListener('click', () => { if (set.length >= 3) set.shift(); set.push(b.dataset.id); drawSet(); }));
+  $('#reset').addEventListener('click', () => { set.length = 0; drawSet(); });
+  $$('#sz button').forEach(b => b.addEventListener('click', () => { size = b.dataset.s; $$('#sz button').forEach(x => x.setAttribute('aria-pressed', x === b)); drawSet(); }));
+  drawSet();
+  $('#setAdd').addEventListener('click', e => {
+    if (!set.length){ K.toast('Pick at least one colour'); return; }
+    const counts = {}; set.forEach(id => counts[id] = (counts[id] || 0) + 1);
+    Object.entries(counts).forEach(([id, n], i) => K.add({variant: id, size, qty: n, from: i === 0 ? e.currentTarget : null, silent: i > 0}));
+  });
+  $('#eta').textContent = K.deliveryWindow(6, 11);
+})();
+</script>
+</body>
+</html>

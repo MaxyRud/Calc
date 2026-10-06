@@ -330,7 +330,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
   function hint(){ if (++wiped === 30) $('#fogHint').textContent = 'Fog creeps back. It is a fridge, after all.'; }
   $('#defrost').addEventListener('click', () => { cx.clearRect(0, 0, W, H); $('#fogHint').textContent = 'Defrosted. Fog returns slowly.'; });
   /* fog slowly creeps back + droplets run down */
-  let lastT = performance.now(), fogRate = .006;
+  let lastT = performance.now(), fogRate = .0022;
   function loop(t){
     const dt = Math.min(50, t - lastT); lastT = t;
     fogAll(fogRate * dt / 16);
@@ -349,7 +349,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
     const v = +e.target.value / 100; document.documentElement.style.setProperty('--t', v);
     const c = Math.round(2 + v * 34); $('#tempTop').textContent = c + '°C';
     $('#tempTxt').textContent = c + '°C · ' + tempTxt[Math.min(4, Math.floor(v * 5))];
-    fogRate = .012 * (1 - v);
+    fogRate = .0044 * (1 - v);
     if (v > .55) cx.clearRect(0, 0, W, H);
   });
 

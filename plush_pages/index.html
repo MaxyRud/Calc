@@ -1,0 +1,230 @@
+<title>Zero Can Pages</title>
+<meta name="description" content="Ten interactive product page layouts for the Zero Can plush toy.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#efece6;--card:#f8f6f2;--ink:#0b0b0b;--mute:#6f6c66;--stone:#adaba5;--line:rgba(11,11,11,.12);
+  --grape:#ff6f9c;--lime:#5aa9f0;--tip:#e4572e;--brass:#c3c8cf;
+  --kit-bg:#f8f6f2;--kit-fg:#0b0b0b;--kit-muted:#6f6c66;--kit-accent:#0b0b0b;--kit-accent-fg:#efece6;--kit-line:rgba(11,11,11,.12);--kit-radius:12px;--kit-font:"Bricolage Grotesque",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0d0c0b;--card:#171614;--ink:#efece6;--mute:#a19d95;--stone:#6f6c66;--line:rgba(239,236,230,.12);
+    --kit-bg:#171614;--kit-fg:#efece6;--kit-muted:#a19d95;--kit-accent:#efece6;--kit-accent-fg:#0d0c0b;--kit-line:rgba(239,236,230,.12);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0d0c0b;--card:#171614;--ink:#efece6;--mute:#a19d95;--stone:#6f6c66;--line:rgba(239,236,230,.12);
+  --kit-bg:#171614;--kit-fg:#efece6;--kit-muted:#a19d95;--kit-accent:#efece6;--kit-accent-fg:#0d0c0b;--kit-line:rgba(239,236,230,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:17px;line-height:1.5;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.wrap{width:min(1320px,100% - 32px);margin-inline:auto}
+
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;height:64px}
+.brand{font-weight:800;font-size:20px;text-decoration:none;letter-spacing:-.02em;display:flex;align-items:baseline;gap:8px}
+.brand span{font-weight:500;font-size:15px;color:var(--mute)}
+.top .sp{margin-left:auto;display:flex;gap:10px;align-items:center}
+.chip{appearance:none;border:1px solid var(--line);background:var(--card);border-radius:99px;height:40px;padding:0 16px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;font-size:14px;text-decoration:none}
+.chip:hover{border-color:var(--ink)}
+.chip svg{width:17px;height:17px}
+
+/* intro */
+.intro{display:grid;grid-template-columns:1.35fr .9fr;gap:48px;align-items:end;padding:72px 0 56px}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:0 0 18px;display:flex;align-items:center;gap:10px}
+.eyebrow i{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 4px color-mix(in srgb,var(--lime) 30%,transparent)}
+h1{font-size:clamp(46px,7.2vw,112px);line-height:.92;letter-spacing:-.045em;font-weight:700;margin:0 0 26px}
+h1 .w{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:.05em}
+h1 .w>span{display:inline-block;animation:rise 1s cubic-bezier(.2,.8,.1,1) both;animation-delay:calc(var(--i) * 55ms)}
+@keyframes rise{from{transform:translateY(105%)}}
+h1 em{font-style:normal;background:linear-gradient(100deg,var(--grape),var(--lime));background:linear-gradient(in oklch 100deg,var(--grape),var(--lime));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{max-width:640px;color:var(--mute);margin:0;font-size:18px}
+.lede b{color:var(--ink);font-weight:600}
+.source{margin:0;background:var(--card);border:1px solid var(--line);border-radius:28px;padding:20px;position:relative;overflow:hidden}
+ .source .pic{position:relative;aspect-ratio:1/1;background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--grape) 22%,transparent),transparent 65%)}
+.source .pic img{position:absolute;left:50%;top:2%;height:96%;width:auto;max-width:none;translate:-50% 0;transition:opacity .6s,transform .8s cubic-bezier(.2,.8,.2,1);filter:drop-shadow(0 20px 24px rgba(0,0,0,.18))}
+.source .pic img.out{opacity:0;transform:rotate(-6deg) scale(.94)}
+.source figcaption{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-top:10px;font-size:13px;color:var(--mute)}
+.source figcaption b{display:block;color:var(--ink);font-size:15px;font-weight:600}
+.pal{display:flex;gap:6px}
+.pal i{width:22px;height:22px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.cw{display:flex;gap:6px;margin-top:12px}
+.cw button{appearance:none;border:1px solid var(--line);background:transparent;border-radius:99px;padding:5px 10px 5px 6px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
+.cw button i{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--c1) 50%,var(--c2) 50%)}
+.cw button[aria-pressed="true"]{border-color:var(--ink);background:var(--bg)}
+
+/* stats strip */
+.strip{display:grid;grid-template-columns:repeat(4,1fr);border-block:1px solid var(--line)}
+.strip div{padding:22px 0;border-right:1px solid var(--line);padding-left:20px}
+.strip div:first-child{padding-left:0}
+.strip div:last-child{border-right:0}
+.strip b{display:block;font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.strip span{color:var(--mute);font-size:14px}
+
+/* gallery */
+.gal{display:grid;grid-template-columns:1fr 1fr;gap:28px 28px;padding:64px 0 40px}
+.gal .card:nth-child(even){transform:translateY(90px)}
+.card{display:block;text-decoration:none;background:var(--card);border:1px solid var(--line);border-radius:28px;padding:12px;transition:border-color .3s,box-shadow .4s;position:relative}
+.card:hover,.card:focus-visible{border-color:var(--ac);box-shadow:0 30px 60px -30px color-mix(in srgb,var(--ac) 70%,transparent);outline:none}
+.shot{position:relative;aspect-ratio:16/10;border-radius:18px;overflow:hidden;background:var(--sb)}
+.shot img{width:100%;height:100%;object-fit:cover;object-position:top;transition:transform 1.1s cubic-bezier(.2,.8,.2,1)}
+.card:hover .shot img,.card:focus-visible .shot img{transform:scale(1.045)}
+.shot .open{position:absolute;right:14px;bottom:14px;background:var(--ac);color:var(--af);border-radius:99px;padding:10px 16px;font-weight:700;font-size:14px;display:flex;gap:8px;align-items:center;transform:translateY(12px);opacity:0;transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .3s}
+.shot .open svg{width:16px;height:16px}
+.card:hover .open,.card:focus-visible .open{transform:none;opacity:1}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;padding:18px 10px 10px}
+.no{font-size:14px;font-weight:700;color:var(--mute);padding-top:9px;font-variant-numeric:tabular-nums}
+.meta h2{font-size:clamp(26px,2.6vw,34px);letter-spacing:-.03em;line-height:1.05;margin:0;font-weight:700}
+.meta p{grid-column:2;margin:6px 0 0;color:var(--mute);font-size:16px}
+.tags{grid-column:2;display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:12px 0 0;padding:0}
+.tags li{font-size:12px;font-weight:600;border:1px solid var(--line);border-radius:99px;padding:4px 10px}
+.foot{grid-column:2;display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--mute)}
+
+/* notes */
+.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:150px 0 40px}
+.note{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:24px}
+.note h3{margin:0 0 8px;font-size:20px;letter-spacing:-.02em}
+.note p{margin:0;color:var(--mute);font-size:15px}
+.note .ic{width:42px;height:42px;border-radius:14px;background:var(--bg);display:grid;place-items:center;margin-bottom:16px}
+.note .ic svg{width:24px;height:20px}
+footer{border-top:1px solid var(--line);padding:28px 0 50px;color:var(--mute);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@supports (animation-timeline:view()){
+  .rv{animation:rv linear both;animation-timeline:view();animation-range:entry 0% entry 90%}
+  @keyframes rv{from{translate:0 60px}}
+}
+@media (max-width:960px){
+  .intro{grid-template-columns:1fr;padding-top:48px}
+  .gal{grid-template-columns:1fr}
+  .gal .card:nth-child(even){transform:none}
+  .notes{grid-template-columns:1fr;padding-top:40px}
+  .strip{grid-template-columns:1fr 1fr}
+  .strip div:nth-child(2){border-right:0}
+  .strip div:nth-child(3){padding-left:0}
+  .strip div:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .top .brand span{display:none}
+}
+@media (max-width:560px){
+  .meta{grid-template-columns:1fr}
+  .meta p,.tags,.foot{grid-column:1}
+  .no{padding-top:0}
+  .top .chip.t{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top">js.17 <span>/ product page lab</span></a>
+    <div class="sp">
+      <button class="chip t" id="theme" aria-label="Toggle colour theme">Theme</button>
+      <button class="chip" data-cart-open aria-label="Open shared cart"><svg><use href="#i-bag"/></svg>Cart <span data-cart-count>0</span></button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+  <section class="wrap intro">
+    <div>
+      <p class="eyebrow"><i></i>Product two · ten more product pages</p>
+      <h1 id="h1">Ten ways to sell one very <em>squishable</em> can.</h1>
+      <p class="lede">From two supplier photos of a <b>soft-drink-can plush toy</b>: the brand logo and wordmark removed, cut out, and tinted into four pastel colourways, then built into ten interactive layouts. Each one has its own type, palette and signature interaction: squish physics, a vending machine, a claw game, a fridge you can de-fog. <b>They share one cart</b>, so whatever you add in one layout stays in the next.</p>
+    </div>
+    <figure class="source">
+      <div class="pic" id="pic"><img src="assets/plush-ar.webp" alt="Zero Can plush, white soft drink can with an embroidered smile" width="742" height="1036"></div>
+      <figcaption><span><b>Zero Can Plush</b>25 cm · short-pile plush · embroidered face</span><span class="pal" aria-label="Product palette"><i style="background:#eef0f3"></i><i style="background:#c3c8cf"></i><i style="background:#16171b"></i><i style="background:#ff8fb8"></i></span></figcaption>
+      <div class="cw" id="cw" role="group" aria-label="Colourway preview"></div>
+    </figure>
+  </section>
+
+  <div class="wrap strip">
+    <div><b>10</b><span>layouts, each a full product page</span></div>
+    <div><b>4</b><span>colourways (1 photographed, 3 previews)</span></div>
+    <div><b>1</b><span>shared cart across every layout</span></div>
+    <div><b>0</b><span>brand logos: removed from the photos</span></div>
+  </div>
+
+  <section class="wrap gal" id="gal" aria-label="Layouts"></section>
+
+  <section class="wrap notes">
+    <div class="note rv"><div class="ic"><svg viewBox="0 0 24 24" width="22" height="22"><use href="#i-bag"/></svg></div><h3>One cart, ten storefronts</h3><p>The cart drawer, bundle maths (2 plushies −10%, 3 −15%), size upgrade and free-shipping bar are shared. Each layout themes the drawer to match its own look.</p></div>
+    <div class="note rv"><div class="ic"><svg viewBox="0 0 40 64" style="width:16px;height:26px"><use href="#i-can"/></svg></div><h3>Logo-free photos</h3><p>The supplier photos carry another company's logo and wordmark. Both were removed and the fabric rebuilt, so the pages sell the plush, not the brand. Only Arctic is the real photo; Blush, Glacier and Matcha are labelled previews.</p></div>
+    <div class="note rv"><div class="ic"><svg viewBox="0 0 24 24" width="22" height="22"><use href="#i-shield"/></svg></div><h3>Sample content</h3><p>Prices, specs, ratings, reviews, codes and delivery dates are placeholders for the customer to replace. "Softdrink" and "Zero Can" are template names, not the supplier's brand.</p></div>
+  </section>
+</main>
+
+<footer><div class="wrap"><span>js.17 · product page lab · Zero Can plush</span><span>Template by js.17 · prices, specs and reviews are sample content.</span></div></footer>
+
+<script src="assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, $ = s => document.querySelector(s);
+  const L = [
+    {f:'01-squish', n:'Squish Lab', d:'Press and drag the plush and it squashes on a spring; boop the face for hearts. Size-vs-phone comparison and pack builder.', t:['Spring physics','Boop hearts','Size compare'], ty:'Fredoka · DM Sans', ac:'#17181c', af:'#fff', sb:'#f5f6f8', pal:['#f5f6f8','#17181c','#ff8fb8','#9fd0f5']},
+    {f:'02-vending', n:'Vending Machine', d:'Drag a coin into the slot, punch a code on the keypad, watch your plush drop into the tray, push the flap to collect.', t:['Coin drag','Keypad','LED screen'], ty:'Rubik Mono One · VT323 · Outfit', ac:'#a9dcff', af:'#0f1014', sb:'#0f1014', pal:['#0f1014','#a9dcff','#8dffc4','#ff9cc2']},
+    {f:'03-frost', n:'Cold Aisle', d:'Wipe the fog off a fridge door to reveal the can, slide the serving temperature, open the fridge, read the Plush Facts label.', t:['Fog wipe canvas','Temperature slider','Nutrition label'], ty:'Archivo · Instrument Serif', ac:'#0d2233', af:'#fff', sb:'#eef5fa', pal:['#eef5fa','#0d2233','#4aa8e8','#ff5d8f']},
+    {f:'04-rooms', n:'Room Service', d:'Drop the plush into a desk, bed, shelf or car scene at true scale. Drag it around, flip sizes, see a day in its life.', t:['True-scale rooms','Drag & drop','Ruler'], ty:'Instrument Serif · Instrument Sans', ac:'#d96a8b', af:'#fff', sb:'#f3eee6', pal:['#f3eee6','#1f1d1a','#d96a8b','#8fae8b']},
+    {f:'05-commerce', n:'Classic PDP', d:'A clean storefront: zoom gallery with real photos, lightbox, size and bundle pickers, gift message, sticky add-to-cart, reviews.', t:['Zoom gallery','Sticky ATC','Reviews filter'], ty:'Plus Jakarta Sans', ac:'#15161a', af:'#fff', sb:'#fafafa', pal:['#fafafa','#15161a','#e2557f','#3b8fd6']},
+    {f:'06-scroll-story', n:'Unwind', d:'Scroll to pull the tab: the drawn can fizzes, squashes and pops into the real plush, then the colours slide past sideways.', t:['ScrollTrigger','Tab-pull sequence','Horizontal scroll'], ty:'Anybody · Onest', ac:'#ff6f9c', af:'#fff', sb:'#f3f4f6', pal:['#f3f4f6','#101114','#ff6f9c','#5aa9f0']},
+    {f:'07-claw', n:'Claw Machine', d:'A playable claw: steer, drop, grab a plush from the pile and watch it slide into the prize box. Five free goes.', t:['Claw game','Prize box','Confetti'], ty:'Baloo 2 · Press Start 2P', ac:'#ff7aa8', af:'#fff', sb:'#fdf3f7', pal:['#fdf3f7','#2a1b2e','#ff7aa8','#7cc4ff']},
+    {f:'08-y2k', n:'Y2K Sticker Club', d:'Chrome type and an iridescent trading card that catches the light, flip cards with stats, a sticker board you can bomb.', t:['Holo card','Flip deck','Sticker board'], ty:'Krona One · Urbanist', ac:'#ff4fb3', af:'#fff', sb:'#f6f1ff', pal:['#f6f1ff','#1a1626','#ff4fb3','#34d6ff']},
+    {f:'09-gallery', n:'Exhibit', d:'The plush as an artwork: spotlit plinth, wall label, typed audio guide, a corridor of colour studies, red "reserved" dots.', t:['Spotlight','Audio guide','Drag corridor'], ty:'Newsreader · Geist', ac:'#121212', af:'#f6f5f1', sb:'#f6f5f1', pal:['#f6f5f1','#121212','#d6402e','#e9e6df']},
+    {f:'10-gift-builder', n:'Gift Builder', d:'Fill a gift box step by step with a live preview: plushies, size, paper, ribbon, extras, card, delivery check, then wrap it.', t:['Live gift box','Presets','Shareable link'], ty:'Gabarito · Caveat', ac:'#ff7a6b', af:'#fff', sb:'#fff8f1', pal:['#fff8f1','#22201f','#ff7a6b','#e9c9a1']}
+  ];
+  $('#gal').innerHTML = L.map((l, i) => `
+    <a class="card rv" href="pages/${l.f}.html" style="--ac:${l.ac};--af:${l.af};--sb:${l.sb}">
+      <div class="shot"><img src="assets/thumbs/${l.f}.webp" alt="Screenshot of the ${l.n} layout" width="960" height="600" loading="eager"><span class="open">Open layout <svg><use href="#i-arrow"/></svg></span></div>
+      <div class="meta">
+        <span class="no">${String(i + 1).padStart(2, '0')}</span>
+        <h2>${l.n}</h2>
+        <p>${l.d}</p>
+        <ul class="tags">${l.t.map(t => `<li>${t}</li>`).join('')}</ul>
+        <div class="foot"><span>${l.ty}</span><span class="pal" aria-hidden="true">${l.pal.map(c => `<i style="background:${c}"></i>`).join('')}</span></div>
+      </div>
+    </a>`).join('');
+
+  /* headline word rise */
+  const h = $('#h1'); let n = 0; h.setAttribute('aria-label', h.textContent);
+  h.innerHTML = h.innerHTML.replace(/<em>(.*?)<\/em>|([^\s<]+)/g, (m, em, w) => `<span class="w" aria-hidden="true"><span style="--i:${n++}">${em ? '<em>' + em + '</em>' : w}</span></span>`);
+
+  /* colourway preview on the source card */
+  let cur = 'pg';
+  K.PRODUCT.colorways.forEach((c, i) => {
+    const b = document.createElement('button'); b.setAttribute('aria-pressed', i === 0);
+    b.style.setProperty('--c1', c.a); b.style.setProperty('--c2', c.b);
+    b.innerHTML = `<i></i>${i ? c.name : 'Photo'}`; b.title = c.name + (i ? ' (digital preview)' : ' (photographed)');
+    b.addEventListener('click', () => {
+      if (cur === c.id) return; cur = c.id;
+      document.querySelectorAll('#cw button').forEach(x => x.setAttribute('aria-pressed', x === b));
+      const pic = $('#pic'), old = pic.querySelector('img:last-child');
+      const im = new Image(); im.src = K.img(c.id); im.alt = 'Zero Can plush, ' + c.name; im.width = 742; im.height = 1036; im.className = 'out';
+      pic.appendChild(im); requestAnimationFrame(() => requestAnimationFrame(() => { im.classList.remove('out'); old.classList.add('out'); }));
+      setTimeout(() => old.remove(), 800);
+    });
+    $('#cw').appendChild(b);
+  });
+
+  /* theme toggle (remembered per viewer) */
+  const root = document.documentElement;
+  try { const t = localStorage.getItem('js17-lab-theme'); if (t) root.setAttribute('data-theme', t); } catch(e){}
+  $('#theme').addEventListener('click', () => {
+    const dark = root.getAttribute('data-theme') ? root.getAttribute('data-theme') === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    const t = dark ? 'light' : 'dark'; root.setAttribute('data-theme', t);
+    try { localStorage.setItem('js17-lab-theme', t); } catch(e){}
+  });
+})();
+</script>

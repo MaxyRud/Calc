@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Press</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700;800&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --paper:#fbf6e3;--paper2:#f4ecca;--butter:#f2e792;--butter-d:#e2d47a;--navy:#374a62;--ink:#1f2a38;--mute:#6b7280;--line:rgba(55,74,98,.16);
+  --kit-bg:#fffdf4;--kit-fg:#1f2a38;--kit-muted:#6b7280;--kit-accent:#374a62;--kit-accent-fg:#fbf6e3;--kit-line:rgba(55,74,98,.14);--kit-radius:6px;--kit-font:"Public Sans",sans-serif;--kit-scrim:rgba(31,42,56,.25);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Public Sans",system-ui,sans-serif;font-size:17px;line-height:1.55;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.bc{font-family:"Barlow Semi Condensed","Arial Narrow",sans-serif}
+.wrap{width:min(1280px,100% - 32px);margin-inline:auto}
+
+header{position:relative;z-index:5}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
+.logo{font-family:"Barlow Semi Condensed";font-weight:700;font-size:24px;text-decoration:none;color:var(--navy);letter-spacing:.01em}
+.cart{appearance:none;border:1.5px solid var(--navy);background:transparent;color:var(--navy);height:40px;padding:0 14px;border-radius:6px;display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600}
+.cart svg{width:17px;height:17px}
+
+/* hero */
+.hero{position:relative;height:min(78svh,760px);min-height:520px}
+.word{position:absolute;left:0;right:0;top:4%;text-align:center;margin:0;font-family:"Barlow Semi Condensed";font-weight:800;color:var(--navy);font-size:clamp(120px,25vw,380px);line-height:.8;letter-spacing:-.02em;transform-origin:50% 100%;user-select:none;pointer-events:none}
+.stage{position:absolute;inset:0}
+.stage img.fallback{position:absolute;left:50%;top:50%;width:min(80%,820px);transform:translate(-50%,-40%)}
+.read{position:absolute;left:0;bottom:22px;display:flex;gap:28px;font-variant-numeric:tabular-nums;font-size:14px;color:var(--mute)}
+.read b{display:block;font-family:"Barlow Semi Condensed";font-weight:600;font-size:30px;color:var(--navy);line-height:1}
+.hint{position:absolute;right:0;bottom:24px;font-size:14px;color:var(--mute);text-align:right;max-width:240px}
+.hint b{color:var(--navy);font-weight:600}
+
+/* facts + buy */
+.row{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,5vw,80px);padding:56px 0 80px;border-top:1px solid var(--line)}
+.row h1{font-family:"Barlow Semi Condensed";font-weight:700;font-size:clamp(40px,5vw,64px);line-height:.95;margin:0 0 16px;color:var(--navy)}
+.lede{color:#3b4656;max-width:520px;margin:0}
+.facts{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:36px;margin-top:34px}
+.facts b{display:block;font-family:"Barlow Semi Condensed";font-weight:600;font-size:40px;line-height:1;color:var(--navy)}
+.facts span{font-size:14px;color:var(--mute)}
+.buy{align-self:start;background:#fffdf4;border:1px solid var(--line);border-radius:8px;padding:24px}
+.packs{display:grid;gap:0;border-top:1px solid var(--line);margin:14px 0 18px}
+.pk{appearance:none;border:0;border-bottom:1px solid var(--line);background:none;display:grid;grid-template-columns:22px 1fr auto;gap:12px;align-items:center;padding:14px 2px;cursor:pointer;text-align:left}
+.pk i{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--navy);display:grid;place-items:center}
+.pk i::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--navy);transform:scale(0);transition:transform .25s ease}
+.pk[aria-pressed="true"] i::after{transform:none}
+.pk b{font-weight:600}
+.pk small{color:var(--mute);margin-left:8px}
+.pk span:last-child{font-variant-numeric:tabular-nums;font-weight:600}
+.add{appearance:none;border:0;width:100%;height:52px;border-radius:6px;background:var(--navy);color:var(--paper);font-weight:600;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .3s}
+.add:hover{background:var(--ink)}
+.add svg{width:18px;height:18px}
+.ship{font-size:13px;color:var(--mute);margin:12px 0 0}
+
+.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--line)}
+.notes div{padding:24px 24px 28px 0}
+.notes div+div{padding-left:24px;border-left:1px solid var(--line)}
+.notes h2{font-family:"Barlow Semi Condensed";font-weight:600;font-size:22px;margin:0 0 6px;color:var(--navy)}
+.notes p{margin:0;color:#3b4656;font-size:15px}
+.quote{padding:80px 0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:40px}
+.quote p{margin:0;font-size:18px;color:var(--ink)}
+.quote small{display:block;margin-top:10px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+footer{border-top:1px solid var(--line);padding:24px 0 90px;font-size:13px;color:var(--mute)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (max-width:900px){
+  .row{grid-template-columns:1fr}
+  .notes{grid-template-columns:1fr}.notes div,.notes div+div{padding:20px 0;border-left:0;border-bottom:1px solid var(--line)}
+  .quote{grid-template-columns:1fr;gap:24px;padding:50px 0}
+  .hero{height:min(70svh,620px);min-height:440px}
+  .hint{display:none}
+}
+@media (max-width:520px){
+  .facts{grid-template-columns:repeat(3,1fr);gap:16px}.facts b{font-size:32px}
+  .read{gap:18px}.read b{font-size:24px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+.stage canvas{position:absolute;inset:0}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="#top">softened.</a>
+  <button class="cart" data-cart-open aria-label="Open cart"><svg><use href="#i-bag"/></svg><span data-cart-count>0</span></button>
+</div></header>
+
+<main id="top">
+  <section class="wrap hero" aria-label="Press the butter">
+    <p class="word" id="word" aria-hidden="true">PRESS.</p>
+    <div class="stage" id="stage"></div>
+    <div class="read" aria-live="polite"><span><b id="depth">0.0</b>mm deep</span><span><b id="rise">—</b>back to shape</span></div>
+    <p class="hint"><b>Press and hold</b> anywhere on the stick. Let go and watch it rise.</p>
+  </section>
+
+  <section class="wrap row">
+    <div>
+      <h1>Butter Squish.<br>A stick you can't spread.</h1>
+      <p class="lede">A slow-rise squeeze toy shaped like a 4 oz stick of salted butter. Soft TPR that sinks under your thumb and takes its time coming back. Quiet enough for a classroom, realistic enough for the fridge.</p>
+      <div class="facts"><div><b>13.5</b><span>cm long</span></div><div><b>45</b><span>grams</span></div><div><b>4×4</b><span>cm end</span></div></div>
+    </div>
+    <aside class="buy" aria-label="Buy">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><b class="bc" style="font-size:28px;color:var(--navy)" id="price">$6.99</b><span style="color:var(--mute);font-size:14px" id="per">$6.99 per stick</span></div>
+      <div class="packs" role="radiogroup" aria-label="Pack size" id="packs"></div>
+      <button class="add" id="add"><svg><use href="#i-bag"/></svg>Add to cart</button>
+      <p class="ship">Free shipping over $20 · delivery <span id="eta"></span></p>
+    </aside>
+  </section>
+
+  <section class="wrap notes" aria-label="Good to know">
+    <div><h2>Squeeze, don't fold</h2><p>Press, squish and roll it. Folding it in half or stretching it all the way is how these toys tear.</p></div>
+    <div><h2>Keep it cool</h2><p>Out of direct sun and away from heaters. Wipe with a damp cloth if it picks up dust.</p></div>
+    <div><h2>Not food</h2><p>It looks like butter. It isn't. Keep it away from children under 3 and anyone likely to take a bite.</p></div>
+  </section>
+
+  <section class="wrap quote" aria-label="Reviews">
+    <div><p>"I press it in meetings. Nobody notices, I feel better."</p><small>Sample review</small></div>
+    <div><p>"Slow coming back is the whole point. Really satisfying."</p><small>Sample review</small></div>
+    <div><p>"Put it in the butter dish. My dad tried to slice it."</p><small>Sample review</small></div>
+  </section>
+</main>
+<footer><div class="wrap"><span>softened. · Butter Squish</span><span>Template by js.17 · prices and reviews are sample content · 3D view is a render built from the listing photo and measurements.</span></div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../assets/butter3d.js"></script>
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s);
+  K.layoutPill(1);
+  const stage = $('#stage'), word = $('#word');
+  let api = null;
+  if (window.Butter3D && Butter3D.supported()){
+    api = Butter3D(stage, {pose:{rx:.42, ry:.3, dist:31, ty:-.6, tx:1.1}, fitAspect:1.25, shadowOpacity:.14, label:'Butter Squish 3D model. Press and hold to squish it.'});
+    let releasedAt = 0, d0 = 0;
+    stage.addEventListener('butterrelease', () => { releasedAt = performance.now(); d0 = api.state().depth; });
+    api.onUpdate(st => {
+      $('#depth').textContent = (st.depth * 10).toFixed(1);
+      word.style.transform = `scaleY(${(1 - st.depth * .09).toFixed(3)})`;
+      if (st.holding){ $('#rise').textContent = '…'; return; }
+      if (st.depth > .004 && d0 > 0){
+        // time left until the dent is under 0.04 mm, from the same recovery curve the model uses
+        let t = (performance.now() - releasedAt) / 1000, left = 0;
+        for (let s = t; s < 30; s += .05){ if (api.recovery(d0, s) < .004){ left = s - t; break; } }
+        $('#rise').textContent = left.toFixed(1) + ' s';
+      } else $('#rise').textContent = 'done';
+    });
+  } else {
+    stage.innerHTML = '<img class="fallback" src="../assets/photo-stick.webp" alt="Butter Squish, a yellow squeeze toy shaped like a stick of salted butter" width="1110" height="570">';
+    document.querySelector('.read').hidden = true; document.querySelector('.hint').hidden = true;
+  }
+
+  /* packs */
+  let pick = '1';
+  $('#packs').innerHTML = P.packs.map(p => `<button class="pk" role="radio" aria-pressed="${p.id === '1'}" aria-checked="${p.id === '1'}" data-id="${p.id}"><i></i><span><b>${p.label}</b><small>${K.money(p.price / p.q)} each</small></span><span>${K.money(p.price)}</span></button>`).join('');
+  document.querySelectorAll('.pk').forEach(b => b.addEventListener('click', () => {
+    pick = b.dataset.id; const p = K.pack(pick);
+    document.querySelectorAll('.pk').forEach(x => { x.setAttribute('aria-pressed', x === b); x.setAttribute('aria-checked', x === b); });
+    $('#price').textContent = K.money(p.price); $('#per').textContent = K.money(p.price / p.q) + ' per stick';
+  }));
+  $('#add').addEventListener('click', () => K.add({pack: pick}));
+  $('#eta').textContent = K.deliveryWindow(7, 14);
+})();
+</script>
+</body>
+</html>

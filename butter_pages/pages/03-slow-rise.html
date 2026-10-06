@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slow Rise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..800,0..100&family=Barlow+Semi+Condensed:wght@500;600;700&family=Mulish:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#fff8dc;--bg2:#f7edc2;--ink:#2d2a22;--navy:#374a62;--mute:#7a735f;--line:rgba(45,42,34,.14);
+  --kit-bg:#fffbea;--kit-fg:#2d2a22;--kit-muted:#7a735f;--kit-accent:#374a62;--kit-accent-fg:#fff8dc;--kit-line:rgba(45,42,34,.12);--kit-radius:999px;--kit-font:"Mulish",sans-serif;--kit-scrim:rgba(45,42,34,.25);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Mulish",system-ui,sans-serif;font-size:18px;line-height:1.6;overflow-x:clip}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.fr{font-family:"Fraunces",Georgia,serif;font-optical-sizing:auto}
+.wrap{width:min(1200px,100% - 32px);margin-inline:auto}
+
+header{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:16px clamp(16px,3vw,36px);pointer-events:none}
+header>*{pointer-events:auto}
+.logo{font-family:"Fraunces";font-weight:600;font-size:22px;text-decoration:none;color:var(--navy);font-variation-settings:"SOFT" 100}
+.cart{appearance:none;border:1px solid var(--line);background:rgba(255,248,220,.85);backdrop-filter:blur(6px);height:40px;padding:0 14px;border-radius:99px;display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600}
+.cart svg{width:17px;height:17px}
+
+.open{min-height:92svh;display:grid;align-content:center;padding:110px 0 60px}
+.open h1{font-family:"Fraunces";font-weight:400;font-size:clamp(56px,9vw,140px);line-height:.94;margin:0;letter-spacing:-.02em;font-variation-settings:"SOFT" 0;max-width:12ch}
+.open p{max-width:430px;color:var(--mute);margin:26px 0 0;font-size:19px}
+.open .cue{margin-top:44px;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--navy)}
+
+/* the long scroll that drives time */
+.track{position:relative;height:420vh}
+.pin{position:sticky;top:0;height:100svh;display:grid;grid-template-rows:auto 1fr auto;padding:84px 0 78px;overflow:hidden}
+.cap{position:relative;height:clamp(110px,15vw,190px)}
+.cap h2{position:absolute;left:0;right:0;top:0;margin:0;text-align:center;font-family:"Fraunces";font-weight:500;font-size:clamp(40px,6.4vw,100px);line-height:1;letter-spacing:-.02em;opacity:0;font-variation-settings:"SOFT" var(--soft,0);transform:scaleY(var(--sy,1));transform-origin:50% 100%}
+.cap h2 small{display:block;font-family:"Mulish";font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-top:10px;font-weight:600}
+.stage{position:relative;min-height:0}
+.stage canvas{position:absolute;inset:0}
+.stage img.fallback{position:absolute;left:50%;top:50%;width:min(80%,760px);transform:translate(-50%,-50%)}
+.clock{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;font-variant-numeric:tabular-nums}
+.clock b{font-family:"Barlow Semi Condensed";font-weight:600;font-size:42px;color:var(--navy);min-width:4ch;line-height:1}
+.ruler{position:relative;height:34px;border-bottom:1.5px solid var(--navy)}
+.ruler i{position:absolute;bottom:0;width:1.5px;background:var(--navy);height:10px}
+.ruler i.s{height:18px}
+.ruler span{position:absolute;bottom:22px;transform:translateX(-50%);font-size:12px;color:var(--mute)}
+.ruler .hand{position:absolute;bottom:-6px;width:12px;height:12px;border-radius:50%;background:var(--navy);transform:translateX(-50%)}
+.ruler .press{position:absolute;bottom:0;height:6px;background:var(--navy);opacity:.25;left:0}
+.clock .lbl{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);text-align:right;min-width:12ch}
+
+/* after */
+.after{padding:120px 0 40px}
+.after h3{font-family:"Fraunces";font-weight:400;font-size:clamp(44px,6vw,92px);line-height:1;margin:0 0 50px;letter-spacing:-.02em;font-variation-settings:"SOFT" 100;max-width:16ch}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(20px,4vw,60px);border-top:1px solid var(--line);padding-top:26px}
+.cols h4{font-family:"Barlow Semi Condensed";font-weight:600;font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--navy);margin:0 0 8px}
+.cols p{margin:0;font-size:16px;color:#4b4638}
+.buy{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,80px);align-items:center;padding:100px 0}
+.buy img{width:100%}
+.buy h3{margin:0 0 18px}
+.packs{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 22px}
+.pk{appearance:none;border:1px solid var(--line);background:transparent;border-radius:99px;padding:10px 18px;cursor:pointer;font-weight:600}
+.pk small{font-weight:400;color:var(--mute);margin-left:6px}
+.pk[aria-pressed="true"]{background:var(--navy);color:var(--bg);border-color:var(--navy)}
+.pk[aria-pressed="true"] small{color:#d8d3bd}
+.price{font-family:"Fraunces";font-size:56px;line-height:1;margin:0 0 20px;font-variation-settings:"SOFT" 100}
+.btn{appearance:none;border:0;background:var(--navy);color:var(--bg);border-radius:99px;height:56px;padding:0 28px;font-weight:600;font-size:16px;cursor:pointer;display:inline-flex;align-items:center;gap:10px}
+.btn svg{width:18px;height:18px}
+.fine{font-size:14px;color:var(--mute);margin:14px 0 0}
+.voices{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;padding:20px 0 120px;border-top:1px solid var(--line)}
+.voices p{font-family:"Fraunces";font-size:24px;line-height:1.3;margin:24px 0 8px;font-variation-settings:"SOFT" 60}
+.voices small{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+footer{border-top:1px solid var(--line);padding:24px 0 90px;font-size:13px;color:var(--mute)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (max-width:860px){
+  .cols,.voices{grid-template-columns:1fr}
+  .buy{grid-template-columns:1fr}
+  .clock{grid-template-columns:auto 1fr}.clock .lbl{display:none}
+  .clock b{font-size:32px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="#top">softened.</a>
+  <button class="cart" data-cart-open aria-label="Open cart"><svg><use href="#i-bag"/></svg><span data-cart-count>0</span></button>
+</header>
+
+<main id="top">
+  <section class="wrap open">
+    <h1 class="fr" id="h1">Press it once.<br>Then wait.</h1>
+    <p>Butter Squish is a squeeze toy that comes back slowly. This page runs on its clock: scrolling down is the press, scrolling on is the seconds after.</p>
+    <span class="cue">Scroll slowly ↓</span>
+  </section>
+
+  <section class="track" id="track" aria-label="A press and its slow rise, driven by scrolling">
+    <div class="pin">
+      <div class="wrap cap" id="caps">
+        <h2 class="fr" data-a="0" data-b=".1">Thumb on.<small>0.0 s</small></h2>
+        <h2 class="fr" data-a=".1" data-b=".3">Press down.<small>The stick gives way under your thumb</small></h2>
+        <h2 class="fr" data-a=".3" data-b=".42">Let go.<small>A third springs back at once</small></h2>
+        <h2 class="fr" data-a=".42" data-b=".66">The rest takes its time.<small>No bounce, just a slow creep</small></h2>
+        <h2 class="fr" data-a=".66" data-b=".88">Almost.<small>The dent is getting shallow</small></h2>
+        <h2 class="fr" data-a=".88" data-b="1.01">Back to butter.<small>Ready for the next press</small></h2>
+      </div>
+      <div class="stage" id="stage"></div>
+      <div class="wrap clock" aria-hidden="true">
+        <b id="sec">0.0</b>
+        <div class="ruler" id="ruler"><span class="press" id="pressBar"></span><span class="hand" id="hand"></span></div>
+        <span class="lbl" id="lbl">pressing</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap after">
+    <h3 class="fr">Seconds of nothing else, as often as you like.</h3>
+    <div class="cols">
+      <div><h4>What it is</h4><p>A squeeze toy shaped like a 4 oz stick of salted butter: 13.5 × 4 × 4 cm, 45 g of soft TPR.</p></div>
+      <div><h4>Why it helps</h4><p>Pressing and waiting gives restless hands a small, quiet loop. Many people use one to fidget at a desk or on calls.</p></div>
+      <div><h4>Look after it</h4><p>Squeeze, don't fold. Keep it out of the sun. Not food, and not for children under 3.</p></div>
+    </div>
+  </section>
+
+  <section class="wrap buy" aria-label="Buy">
+    <img src="../assets/r-pressed.webp" alt="Render of the butter squeeze toy with a deep thumb dent in its top" width="1112" height="531" loading="lazy">
+    <div>
+      <h3 class="fr" style="font-size:clamp(34px,4vw,54px);font-weight:400;line-height:1.05">Take one home.<br>Or five.</h3>
+      <div class="packs" id="packs" role="radiogroup" aria-label="Pack"></div>
+      <p class="price fr" id="price">$6.99</p>
+      <button class="btn" id="add"><svg><use href="#i-bag"/></svg>Add to cart</button>
+      <p class="fine">Free shipping over $20 · arrives <span id="eta"></span></p>
+    </div>
+  </section>
+
+  <section class="wrap voices" aria-label="Reviews">
+    <div><p>"I timed it once. Then I kept timing it."</p><small>Sample review</small></div>
+    <div><p>"Slower than my old stress ball and much more satisfying."</p><small>Sample review</small></div>
+    <div><p>"Lives next to my keyboard. Gets pressed during every build."</p><small>Sample review</small></div>
+  </section>
+</main>
+<footer><div class="wrap"><span>softened. · Butter Squish</span><span>Template by js.17 · prices and reviews are sample content · 3D views are renders built from the listing photo and measurements; timing is the model's, the real toy varies with temperature.</span></div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../assets/butter3d.js"></script>
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s);
+  K.layoutPill(3);
+  const SECS = 7, PRESS_END = .3, D0 = 1.9;
+  const track = $('#track'), stage = $('#stage'), caps = [...document.querySelectorAll('#caps h2')];
+  let api = null;
+  if (window.Butter3D && Butter3D.supported()) api = Butter3D(stage, {pose:{rx:.5, ry:.34, dist:30, ty:-.8}, fitAspect:1.4, interactive:false, shadowOpacity:.13});
+  else stage.innerHTML = '<img class="fallback" src="../assets/r-34.webp" alt="Render of the butter squeeze toy" width="1102" height="528">';
+
+  /* ruler ticks */
+  const ruler = $('#ruler');
+  for (let s = 0; s <= SECS; s++){
+    const x = (s / SECS) * 100;
+    ruler.insertAdjacentHTML('beforeend', `<i class="s" style="left:${x}%"></i><span style="left:${x}%">${s}s</span>`);
+    if (s < SECS) ruler.insertAdjacentHTML('beforeend', `<i style="left:${x + 50 / SECS}%"></i>`);
+  }
+
+  /* recovery curve, same as the model's */
+  const rec = (d0, t) => api ? api.recovery(d0, t) : d0 * (.3 * Math.exp(-t / .12) + .7 * Math.exp(-t / 1.5));
+  const h1 = $('#h1');
+  function frame(){
+    const r = track.getBoundingClientRect(), span = track.offsetHeight - innerHeight;
+    const p = Math.max(0, Math.min(1, -r.top / span));
+    let depth, t, label;
+    if (p < PRESS_END){ const k = p / PRESS_END; depth = D0 * (1 - Math.pow(1 - k, 2)); t = 0; label = 'pressing'; }
+    else { t = (p - PRESS_END) / (1 - PRESS_END) * SECS; depth = rec(D0, t); label = depth < .02 ? 'back to shape' : 'rising'; }
+    if (api) api.setPress(-.4, depth);
+    $('#sec').textContent = t.toFixed(1);
+    $('#lbl').textContent = label;
+    $('#hand').style.left = (t / SECS * 100) + '%';
+    $('#pressBar').style.width = p < PRESS_END ? '0' : '0';
+    const soft = Math.round(depth / D0 * 100);
+    caps.forEach(c => {
+      const a = +c.dataset.a, b = +c.dataset.b, fadeIn = .03, fadeOut = .03;
+      const o = Math.max(0, Math.min(1, (p - a) / fadeIn, (b - p) / fadeOut));
+      c.style.opacity = o; c.style.setProperty('--soft', soft);
+      c.style.setProperty('--sy', (1 - depth / D0 * .12).toFixed(3));
+    });
+    h1.style.fontVariationSettings = `"SOFT" ${Math.round(Math.min(1, scrollY / 400) * 100)}`;
+  }
+  let ticking = false;
+  addEventListener('scroll', () => { if (!ticking){ ticking = true; requestAnimationFrame(() => { ticking = false; frame(); }); } }, {passive: true});
+  addEventListener('resize', frame);
+  if (api) api.ready.then(frame);
+  frame();
+
+  /* buy */
+  let pick = '1';
+  $('#packs').innerHTML = P.packs.map(p => `<button class="pk" role="radio" aria-pressed="${p.id === pick}" aria-checked="${p.id === pick}" data-id="${p.id}">${p.label}<small>${K.money(p.price / p.q)} each</small></button>`).join('');
+  document.querySelectorAll('.pk').forEach(b => b.addEventListener('click', () => { pick = b.dataset.id; document.querySelectorAll('.pk').forEach(x => { x.setAttribute('aria-pressed', x === b); x.setAttribute('aria-checked', x === b); }); $('#price').textContent = K.money(K.pack(pick).price); }));
+  $('#add').addEventListener('click', () => K.add({pack: pick}));
+  $('#eta').textContent = K.deliveryWindow(7, 14);
+})();
+</script>
+</body>
+</html>

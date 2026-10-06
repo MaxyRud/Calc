@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Breathe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Karla:wght@400;500;700&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#eeeadf;--bg2:#e5e0d2;--ink:#2d3936;--mute:#6d7470;--line:rgba(45,57,54,.14);--butter:#f2e792;--ring:#c9b85a;--navy:#374a62;
+  --kit-bg:#f6f3ea;--kit-fg:#2d3936;--kit-muted:#6d7470;--kit-accent:#2d3936;--kit-accent-fg:#f6f3ea;--kit-line:rgba(45,57,54,.14);--kit-radius:16px;--kit-font:"Karla",sans-serif;--kit-scrim:rgba(45,57,54,.25);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Karla",system-ui,sans-serif;font-size:17px;line-height:1.6;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+button{font:inherit;color:inherit}
+.serif{font-family:"Newsreader",Georgia,serif;font-weight:400}
+header{position:absolute;inset:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:20px clamp(16px,4vw,48px);z-index:3}
+.logo{font-family:"Newsreader",serif;font-style:italic;font-size:24px;text-decoration:none;color:var(--ink)}
+.cart{appearance:none;border:0;background:none;cursor:pointer;font-size:15px;display:flex;gap:8px;align-items:center;padding:8px 0}
+.cart span{font-variant-numeric:tabular-nums}
+
+.room{min-height:100svh;display:grid;grid-template-rows:auto minmax(260px,1fr) auto;position:relative;background:radial-gradient(120% 70% at 50% 62%,#f5f2e9 0%,var(--bg) 60%,var(--bg2) 100%)}
+.stage{position:relative;min-height:0;cursor:pointer;touch-action:none;-webkit-user-select:none;user-select:none}
+.stage canvas{position:absolute;inset:0}
+.stage img.fallback{position:absolute;left:50%;top:52%;width:min(70%,640px);transform:translate(-50%,-50%)}
+.lead{text-align:center;padding:clamp(88px,13vh,130px) 16px 0;position:relative;z-index:2}
+.lead h1{font-family:"Newsreader",serif;font-weight:400;font-size:clamp(34px,5vw,64px);line-height:1.05;margin:0;letter-spacing:-.01em}
+.lead h1 em{font-style:italic}
+.lead p{margin:12px auto 0;max-width:34ch;color:var(--mute)}
+
+.guide{display:grid;justify-items:center;gap:14px;padding:0 16px clamp(28px,6vh,60px)}
+@media (max-width:720px){.guide{padding-bottom:84px}}
+.hold{appearance:none;border:0;background:none;cursor:pointer;position:relative;width:132px;height:132px;border-radius:50%;display:grid;place-items:center;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.hold svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.hold circle{fill:none;stroke-width:3}
+.hold .bg{stroke:var(--line)}
+.hold .fg{stroke:var(--ring);stroke-linecap:round}
+.hold .face{width:100px;height:100px;border-radius:50%;background:#f8f5ec;box-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 6px 18px rgba(45,57,54,.08);display:grid;place-items:center;text-align:center;line-height:1.1}
+.hold .face b{font-family:"Newsreader",serif;font-weight:400;font-size:34px;font-variant-numeric:tabular-nums;display:block}
+.hold .face small{font-size:12px;color:var(--mute);letter-spacing:.04em}
+.hold:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
+.say{font-family:"Newsreader",serif;font-style:italic;font-size:clamp(20px,2.2vw,26px);min-height:1.4em;text-align:center;margin:0}
+.rounds{font-size:13px;color:var(--mute);letter-spacing:.04em;min-height:1.2em;margin:0}
+
+.prose{max-width:640px;margin:0 auto;padding:clamp(80px,12vw,140px) 16px 0}
+.prose h2{font-family:"Newsreader",serif;font-weight:400;font-size:clamp(28px,3.4vw,42px);line-height:1.15;margin:0 0 18px}
+.prose p{margin:0 0 16px;color:#46504d}
+.round{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:34px 0 0;border-top:1px solid var(--line)}
+.round div{padding:18px 16px 0 0}
+.round b{display:block;font-family:"Newsreader",serif;font-weight:400;font-size:22px}
+.round span{font-size:15px;color:var(--mute)}
+.round div+div{padding-left:16px;border-left:1px solid var(--line)}
+
+.buy{max-width:880px;margin:clamp(80px,12vw,140px) auto 0;padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,64px);align-items:center}
+.buy figure{margin:0;background:#f6f3ea;border-radius:24px;padding:28px;aspect-ratio:5/4;display:grid;place-items:center}
+.buy h2{font-family:"Newsreader",serif;font-weight:400;font-size:clamp(28px,3vw,38px);line-height:1.15;margin:0 0 8px}
+.buy .meta{color:var(--mute);font-size:15px;margin:0 0 20px}
+.packs{display:grid;gap:8px}
+.pk{appearance:none;border:1px solid var(--line);background:transparent;border-radius:14px;padding:12px 16px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.pk small{color:var(--mute);font-size:14px}
+.pk[aria-checked="true"]{background:#f8f5ec;border-color:var(--ink)}
+.add{appearance:none;border:0;background:var(--ink);color:#f6f3ea;border-radius:99px;height:52px;width:100%;margin-top:14px;cursor:pointer;font-weight:700}
+.add:hover{background:#3b4a46}
+.fine{font-size:13px;color:var(--mute);margin-top:12px}
+.quotes{max-width:880px;margin:clamp(70px,10vw,120px) auto 0;padding:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,64px)}
+.quotes blockquote{margin:0;font-family:"Newsreader",serif;font-size:21px;line-height:1.4}
+.quotes cite{display:block;margin-top:10px;font:500 12px "Karla";letter-spacing:.1em;text-transform:uppercase;color:var(--mute);font-style:normal}
+footer{margin-top:clamp(80px,12vw,140px);border-top:1px solid var(--line);padding:24px clamp(16px,4vw,48px) 100px;font-size:13px;color:var(--mute);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (max-width:720px){
+  .buy,.quotes{grid-template-columns:1fr}
+  .round{grid-template-columns:1fr}.round div+div{padding-left:0;border-left:0;border-top:1px solid var(--line);margin-top:14px}
+}
+</style>
+</head>
+<body>
+<header><a class="logo" href="#top">softened.</a><button class="cart" data-cart-open aria-label="Open cart">Cart (<span data-cart-count>0</span>)</button></header>
+
+<main id="top">
+  <section class="room" aria-label="Squeeze and breathe">
+    <div class="lead">
+      <h1>Squeeze for four.<br><em>Watch it rise.</em></h1>
+      <p>Hold the button, or the stick. Let go when the count ends, and breathe out while the dent fills back in.</p>
+    </div>
+    <div class="stage" id="stage"></div>
+    <div class="guide">
+      <button class="hold" id="hold" aria-describedby="say">
+        <svg viewBox="0 0 132 132" aria-hidden="true"><circle class="bg" cx="66" cy="66" r="62"/><circle class="fg" id="arc" cx="66" cy="66" r="62" stroke-dasharray="389.6" stroke-dashoffset="389.6"/></svg>
+        <span class="face"><span><b id="num">4</b><small id="sub">hold</small></span></span>
+      </button>
+      <p class="say" id="say" aria-live="polite">Press and hold.</p>
+      <p class="rounds" id="rounds"></p>
+    </div>
+  </section>
+
+  <section class="prose">
+    <h2>A minute, not a method.</h2>
+    <p>This is a toy, not a treatment. Some people like having something slow to look at while they breathe out, and a slow-rise squeeze toy happens to be slow on purpose: press it and the dent takes a few seconds to fill back in.</p>
+    <p>The round above uses that. Four counts to squeeze, then however long the butter takes to come back. Nobody is timing you.</p>
+    <div class="round">
+      <div><b>Squeeze</b><span>Four slow counts. Whole hand, not a fold.</span></div>
+      <div><b>Let go</b><span>Open your hand. Breathe out.</span></div>
+      <div><b>Watch</b><span>The last of the dent goes in about five seconds.</span></div>
+    </div>
+  </section>
+
+  <section class="buy" aria-label="Buy">
+    <figure><img src="../assets/r-34.webp" alt="Render of the butter squeeze toy" width="1102" height="528" loading="lazy"></figure>
+    <div>
+      <h2>Butter Squish</h2>
+      <p class="meta">Slow-rise TPR squeeze toy · 13.5 × 4 × 4 cm · 45 g · silent</p>
+      <div class="packs" id="packs" role="radiogroup" aria-label="Pack"></div>
+      <button class="add" id="add">Add to cart</button>
+      <p class="fine">Not food, and not for children under 3. Don't fold it in half; keep it out of the sun. Arrives <span id="eta"></span>.</p>
+    </div>
+  </section>
+
+  <section class="quotes" aria-label="Sample reviews">
+    <blockquote>"I keep it next to the keyboard and squeeze it on long calls. Nobody can hear it."<cite>Sample review</cite></blockquote>
+    <blockquote>"The slow bit is the point. Cheaper than another candle."<cite>Sample review</cite></blockquote>
+  </section>
+</main>
+<footer><span>© softened. · Butter Squish</span><span>Template by js.17 · prices and reviews are sample content · no health claims are made · 3D view is a render built from the listing photo and measurements</span></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../assets/butter3d.js"></script>
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s);
+  K.layoutPill(6);
+  const stage = $('#stage'), hold = $('#hold'), arc = $('#arc'), num = $('#num'), sub = $('#sub'), say = $('#say');
+  const C = 389.6, COUNT = 4, KMAX = .5;
+  let api = null;
+  if (window.Butter3D && Butter3D.supported()) api = Butter3D(stage, {pose:{rx:.36, ry:.18, dist:18.5, ty:-.2}, fitAspect:2.3, interactive:false, shadowOpacity:.1, label:'3D butter stick. Press and hold to squeeze it.'});
+  else stage.innerHTML = '<img class="fallback" src="../assets/photo-stick.webp" alt="Butter Squish, a yellow squeeze toy shaped like a stick of salted butter" width="1110" height="570">';
+
+  /* phases: idle → squeeze (counting) → rise (follows the model's own recovery) → idle */
+  let phase = 'idle', t0 = 0, k0 = 0, rounds = 0, raf = 0;
+  const rec = t => api ? api.recovery(1, t) : (.3 * Math.exp(-t / .12) + .7 * Math.exp(-t / 1.5));
+  function setArc(f){ arc.setAttribute('stroke-dashoffset', (C * (1 - Math.max(0, Math.min(1, f)))).toFixed(1)); }
+
+  function down(e){
+    if (e && e.button > 0) return;
+    if (e && e.cancelable) e.preventDefault();
+    if (phase === 'squeeze') return;
+    phase = 'squeeze'; t0 = performance.now();
+    say.textContent = 'Squeeze…'; sub.textContent = 'squeeze';
+    loop();
+  }
+  function up(){
+    if (phase !== 'squeeze') return;
+    const held = (performance.now() - t0) / 1000;
+    if (held < .35){ phase = 'idle'; if (api) api.release(); reset('Hold it a little longer.'); return; }
+    phase = 'rise'; t0 = performance.now(); k0 = Math.min(1, held / COUNT);
+    if (api) api.release();
+    say.textContent = 'Let go. Breathe out while it rises.'; sub.textContent = 'rising';
+    loop();
+  }
+  function reset(msg){
+    setArc(0); num.textContent = COUNT; sub.textContent = 'hold'; say.textContent = msg || 'Press and hold.';
+  }
+  function loop(){
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(function f(now){
+      const s = (now - t0) / 1000;
+      if (phase === 'squeeze'){
+        const k = Math.min(1, s / COUNT);
+        if (api) api.squeeze(KMAX * (1 - Math.pow(1 - k, 1.6)), -.3);
+        setArc(k);
+        num.textContent = Math.max(1, COUNT - Math.floor(s));
+        if (s >= COUNT){ num.textContent = '·'; say.textContent = 'Let go when you\'re ready.'; }
+        raf = requestAnimationFrame(f);
+      } else if (phase === 'rise'){
+        const left = rec(s);                 // fraction of the squeeze still in the stick
+        setArc(k0 * left);
+        num.textContent = s.toFixed(1);
+        if (left > .02 && s < 9) raf = requestAnimationFrame(f);
+        else { phase = 'idle'; rounds++; $('#rounds').textContent = rounds + (rounds === 1 ? ' round' : ' rounds') + ' · back to shape in ' + s.toFixed(1) + ' s'; reset('Again, whenever you like.'); }
+      }
+    });
+  }
+  hold.addEventListener('pointerdown', e => { hold.setPointerCapture(e.pointerId); down(e); });
+  hold.addEventListener('pointerup', up); hold.addEventListener('pointercancel', up); hold.addEventListener('lostpointercapture', up);
+  hold.addEventListener('contextmenu', e => e.preventDefault());
+  hold.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat){ e.preventDefault(); down(); } });
+  hold.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); up(); } });
+  hold.addEventListener('click', e => e.preventDefault());
+  stage.addEventListener('pointerdown', e => { stage.setPointerCapture(e.pointerId); down(e); });
+  stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
+
+  /* buy */
+  let pick = '1';
+  $('#packs').innerHTML = P.packs.map(p => `<button class="pk" role="radio" aria-checked="${p.id === pick}" data-id="${p.id}"><span>${p.label}</span><small>${K.money(p.price)}${p.q > 1 ? ' · ' + K.money(p.price / p.q) + ' each' : ''}</small></button>`).join('');
+  document.querySelectorAll('.pk').forEach(b => b.addEventListener('click', () => { pick = b.dataset.id; document.querySelectorAll('.pk').forEach(x => x.setAttribute('aria-checked', x === b)); }));
+  $('#add').addEventListener('click', () => K.add({pack: pick}));
+  $('#eta').textContent = K.deliveryWindow(7, 14);
+})();
+</script>
+</body>
+</html>

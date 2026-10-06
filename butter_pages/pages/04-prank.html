@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Butter Dish</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Hanken+Grotesk:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f3eee4;--card:#fbf9f4;--ink:#1e2a35;--navy:#33516e;--mute:#6e6a62;--line:rgba(30,42,53,.14);--gingham:#4d6f92;
+  --kit-bg:#fbf9f4;--kit-fg:#1e2a35;--kit-muted:#6e6a62;--kit-accent:#1e2a35;--kit-accent-fg:#fbf9f4;--kit-line:rgba(30,42,53,.12);--kit-radius:10px;--kit-font:"Hanken Grotesk",sans-serif;--kit-scrim:rgba(30,42,53,.25);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hanken Grotesk",system-ui,sans-serif;font-size:17px;line-height:1.6;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.gl{font-family:"Gloock",Georgia,serif;font-weight:400}
+.wrap{width:min(1240px,100% - 32px);margin-inline:auto}
+.gingham{height:16px;background:
+  linear-gradient(90deg,rgba(77,111,146,.55) 50%,transparent 50%) 0 0/16px 16px,
+  linear-gradient(rgba(77,111,146,.55) 50%,transparent 50%) 0 0/16px 16px,#fff}
+
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:70px}
+.logo{font-family:"Gloock";font-size:26px;text-decoration:none}
+.cart{appearance:none;border:1px solid var(--ink);background:transparent;height:40px;padding:0 14px;border-radius:10px;display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600}
+.cart svg{width:17px;height:17px}
+
+.scene{display:grid;grid-template-columns:.85fr 1.15fr;gap:clamp(20px,4vw,56px);align-items:center;padding:20px 0 70px}
+.copy .k{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--navy)}
+.copy h1{font-family:"Gloock";font-weight:400;font-size:clamp(48px,6.4vw,96px);line-height:.98;margin:12px 0 18px;letter-spacing:-.01em}
+.copy p{color:#46525c;max-width:440px;margin:0 0 24px}
+.ctrls{display:flex;gap:10px;flex-wrap:wrap}
+.btn{appearance:none;border:0;background:var(--ink);color:var(--card);height:52px;padding:0 22px;border-radius:10px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:10px}
+.btn svg{width:18px;height:18px}
+.btn.o{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.btn:disabled{opacity:.4;cursor:default}
+.table{position:relative;aspect-ratio:1.25;border-radius:14px;overflow:hidden;background:radial-gradient(120% 80% at 50% 30%,#f7f2e8,#e5dccb)}
+.table .stage{position:absolute;inset:0}
+.table .stage canvas{position:absolute;inset:0}
+.table img.fallback{position:absolute;left:50%;top:50%;width:80%;transform:translate(-50%,-50%)}
+.gotcha{position:absolute;left:24px;bottom:22px;right:24px;display:flex;gap:16px;align-items:baseline;opacity:0;transform:translateY(8px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1);pointer-events:none}
+.gotcha.on{opacity:1;transform:none}
+.gotcha b{font-family:"Gloock";font-weight:400;font-size:clamp(40px,5vw,64px);line-height:1}
+.gotcha span{color:#46525c;font-size:15px}
+.step-hint{position:absolute;right:20px;top:18px;background:var(--card);border-radius:99px;padding:6px 12px;font-size:13px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.06)}
+
+/* the guide */
+.guide{padding:80px 0;border-top:1px solid var(--line)}
+.guide h2{font-family:"Gloock";font-weight:400;font-size:clamp(36px,4.4vw,60px);line-height:1;margin:0 0 34px}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:0;counter-reset:s}
+.steps li{counter-increment:s;padding:0 24px 0 0}
+.steps li+li{padding-left:24px;border-left:1px solid var(--line)}
+.steps li::before{content:counter(s);display:block;font-family:"Gloock";font-size:54px;line-height:1;color:var(--navy);margin-bottom:10px}
+.steps b{display:block;font-size:18px;margin-bottom:4px}
+.steps span{color:#46525c;font-size:15px}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:40px}
+.rule{background:var(--card);border-radius:12px;padding:20px 22px}
+.rule h3{margin:0 0 8px;font-size:15px;letter-spacing:.12em;text-transform:uppercase}
+.rule ul{margin:0;padding-left:18px;color:#46525c}
+.rule.no h3{color:#a23d2c}
+
+/* buy */
+.buy{display:grid;grid-template-columns:1fr 1fr;gap:clamp(20px,5vw,70px);align-items:center;padding:70px 0 90px;border-top:1px solid var(--line)}
+.buy h2{font-family:"Gloock";font-weight:400;font-size:clamp(36px,4.4vw,60px);line-height:1;margin:0 0 20px}
+.packs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.pk{appearance:none;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:14px;text-align:left;cursor:pointer}
+.pk b{display:block;font-size:18px}
+.pk small{color:var(--mute)}
+.pk[aria-pressed="true"]{border-color:var(--ink)}
+.total{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.total b{font-family:"Gloock";font-weight:400;font-size:46px}
+.reviews{display:grid;gap:14px}
+.reviews p{margin:0;background:var(--card);border-radius:12px;padding:18px 20px;font-size:16px}
+.reviews small{display:block;margin-top:6px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+footer{padding:24px 0 90px;font-size:13px;color:var(--mute)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (max-width:900px){
+  .scene,.buy{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr;row-gap:28px}
+  .steps li:nth-child(3){padding-left:0;border-left:0}
+  .rules{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .steps{grid-template-columns:1fr}.steps li,.steps li+li{padding:0;border:0}
+  .packs{grid-template-columns:1fr}
+  .table{aspect-ratio:1}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="gingham" aria-hidden="true"></div>
+<header><div class="wrap">
+  <a class="logo" href="#top">softened.</a>
+  <button class="cart" data-cart-open aria-label="Open cart"><svg><use href="#i-bag"/></svg><span data-cart-count>0</span></button>
+</div></header>
+
+<main id="top">
+  <section class="wrap scene">
+    <div class="copy">
+      <div class="k">The butter dish prank</div>
+      <h1>It's on the table.<br>It's not butter.</h1>
+      <p>A squeeze toy shaped like a stick of salted butter, real enough to fool anyone reaching for the toast. Lift the lid, then try to spread it.</p>
+      <div class="ctrls">
+        <button class="btn" id="lift">Lift the lid</button>
+        <button class="btn o" id="reset" disabled>Set it up again</button>
+      </div>
+    </div>
+    <div class="table" id="table">
+      <div class="stage" id="stage"></div>
+      <span class="step-hint" id="hint">Step 1 · lift the lid</span>
+      <div class="gotcha" id="gotcha" aria-live="polite"><b>Gotcha.</b><span>It's a slow-rise squeeze toy. Give it a few seconds and it's ready to fool the next person.</span></div>
+    </div>
+  </section>
+
+  <section class="wrap guide" aria-label="How to pull the prank">
+    <h2>How to pull it off</h2>
+    <ol class="steps">
+      <li><b>Pick the moment</b><span>Breakfast, a dinner party, a housemate who always steals your butter.</span></li>
+      <li><b>Set the dish</b><span>Label facing out, lid on. It reads as a fresh 4 oz stick from across the table.</span></li>
+      <li><b>Wait for the knife</b><span>It dents instead of slicing. That is when they notice.</span></li>
+      <li><b>Hand it over</b><span>Let them squeeze it. It rises back on its own, ready for round two.</span></li>
+    </ol>
+    <div class="rules">
+      <div class="rule"><h3>Good prank</h3><ul><li>Reveal it straight away</li><li>Keep it in a clean dish, away from real food</li><li>Wipe it with a damp cloth afterwards</li></ul></div>
+      <div class="rule no"><h3>Bad prank</h3><ul><li>Anywhere a small child could find it: it's not food and not for under 3s</li><li>Hidden in actual food, or warmed to look melted</li><li>Left in direct sun (it can deform)</li></ul></div>
+    </div>
+  </section>
+
+  <section class="wrap buy" aria-label="Buy">
+    <div>
+      <h2>Stock the fridge</h2>
+      <div class="packs" id="packs" role="radiogroup" aria-label="Pack"></div>
+      <div class="total"><b id="tot">$6.99</b><button class="btn" id="add"><svg><use href="#i-bag"/></svg>Add to cart</button></div>
+      <p style="font-size:14px;color:var(--mute);margin:12px 0 0">13.5 × 4 × 4 cm · 45 g · TPR · free shipping over $20 · arrives <span id="eta"></span></p>
+    </div>
+    <div class="reviews">
+      <p>"My husband got the knife out. Worth every cent."<small>Sample review</small></p>
+      <p>"It sat in the dish for two days before anyone noticed."<small>Sample review</small></p>
+      <p>"The label is spot on. Looks like the real thing from a metre away."<small>Sample review</small></p>
+    </div>
+  </section>
+</main>
+<div class="gingham" aria-hidden="true"></div>
+<footer><div class="wrap"><span>softened. · Butter Squish · not food</span><span>Template by js.17 · prices and reviews are sample content · 3D scene is a render; the toy is built from the listing photo and measurements.</span></div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../assets/butter3d.js"></script>
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s);
+  K.layoutPill(4);
+  const stage = $('#stage'), reduced = K.reduced;
+  let api = null, lid = null, lifted = false, fooled = false;
+
+  if (window.Butter3D && Butter3D.supported()){
+    api = Butter3D(stage, {pose:{rx:.52, ry:.38, dist:36, ty:-1}, fitAspect:1.1, shadowOpacity:.16, depth:1.2, label:'A butter dish with the squeeze toy inside. Lift the lid, then press the butter.'});
+    const T = api.THREE;
+    /* ceramic dish: a rounded slab extruded with a soft bevel */
+    function rounded(w, h, r){ const s = new T.Shape(); const x = -w / 2, y = -h / 2;
+      s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r); s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r); s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y); return s; }
+    const ceramic = new T.MeshPhysicalMaterial({color: 0xf6f3ec, roughness: .25, clearcoat: 1, clearcoatRoughness: .15});
+    const dish = new T.Mesh(new T.ExtrudeGeometry(rounded(18.5, 8.5, 1.6), {depth: .55, bevelEnabled: true, bevelThickness: .3, bevelSize: .35, bevelSegments: 5, curveSegments: 18}), ceramic);
+    dish.rotation.x = -Math.PI / 2; dish.position.y = -2 - .9; dish.receiveShadow = true; dish.castShadow = true;
+    api.group.add(dish);
+    api.floor.position.y = -2 - 1.2; api.key.position.set(-6, 18, 9);
+    /* glass lid: a rounded open box, drawn as a thin transparent shell */
+    const glass = new T.MeshPhysicalMaterial({color: 0xffffff, roughness: .08, metalness: 0, transparent: true, opacity: .2, clearcoat: 1, clearcoatRoughness: .05, depthWrite: false, side: T.DoubleSide});
+    const shell = new T.Mesh(new T.ExtrudeGeometry(rounded(16.4, 6.6, 1.4), {depth: 5.6, bevelEnabled: true, bevelThickness: .5, bevelSize: .5, bevelSegments: 6, curveSegments: 18}), glass);
+    shell.rotation.x = -Math.PI / 2;
+    const knob = new T.Mesh(new T.SphereGeometry(.7, 24, 16), new T.MeshPhysicalMaterial({color: 0xf6f3ec, roughness: .25, clearcoat: 1}));
+    knob.position.set(0, 6.6, 0);
+    lid = new T.Group(); lid.add(shell); lid.add(knob); lid.position.y = -2.55;
+    api.group.add(lid); api.render();
+  } else {
+    stage.innerHTML = '<img class="fallback" src="../assets/r-34.webp" alt="Render of the butter squeeze toy" width="1102" height="528">';
+  }
+
+  function tween(ms, fn, done){
+    if (reduced){ fn(1); done && done(); return; }
+    const t0 = performance.now();
+    (function f(t){ const k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 4); fn(e); if (k < 1) requestAnimationFrame(f); else done && done(); })(t0);
+  }
+  function lift(){
+    if (lifted || !lid) { if (!lid){ lifted = true; hint('Step 2 · press the butter'); } return; }
+    lifted = true; $('#lift').disabled = true; $('#reset').disabled = false;
+    tween(1300, e => { lid.position.set(-e * 5.5, -2.55 + e * 9.5, -e * 3.5); lid.rotation.z = e * .42; api.render(); });
+    hint('Step 2 · press the butter to spread it');
+  }
+  function reset(){
+    if (!lid) return;
+    lifted = false; fooled = false; $('#gotcha').classList.remove('on');
+    tween(1100, e => { const k = 1 - e; lid.position.set(-k * 5.5, -2.55 + k * 9.5, -k * 3.5); lid.rotation.z = k * .42; api.render(); }, () => { $('#lift').disabled = false; $('#reset').disabled = true; });
+    hint('Step 1 · lift the lid');
+  }
+  function hint(t){ $('#hint').textContent = t; }
+  $('#lift').addEventListener('click', lift);
+  $('#reset').addEventListener('click', reset);
+  stage.addEventListener('butterpress', () => {
+    if (!lifted){ lift(); return; }
+    if (!fooled){ fooled = true; setTimeout(() => $('#gotcha').classList.add('on'), 250); hint('Fooled'); }
+  });
+
+  /* buy */
+  let pick = '1';
+  $('#packs').innerHTML = P.packs.map(p => `<button class="pk" role="radio" aria-pressed="${p.id === pick}" aria-checked="${p.id === pick}" data-id="${p.id}"><b>${p.label}</b><small>${K.money(p.price / p.q)} each</small></button>`).join('');
+  document.querySelectorAll('.pk').forEach(b => b.addEventListener('click', () => { pick = b.dataset.id; document.querySelectorAll('.pk').forEach(x => { x.setAttribute('aria-pressed', x === b); x.setAttribute('aria-checked', x === b); }); $('#tot').textContent = K.money(K.pack(pick).price); }));
+  $('#add').addEventListener('click', () => K.add({pack: pick}));
+  $('#eta').textContent = K.deliveryWindow(7, 14);
+})();
+</script>
+</body>
+</html>

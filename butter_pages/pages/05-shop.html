@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700;800&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#ffffff;--soft:#f6f4ee;--soft2:#fbf6dd;--ink:#1c2430;--mute:#69707b;--line:#e7e4dc;--navy:#374a62;--butter:#f2e792;--green:#3c7d4b;--star:#e3a22e;
+  --kit-bg:#fff;--kit-fg:#1c2430;--kit-muted:#69707b;--kit-accent:#1c2430;--kit-accent-fg:#fff;--kit-line:#e7e4dc;--kit-radius:12px;--kit-font:"Albert Sans",sans-serif;--kit-scrim:rgba(28,36,48,.3);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Albert Sans",system-ui,sans-serif;font-size:16px;line-height:1.6;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+.wrap{width:min(1240px,100% - 32px);margin-inline:auto}
+.bar{background:var(--soft2);font-size:13px;text-align:center;padding:9px 16px;color:#5a5236}
+header{border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;gap:22px;height:66px}
+.logo{font-family:"Barlow Semi Condensed";font-weight:700;font-size:24px;text-decoration:none;color:var(--navy)}
+header nav{display:flex;gap:20px;font-size:14px;margin-left:auto}
+header nav a{text-decoration:none;color:var(--mute)}
+header nav a:hover{color:var(--ink)}
+.cart{appearance:none;border:1px solid var(--line);background:#fff;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;cursor:pointer;position:relative}
+.cart svg{width:18px;height:18px}
+.cart span{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:99px;background:var(--navy);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px}
+.cart span[data-count="0"]{background:var(--line);color:var(--mute)}
+.crumbs{font-size:13px;color:var(--mute);padding:16px 0}
+.crumbs a{text-decoration:none}
+.crumbs span{margin:0 8px;opacity:.5}
+
+.pdp{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:start}
+.gallery{position:sticky;top:16px}
+.view{position:relative;aspect-ratio:4/3;border-radius:18px;background:var(--soft);overflow:hidden}
+.view .slide{position:absolute;inset:0;display:grid;place-items:center;opacity:0;transition:opacity .35s ease;pointer-events:none}
+.view .slide.on{opacity:1;pointer-events:auto}
+.view .slide img{width:86%;max-height:86%;object-fit:contain}
+.view .slide.v3d canvas{position:absolute;inset:0}
+.view .tag{position:absolute;left:14px;top:14px;font-size:12px;font-weight:600;background:#fff;border-radius:99px;padding:4px 10px;z-index:2}
+.view .tag.r{left:auto;right:14px;color:var(--mute);font-weight:500}
+.thumbs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:10px}
+.th{appearance:none;border:2px solid transparent;background:var(--soft);border-radius:12px;aspect-ratio:1;padding:6px;cursor:pointer;display:grid;place-items:center;overflow:hidden}
+.th img{width:100%;height:100%;object-fit:contain}
+.th[aria-current="true"]{border-color:var(--ink)}
+.th.t3d{font-weight:700;font-size:13px;color:var(--navy);background:var(--soft2)}
+
+.info h1{font-size:clamp(26px,2.6vw,34px);line-height:1.15;letter-spacing:-.02em;margin:6px 0 8px;font-weight:700}
+.rating{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--mute);flex-wrap:wrap}
+.stars{display:inline-flex;color:var(--star)}
+.stars svg{width:15px;height:15px}
+.price{display:flex;align-items:baseline;gap:12px;margin:16px 0 4px}
+.price b{font-size:36px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.price s{color:var(--mute)}
+.price em{font-style:normal;font-size:13px;font-weight:700;color:var(--green)}
+.lede{color:#4a525d;margin:12px 0 18px}
+.lbl{display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin:18px 0 8px}
+.lbl span{font-weight:500;color:var(--mute)}
+.packs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pk{appearance:none;border:2px solid var(--line);background:#fff;border-radius:14px;padding:10px;cursor:pointer;text-align:left;display:grid;gap:4px;position:relative}
+.pk img{height:56px;width:auto;object-fit:contain}
+.pk b{font-size:15px}
+.pk small{color:var(--mute);font-size:13px}
+.pk .sv{position:absolute;top:-9px;right:10px;background:var(--green);color:#fff;font-size:11px;font-weight:700;border-radius:99px;padding:1px 8px}
+.pk[aria-pressed="true"]{border-color:var(--ink)}
+.actions{display:grid;grid-template-columns:auto 1fr;gap:10px;margin-top:18px}
+.qty{display:flex;align-items:center;border:1px solid var(--line);border-radius:99px;height:52px}
+.qty button{appearance:none;border:0;background:none;width:42px;height:100%;cursor:pointer;display:grid;place-items:center}
+.qty svg{width:14px;height:14px}
+.qty output{min-width:24px;text-align:center;font-weight:700}
+.atc{appearance:none;border:0;border-radius:99px;background:var(--ink);color:#fff;font-weight:700;height:52px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
+.atc svg{width:18px;height:18px}
+.ship{margin-top:16px;border:1px solid var(--line);border-radius:14px}
+.ship div{display:flex;gap:12px;padding:12px 14px;font-size:14px}
+.ship div+div{border-top:1px solid var(--line)}
+.ship svg{width:20px;height:20px;flex:none;color:var(--navy);margin-top:2px}
+.ship small{display:block;color:var(--mute)}
+.acc{margin-top:18px;border-top:1px solid var(--line)}
+.acc details{border-bottom:1px solid var(--line)}
+.acc summary{cursor:pointer;list-style:none;padding:14px 0;font-weight:700;display:flex;justify-content:space-between}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary::after{content:"+";font-weight:400;font-size:20px;line-height:1}
+.acc details[open] summary::after{content:"–"}
+.acc .in{padding:0 0 14px;color:#4a525d;font-size:15px}
+.acc table{width:100%;border-collapse:collapse}
+.acc td{padding:6px 0;border-bottom:1px dashed var(--line)}
+.acc td:first-child{font-weight:600;width:42%;color:var(--ink)}
+
+section.blk{padding:80px 0 0}
+.st h2{font-size:clamp(22px,2.4vw,30px);letter-spacing:-.02em;margin:0 0 6px}
+.st p{color:var(--mute);margin:0 0 20px}
+.angles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.angles figure{margin:0;background:var(--soft);border-radius:16px;padding:18px;display:grid;gap:10px}
+.angles img{height:120px;width:100%;object-fit:contain}
+.angles figcaption{font-size:13px;color:var(--mute)}
+.revs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.rv{border:1px solid var(--line);border-radius:16px;padding:18px}
+.rv p{margin:8px 0}
+.rv small{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+footer{margin-top:90px;border-top:1px solid var(--line);padding:26px 0 100px;font-size:13px;color:var(--mute)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (max-width:980px){
+  .pdp{grid-template-columns:1fr;gap:26px}
+  .gallery{position:static}
+  header nav{display:none}.cart{margin-left:auto}
+  .angles{grid-template-columns:1fr 1fr}
+  .revs{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .thumbs{grid-template-columns:repeat(4,1fr)}
+  .packs{grid-template-columns:1fr}.pk{grid-template-columns:70px 1fr;align-items:center}.pk img{grid-row:span 2;height:44px}
+}
+</style>
+</head>
+<body>
+<div class="bar">Free shipping on orders over $20 · 3-pack and 5-pack cost less per stick</div>
+<header><div class="wrap">
+  <a class="logo" href="#top">softened.</a>
+  <nav aria-label="Categories"><a href="#">Squeeze toys</a><a href="#">Fidgets</a><a href="#">Packs</a></nav>
+  <button class="cart" data-cart-open aria-label="Open cart"><svg><use href="#i-bag"/></svg><span data-cart-count>0</span></button>
+</div></header>
+
+<main id="top" class="wrap">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="#">Home</a><span>/</span><a href="#">Squeeze toys</a><span>/</span>Butter Squish</nav>
+  <div class="pdp">
+    <div class="gallery">
+      <div class="view" id="view">
+        <span class="tag" id="vtag">Product photo</span>
+        <span class="tag r" id="vnote"></span>
+      </div>
+      <div class="thumbs" id="thumbs" role="tablist" aria-label="Images"></div>
+    </div>
+
+    <div class="info">
+      <div style="font-size:13px;font-weight:700;color:var(--navy);letter-spacing:.1em;text-transform:uppercase">Slow-rise squeeze toy</div>
+      <h1>Butter Squish · Stick of Butter Squeeze Toy, 13.5 cm</h1>
+      <div class="rating"><span class="stars" aria-label="4.7 out of 5"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span><b>4.7</b><a href="#reviews">Sample ratings</a><span>· SKU SFT-BTR-L</span></div>
+      <div class="price"><b id="price">$6.99</b><s id="was">$9.99</s><em id="save">Save $3.00</em></div>
+      <p class="lede">A soft, slow-rise squeeze toy shaped like a 4 oz stick of salted butter. Press it, watch the dent creep back, press again. Quiet enough for class, real enough for a butter-dish prank.</p>
+      <div class="lbl">Pack <span id="per">$6.99 per stick</span></div>
+      <div class="packs" id="packs" role="radiogroup" aria-label="Pack"></div>
+      <div class="actions">
+        <div class="qty"><button id="qm" aria-label="Fewer"><svg><use href="#i-minus"/></svg></button><output id="qv">1</output><button id="qp" aria-label="More"><svg><use href="#i-plus"/></svg></button></div>
+        <button class="atc" id="atc"><svg><use href="#i-bag"/></svg>Add to cart · <span id="atcP">$6.99</span></button>
+      </div>
+      <div class="ship">
+        <div><svg><use href="#i-truck"/></svg><div><b>Arrives <span id="eta"></span></b><small>Free over $20, otherwise $2.99 (sample).</small></div></div>
+        <div><svg><use href="#i-shield"/></svg><div><b>Not food · not for under 3s</b><small>Looks like butter, made of TPR. Small pieces if torn.</small></div></div>
+      </div>
+      <div class="acc">
+        <details open><summary>Details</summary><div class="in"><table>
+          <tr><td>Size</td><td>13.5 × 4 × 4 cm</td></tr><tr><td>Weight</td><td>45 g</td></tr><tr><td>Material</td><td>TPR (thermoplastic rubber)</td></tr><tr><td>Feel</td><td>Soft, slow rise, silent</td></tr><tr><td>Print</td><td>"4 oz. Net wt. (113 g) · Salted Butter" (decorative)</td></tr><tr><td>Packs</td><td>1, 3 or 5 sticks</td></tr></table></div></details>
+        <details><summary>Care</summary><div class="in">Squeeze, press and roll. Don't fold it in half or stretch it to its limit: that's how squeeze toys tear. Keep it out of direct sun and away from heat. Wipe with a damp cloth and let it dry.</div></details>
+        <details><summary>Safety</summary><div class="in">Not food: keep it away from anyone likely to bite it, and away from children under 3. Stop using it if it tears. Ask your supplier for EN 71 / ASTM F963 test reports before claiming "non-toxic".</div></details>
+      </div>
+    </div>
+  </div>
+
+  <section class="blk">
+    <div class="st"><h2>Every side of it</h2><p>Renders from the 3D model, built to the listing's measurements.</p></div>
+    <div class="angles">
+      <figure><img src="../assets/r-front.webp" alt="Front view render" width="1099" height="354" loading="lazy"><figcaption>Front · the label</figcaption></figure>
+      <figure><img src="../assets/r-top.webp" alt="Top view render" width="1076" height="425" loading="lazy"><figcaption>Top · plain</figcaption></figure>
+      <figure><img src="../assets/r-end.webp" alt="End view render" width="568" height="424" loading="lazy"><figcaption>End · 4 × 4 cm</figcaption></figure>
+      <figure><img src="../assets/r-pressed.webp" alt="Render with a thumb dent" width="1112" height="531" loading="lazy"><figcaption>Pressed · before it rises</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="blk" id="reviews">
+    <div class="st"><h2>Reviews</h2><p>Sample reviews for this template.</p></div>
+    <div class="revs">
+      <div class="rv"><span class="stars"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span><p>Soft and slow. Exactly what I wanted for my desk.</p><small>Sample review</small></div>
+      <div class="rv"><span class="stars"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span><p>Bought the 5-pack for my classroom. Quiet, and the kids love it.</p><small>Sample review</small></div>
+      <div class="rv"><span class="stars"><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg><svg><use href="#i-star"/></svg></span><p>Great, but don't fold it in half. Mine split at the corner.</p><small>Sample review</small></div>
+    </div>
+  </section>
+</main>
+<footer><div class="wrap"><span>© softened. · Butter Squish</span><span>Template by js.17 · prices, ratings and reviews are sample content · product photo from the supplier listing; other views are 3D renders.</span></div></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../assets/butter3d.js"></script>
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  K.layoutPill(5);
+  const SLIDES = [
+    {src:'photo-stick', alt:'Supplier photo of the butter squeeze toy', tag:'Product photo', note:'from the listing', w:1110, h:570},
+    {src:'r-34', alt:'Render, three-quarter view', tag:'Render', note:'3D model', w:1102, h:528},
+    {src:'r-pressed', alt:'Render with a thumb dent', tag:'Render', note:'pressed', w:1112, h:531},
+    {src:'r-pack3', alt:'Render of a 3-pack', tag:'Render', note:'3-pack', w:983, h:829},
+    {src:'r-pack5', alt:'Render of a 5-pack', tag:'Render', note:'5-pack', w:995, h:862},
+    {v3d:true, tag:'3D', note:'drag to turn · press to squish'}
+  ];
+  const view = $('#view');
+  SLIDES.forEach((s, i) => {
+    const d = document.createElement('div'); d.className = 'slide' + (i === 0 ? ' on' : '') + (s.v3d ? ' v3d' : '');
+    if (!s.v3d) d.innerHTML = `<img src="${K.img(s.src)}" alt="${s.alt}" width="${s.w}" height="${s.h}">`;
+    view.appendChild(d);
+  });
+  $('#thumbs').innerHTML = SLIDES.map((s, i) => `<button class="th ${s.v3d ? 't3d' : ''}" role="tab" aria-current="${i === 0}" aria-label="${s.v3d ? '3D view' : s.alt}">${s.v3d ? '3D' : `<img src="${K.img(s.src)}" alt="">`}</button>`).join('');
+  let api = null, cur = 0;
+  function go(i){
+    cur = i; $$('.view .slide').forEach((s, k) => s.classList.toggle('on', k === i)); $$('.th').forEach((t, k) => t.setAttribute('aria-current', k === i));
+    $('#vtag').textContent = SLIDES[i].tag; $('#vnote').textContent = SLIDES[i].note;
+    if (SLIDES[i].v3d && !api && window.Butter3D && Butter3D.supported()) start3d();
+  }
+  $$('.th').forEach((t, i) => t.addEventListener('click', () => go(i)));
+  go(0);
+
+  /* 3D: drag sideways to turn, press (without dragging) to squish */
+  function start3d(){
+    const host = $('.view .slide.v3d');
+    api = Butter3D(host, {pose:{rx:.4, ry:.3, dist:30}, fitAspect:1.25, interactive:false, shadowOpacity:.12});
+    const c = api.renderer.domElement; let x0 = null, ry0 = 0, moved = false, pressing = false, hold;
+    c.addEventListener('pointerdown', e => {
+      x0 = e.clientX; ry0 = api.pose.ry; moved = false; c.setPointerCapture(e.pointerId);
+      hold = setTimeout(() => { if (!moved) pressing = api.pressAt(e.clientX, e.clientY, 1.3); }, 140);
+    });
+    c.addEventListener('pointermove', e => {
+      if (x0 === null) return;
+      if (Math.abs(e.clientX - x0) > 6 && !pressing){ moved = true; clearTimeout(hold); api.setPose({ry: ry0 + (e.clientX - x0) / 180}, true); }
+      else if (pressing) api.moveTo(e.clientX, e.clientY);
+    });
+    const up = () => { clearTimeout(hold); x0 = null; if (pressing){ pressing = false; api.release(); } };
+    c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
+    c.style.cursor = 'grab'; c.tabIndex = 0; c.setAttribute('aria-label', '3D view. Drag to turn, press and hold to squish. Arrow keys turn it.');
+    c.addEventListener('keydown', e => { if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){ e.preventDefault(); api.setPose({ry: api.pose.ry + (e.key === 'ArrowRight' ? .2 : -.2), duration: 500}); } });
+  }
+
+  /* packs */
+  let pick = '1', qty = 1;
+  const img = {1:'r-front', 3:'r-pack3', 5:'r-pack5'};
+  $('#packs').innerHTML = P.packs.map(p => `<button class="pk" role="radio" aria-pressed="${p.id === pick}" aria-checked="${p.id === pick}" data-id="${p.id}">${p.q > 1 ? `<span class="sv">−${Math.round(K.saving(p.id) / (P.compare * p.q) * 100)}%</span>` : ''}<img src="${K.img(img[p.q])}" alt=""><b>${p.label}</b><small>${K.money(p.price)} · ${K.money(p.price / p.q)} each</small></button>`).join('');
+  function update(){
+    const p = K.pack(pick), t = p.price * qty, was = P.compare * p.q * qty;
+    $('#price').textContent = K.money(t); $('#was').textContent = K.money(was); $('#save').textContent = 'Save ' + K.money(was - t);
+    $('#per').textContent = K.money(p.price / p.q) + ' per stick'; $('#atcP').textContent = K.money(t); $('#qv').textContent = qty;
+  }
+  $$('.pk').forEach(b => b.addEventListener('click', () => { pick = b.dataset.id; $$('.pk').forEach(x => { x.setAttribute('aria-pressed', x === b); x.setAttribute('aria-checked', x === b); }); update(); }));
+  $('#qm').addEventListener('click', () => { qty = Math.max(1, qty - 1); update(); });
+  $('#qp').addEventListener('click', () => { qty = Math.min(20, qty + 1); update(); });
+  $('#atc').addEventListener('click', () => K.add({pack: pick, qty}));
+  $('#eta').textContent = K.deliveryWindow(7, 14);
+  update();
+})();
+</script>
+</body>
+</html>

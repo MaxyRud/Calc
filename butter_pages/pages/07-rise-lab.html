@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rise Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --paper:#fbfaf6;--grid:rgba(60,96,140,.08);--grid2:rgba(60,96,140,.16);--ink:#1d2733;--mute:#5f6b78;--line:#c9d0d8;--pencil:#c2412d;--butter:#f2e792;--navy:#374a62;
+  --kit-bg:#fbfaf6;--kit-fg:#1d2733;--kit-muted:#5f6b78;--kit-accent:#1d2733;--kit-accent-fg:#fbfaf6;--kit-line:#c9d0d8;--kit-radius:2px;--kit-font:"IBM Plex Sans",sans-serif;--kit-scrim:rgba(29,39,51,.25);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:16px;line-height:1.55;overflow-x:hidden;
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid2) 1px,transparent 1px),linear-gradient(90deg,var(--grid2) 1px,transparent 1px),linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:100px 100px,100px 100px,10px 10px,10px 10px}
+img{max-width:100%;height:auto;display:block}
+button,input{font:inherit;color:inherit}
+.mono{font-family:"IBM Plex Mono",monospace}
+.doc{width:min(1200px,100% - 32px);margin:0 auto;padding:28px 0 0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:"IBM Plex Mono";font-size:13px}
+.top a{text-decoration:none;font-weight:500;color:var(--ink)}
+.cart{appearance:none;background:var(--paper);border:1px solid var(--ink);padding:6px 12px;cursor:pointer;font-family:"IBM Plex Mono";font-size:13px}
+.head{margin-top:26px;border:1.5px solid var(--ink);background:var(--paper);display:grid;grid-template-columns:1fr auto}
+.head h1{margin:0;padding:22px 24px;font-size:clamp(28px,4vw,48px);line-height:1.05;font-weight:500;letter-spacing:-.02em;border-right:1.5px solid var(--ink)}
+.head h1 small{display:block;font-size:14px;font-family:"IBM Plex Mono";font-weight:400;letter-spacing:0;margin-bottom:10px;color:var(--mute)}
+.head dl{margin:0;display:grid;grid-template-columns:auto auto;font-family:"IBM Plex Mono";font-size:13px;align-content:stretch}
+.head dt,.head dd{margin:0;padding:8px 14px;border-bottom:1px solid var(--line)}
+.head dt{color:var(--mute)}
+.head dl>*:nth-last-child(-n+2){border-bottom:0}
+
+.bench{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:22px;border:1.5px solid var(--ink);background:var(--paper)}
+.fig{padding:16px 18px 18px;display:flex;flex-direction:column;min-width:0}
+.fig+.fig{border-left:1.5px solid var(--ink)}
+.cap{font-family:"IBM Plex Mono";font-size:12px;color:var(--mute);display:flex;justify-content:space-between;gap:10px;margin-bottom:8px}
+.cap b{color:var(--ink);font-weight:500}
+.stage{position:relative;aspect-ratio:4/3;min-height:0;background:#f3f1ea;border:1px solid var(--line)}
+.stage canvas{position:absolute;inset:0}
+.stage img.fallback{position:absolute;inset:10%;width:80%;height:80%;object-fit:contain}
+.ctrl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.ctrl button{appearance:none;border:1px solid var(--ink);background:var(--paper);padding:10px 8px;cursor:pointer;text-align:left;font-size:14px;font-weight:500;line-height:1.2}
+.ctrl button small{display:block;font-family:"IBM Plex Mono";font-size:12px;color:var(--mute);font-weight:400;margin-top:3px}
+.ctrl button:hover{background:#f1efe6}
+.ctrl button:disabled{opacity:.5;cursor:default}
+.status{font-family:"IBM Plex Mono";font-size:13px;margin-top:10px;min-height:1.5em}
+.status b{font-weight:500}
+svg.chart{width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line)}
+.chart text{font-family:"IBM Plex Mono";font-size:11px;fill:var(--mute)}
+.chart .ax{stroke:var(--ink);stroke-width:1}
+.chart .gl{stroke:var(--grid2);stroke-width:1}
+.chart .run{fill:none;stroke:var(--ink);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.chart .run.old{stroke:#8792a0;stroke-width:1.4}
+.chart .thr{stroke:var(--pencil);stroke-dasharray:4 4;stroke-width:1}
+.chart .thr-t{fill:var(--pencil)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:"IBM Plex Mono";font-weight:500;font-size:12px;color:var(--mute)}
+td.n{font-family:"IBM Plex Mono";font-variant-numeric:tabular-nums}
+.runs{margin-top:12px}
+.runs tbody tr:first-child td{font-weight:600}
+.note{margin-top:12px;font-size:13px;color:var(--mute);border-left:3px solid var(--pencil);padding-left:10px}
+
+.sec{margin-top:22px;border:1.5px solid var(--ink);background:var(--paper);display:grid;grid-template-columns:220px 1fr}
+.sec>h2{margin:0;padding:16px 18px;font-size:15px;font-weight:600;border-right:1.5px solid var(--ink)}
+.sec>h2 small{display:block;font-family:"IBM Plex Mono";font-weight:400;color:var(--mute);font-size:12px;margin-top:4px}
+.sec>div{padding:8px 18px 16px;min-width:0}
+.spec td:first-child{width:36%;color:var(--mute)}
+ol.obs{margin:8px 0 0;padding:0;counter-reset:o;list-style:none}
+ol.obs li{counter-increment:o;display:grid;grid-template-columns:44px 1fr;padding:10px 0;border-bottom:1px solid var(--line)}
+ol.obs li::before{content:counter(o,decimal-leading-zero);font-family:"IBM Plex Mono";color:var(--pencil)}
+ol.obs li:last-child{border-bottom:0}
+.order td{vertical-align:middle}
+.order .q{display:inline-flex;border:1px solid var(--ink)}
+.order .q button{appearance:none;border:0;background:none;width:30px;height:30px;cursor:pointer}
+.order .q input{width:36px;border:0;border-left:1px solid var(--line);border-right:1px solid var(--line);text-align:center;background:transparent;font-family:"IBM Plex Mono"}
+.order tfoot td{border-bottom:0;font-weight:600}
+.submit{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-top:12px}
+.submit button{appearance:none;border:0;background:var(--ink);color:var(--paper);padding:13px 22px;cursor:pointer;font-weight:500}
+.submit button:disabled{background:#9aa3ad;cursor:default}
+.submit small{font-family:"IBM Plex Mono";font-size:12px;color:var(--mute)}
+.reports{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px}
+.reports p{margin:0 0 6px;font-size:15px}
+.reports small{font-family:"IBM Plex Mono";font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+footer{width:min(1200px,100% - 32px);margin:40px auto 0;padding:0 0 100px;font-family:"IBM Plex Mono";font-size:12px;color:var(--mute);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media (max-width:900px){
+  .head{grid-template-columns:1fr}.head h1{border-right:0;border-bottom:1.5px solid var(--ink)}
+  .bench{grid-template-columns:1fr}.fig+.fig{border-left:0;border-top:1.5px solid var(--ink)}
+  .sec{grid-template-columns:1fr}.sec>h2{border-right:0;border-bottom:1px solid var(--line)}
+  .reports{grid-template-columns:1fr}
+}
+@media (max-width:480px){
+  .chart text{font-size:17px}
+  .runs th:nth-child(2),.runs td:nth-child(2){display:none}
+}
+</style>
+</head>
+<body>
+<div class="doc">
+  <div class="top"><a href="#top">softened. / bench notes</a><button class="cart" data-cart-open>cart [<span data-cart-count>0</span>]</button></div>
+
+  <header class="head" id="top">
+    <h1><small>Bench note 07 · simulated</small>How fast does the butter come back?</h1>
+    <dl>
+      <dt>Subject</dt><dd>Butter Squish, SFT-BTR-L</dd>
+      <dt>Test</dt><dd>Flat probe, 0.7 s hold</dd>
+      <dt>Probe</dt><dd>Ø 20 mm</dd>
+      <dt>Size</dt><dd>135 × 40 × 40 mm</dd>
+      <dt>Mass</dt><dd>45 g</dd>
+    </dl>
+  </header>
+
+  <section class="bench" aria-label="Recovery test">
+    <div class="fig">
+      <div class="cap"><span><b>Fig. 1</b> Bench</span><span>choose a load</span></div>
+      <div class="stage" id="stage"></div>
+      <div class="ctrl" id="ctrl">
+        <button data-d=".6">Light<small>6 mm</small></button>
+        <button data-d="1.2">Medium<small>12 mm</small></button>
+        <button data-d="1.9">Firm<small>19 mm</small></button>
+      </div>
+      <div class="status" id="status" aria-live="polite">Ready.</div>
+    </div>
+    <div class="fig">
+      <div class="cap"><span><b>Fig. 2</b> Dent depth after release</span><span>mm vs s</span></div>
+      <svg class="chart" id="chart" viewBox="0 0 560 320" role="img" aria-label="Chart of dent depth over time after the probe lifts"></svg>
+      <table class="runs" aria-label="Runs">
+        <thead><tr><th>Run</th><th>Load</th><th>Depth at release</th><th>Dent gone (&lt;0.5 mm)</th></tr></thead>
+        <tbody id="runs"><tr><td colspan="4" style="color:var(--mute)">No runs yet.</td></tr></tbody>
+      </table>
+      <p class="note">Simulated. The curve is our 3D model's recovery, tuned by eye to match the toy in hand; it is not a lab measurement. Real sticks rise slower when cold and faster when warm.</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Specification<small>from the listing</small></h2>
+    <div><table class="spec">
+      <tr><td>Dimensions</td><td>135 × 40 × 40 mm</td></tr>
+      <tr><td>Mass</td><td>45 g</td></tr>
+      <tr><td>Material</td><td>TPR (thermoplastic rubber), solid, no foam cells</td></tr>
+      <tr><td>Behaviour</td><td>Slow rise; slightly tacky, cool surface</td></tr>
+      <tr><td>Noise</td><td>None</td></tr>
+      <tr><td>Print</td><td>Decorative wrapper print, front face only</td></tr>
+      <tr><td>Packs</td><td>1, 3, 5</td></tr>
+    </table></div>
+  </section>
+
+  <section class="sec">
+    <h2>Observations<small>and care</small></h2>
+    <div><ol class="obs">
+      <li><span>Pressing is fine. Folding it in half, or stretching it as far as it goes, is how TPR squeeze toys split. We did not run a fold test, and you shouldn't either.</span></li>
+      <li><span>The surface is a little tacky and picks up lint. Rinse or wipe with a damp cloth and let it air-dry; it comes back clean.</span></li>
+      <li><span>Heat softens TPR. Don't leave it on a sunny windowsill or in a hot car.</span></li>
+      <li><span>It looks like food. Keep it away from anyone likely to bite it and from children under 3.</span></li>
+      <li><span>No toxicity claims here. If you resell it, ask your supplier for EN 71 / ASTM F963 test reports.</span></li>
+    </ol></div>
+  </section>
+
+  <section class="sec" id="order">
+    <h2>Order form<small>prices are sample</small></h2>
+    <div>
+      <table class="order">
+        <thead><tr><th>Item</th><th>Unit</th><th>Qty</th><th>Line</th></tr></thead>
+        <tbody id="orderRows"></tbody>
+        <tfoot><tr><td colspan="3">Subtotal · <span id="sticks">0</span> sticks</td><td class="n" id="sub">$0.00</td></tr></tfoot>
+      </table>
+      <div class="submit"><small>Ships <span id="eta"></span> · free over $20</small><button id="submit" disabled>Add to cart</button></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2>Field reports<small>sample reviews</small></h2>
+    <div class="reports">
+      <div><p>"Did the firm press over and over during a meeting. Still looks new after a month."</p><small>Sample review</small></div>
+      <div><p>"Slower to rise in a cold office, which is honestly better."</p><small>Sample review</small></div>
+      <div><p>"Fluff sticks to it. A rinse fixes that."</p><small>Sample review</small></div>
+    </div>
+  </section>
+</div>
+<footer><span>© softened. · Butter Squish</span><span>Template by js.17 · prices and reviews are sample content · test and curve are simulated from a 3D model built from the listing photo and measurements</span></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../assets/butter3d.js"></script>
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s), NS = 'http://www.w3.org/2000/svg';
+  K.layoutPill(7);
+  const stage = $('#stage'), status = $('#status');
+  const HOLD = .7, SECS = 8, GONE = .05;   // cm
+  let api = null, probe = null, probeY = 0, probeTarget = 0;
+  const TOP = 2, PROBE_H = 5;
+  if (window.Butter3D && Butter3D.supported()){
+    api = Butter3D(stage, {pose:{rx:.46, ry:.5, dist:29, ty:1.6}, fitAspect:1.2, interactive:false, shadowOpacity:.16, label:'3D test bench: a flat probe presses the butter stick'});
+    const T = api.THREE;
+    probe = new T.Group();
+    const steel = new T.MeshStandardMaterial({color:0xb8bec6, metalness:.6, roughness:.35});
+    const foot = new T.Mesh(new T.CylinderGeometry(1, 1, PROBE_H, 48), steel); foot.position.y = PROBE_H / 2; foot.castShadow = true;
+    const rod = new T.Mesh(new T.CylinderGeometry(.35, .35, 12, 24), steel); rod.position.y = PROBE_H + 6;
+    const ring = new T.Mesh(new T.TorusGeometry(1, .06, 8, 48), new T.MeshStandardMaterial({color:0xc2412d, roughness:.6})); ring.rotation.x = Math.PI / 2; ring.position.y = .02;
+    probe.add(foot, rod, ring); api.group.add(probe);
+    probeY = probeTarget = TOP + 2.2; probe.position.y = probeY;
+    api.render();
+  } else stage.innerHTML = '<img class="fallback" src="../assets/r-pressed.webp" alt="Render of the butter stick with a dent" width="1112" height="531">';
+
+  /* probe tween, rendered alongside the model */
+  function moveProbe(y, ms){
+    return new Promise(res => {
+      if (!probe) return setTimeout(res, ms);
+      const y0 = probe.position.y, t0 = performance.now();
+      (function f(now){
+        const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+        probe.position.y = y0 + (y - y0) * e; api.render();
+        if (k < 1) requestAnimationFrame(f); else res();
+      })(t0);
+    });
+  }
+
+  /* chart */
+  const W = 560, H = 320, L = 46, R = 14, Tm = 14, B = 34, YMAX = 2.2;
+  const sx = t => L + t / SECS * (W - L - R), sy = d => Tm + (1 - d / YMAX) * (H - Tm - B);
+  const chart = $('#chart');
+  let g = '';
+  for (let s = 0; s <= SECS; s++) g += `<line class="gl" x1="${sx(s)}" x2="${sx(s)}" y1="${Tm}" y2="${H - B}"/><text x="${sx(s)}" y="${H - B + 16}" text-anchor="middle">${s}</text>`;
+  for (let mm = 0; mm <= 22; mm += 4) g += `<line class="gl" x1="${L}" x2="${W - R}" y1="${sy(mm / 10)}" y2="${sy(mm / 10)}"/><text x="${L - 8}" y="${sy(mm / 10) + 4}" text-anchor="end">${mm}</text>`;
+  g += `<line class="ax" x1="${L}" x2="${L}" y1="${Tm}" y2="${H - B}"/><line class="ax" x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}"/>`;
+  g += `<line class="thr" x1="${L}" x2="${W - R}" y1="${sy(GONE)}" y2="${sy(GONE)}"/><text class="thr-t" x="${W - R}" y="${sy(GONE) - 6}" text-anchor="end">0.5 mm · dent gone</text>`;
+  g += `<text x="${(L + W - R) / 2}" y="${H - 4}" text-anchor="middle">seconds after the probe lifts</text><text x="12" y="${(Tm + H - B) / 2}" transform="rotate(-90 12 ${(Tm + H - B) / 2})" text-anchor="middle">dent, mm</text>`;
+  chart.innerHTML = g + '<g id="curves"></g>';
+  const curves = chart.querySelector('#curves');
+
+  const rec = (d0, t) => api ? api.recovery(d0, t) : d0 * (.3 * Math.exp(-t / .12) + .7 * Math.exp(-t / 1.5));
+  function goneAt(d0){ let t = 0; while (rec(d0, t) > GONE && t < 30) t += .01; return t; }
+  const runs = [];
+  let busy = false;
+  async function run(d0, name){
+    if (busy) return; busy = true;
+    document.querySelectorAll('#ctrl button').forEach(b => b.disabled = true);
+    curves.querySelectorAll('.run').forEach(p => p.classList.add('old'));
+    const path = document.createElementNS(NS, 'polyline'); path.setAttribute('class', 'run'); curves.appendChild(path);
+    status.innerHTML = `Loading <b>${name.toLowerCase()}</b>…`;
+    /* probe comes down to the surface, then presses */
+    await moveProbe(TOP + .02, 380);
+    /* a held press keeps sinking ~3.5 mm/s, so aim short of the nominal depth */
+    if (api) api.press(0, Math.max(.2, d0 - .35 * HOLD), 1.25);
+    await new Promise(r => {
+      const h0 = performance.now();
+      (function f(now){
+        if (probe) { probe.position.y = TOP - (api ? api.state().depth : 0); api.render(); }
+        if (now - h0 < HOLD * 1000 + 200) requestAnimationFrame(f); else r();
+      })(h0);
+    });
+    const dRel = api ? api.state().depth : d0;
+    /* release: probe lifts fast, butter does not follow */
+    if (api) api.release();
+    const t0 = performance.now(); moveProbe(TOP + 2.2, 260);
+    status.innerHTML = `Released at <b>${(dRel * 10).toFixed(1)} mm</b>. Watching it rise…`;
+    const pts = [];
+    await new Promise(done => {
+      (function f(now){
+        const t = (now - t0) / 1000, d = api ? api.state().depth : rec(dRel, t);
+        pts.push(`${sx(Math.min(t, SECS)).toFixed(1)},${sy(d).toFixed(1)}`);
+        path.setAttribute('points', pts.join(' '));
+        if (t < SECS && (d > .004 || t < 1)) requestAnimationFrame(f); else done();
+      })(t0);
+    });
+    const gone = goneAt(dRel);
+    runs.unshift({n: runs.length + 1, name, d: dRel, gone});
+    $('#runs').innerHTML = runs.slice(0, 6).map(r => `<tr><td class="n">#${r.n}</td><td>${r.name}</td><td class="n">${(r.d * 10).toFixed(1)} mm</td><td class="n">${r.gone.toFixed(1)} s</td></tr>`).join('');
+    status.innerHTML = `Run #${runs[0].n}: dent gone after <b>${gone.toFixed(1)} s</b>. Deeper presses take longer.`;
+    busy = false; document.querySelectorAll('#ctrl button').forEach(b => b.disabled = false);
+  }
+  document.querySelectorAll('#ctrl button').forEach(b => b.addEventListener('click', () => run(+b.dataset.d, b.firstChild.textContent.trim())));
+  /* one medium run when the bench first comes into view */
+  const io = new IntersectionObserver(es => { if (es[0].isIntersecting){ io.disconnect(); (api ? api.ready : Promise.resolve()).then(() => setTimeout(() => run(1.2, 'Medium'), 500)); } }, {threshold:.5});
+  io.observe(stage);
+
+  /* order form */
+  const qty = {1:0, 3:0, 5:0};
+  $('#orderRows').innerHTML = P.packs.map(p => `<tr><td>${p.label}${p.q > 1 ? ` <small style="color:var(--mute)">(${K.money(p.price / p.q)} each)</small>` : ''}</td><td class="n">${K.money(p.price)}</td><td><span class="q"><button data-p="${p.id}" data-s="-1" aria-label="Fewer ${p.label}">−</button><input data-p="${p.id}" value="0" inputmode="numeric" aria-label="Quantity, ${p.label}"><button data-p="${p.id}" data-s="1" aria-label="More ${p.label}">+</button></span></td><td class="n" id="line${p.id}">$0.00</td></tr>`).join('');
+  function sum(){
+    let tot = 0, st = 0;
+    P.packs.forEach(p => { const l = p.price * qty[p.id]; tot += l; st += p.q * qty[p.id]; $('#line' + p.id).textContent = K.money(l); document.querySelector(`input[data-p="${p.id}"]`).value = qty[p.id]; });
+    $('#sub').textContent = K.money(tot); $('#sticks').textContent = st; $('#submit').disabled = !st;
+  }
+  document.querySelectorAll('.order .q button').forEach(b => b.addEventListener('click', () => { qty[b.dataset.p] = Math.max(0, Math.min(20, qty[b.dataset.p] + +b.dataset.s)); sum(); }));
+  document.querySelectorAll('.order .q input').forEach(i => i.addEventListener('change', () => { qty[i.dataset.p] = Math.max(0, Math.min(20, parseInt(i.value, 10) || 0)); sum(); }));
+  $('#submit').addEventListener('click', () => {
+    const lines = P.packs.filter(p => qty[p.id]);
+    lines.forEach((p, i) => K.add({pack: p.id, qty: qty[p.id], silent: i < lines.length - 1}));
+    P.packs.forEach(p => qty[p.id] = 0); sum();
+  });
+  $('#eta').textContent = K.deliveryWindow(7, 14);
+  sum();
+})();
+</script>
+</body>
+</html>

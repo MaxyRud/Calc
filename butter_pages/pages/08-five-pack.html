@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Five-Pack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --paper:#ffffff;--ink:#111418;--mute:#646b73;--line:#111418;--hair:#d9dbde;--butter:#f2e792;--butter2:#f7efb4;--navy:#374a62;
+  --kit-bg:#fff;--kit-fg:#111418;--kit-muted:#646b73;--kit-accent:#374a62;--kit-accent-fg:#fff;--kit-line:#d9dbde;--kit-radius:0px;--kit-font:"Archivo",sans-serif;--kit-scrim:rgba(17,20,24,.3);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Archivo",system-ui,sans-serif;font-size:16px;line-height:1.5;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+button,input{font:inherit;color:inherit}
+a{color:inherit}
+.g{width:min(1280px,100% - 32px);margin:0 auto;display:grid;grid-template-columns:repeat(12,1fr);column-gap:20px}
+header{border-bottom:2px solid var(--line)}
+header .g{align-items:center;height:60px}
+.logo{grid-column:1/4;font-weight:800;font-size:18px;text-decoration:none;letter-spacing:-.01em}
+header nav{grid-column:4/10;display:flex;gap:24px;font-size:14px}
+header nav a{text-decoration:none}
+.cart{grid-column:10/13;justify-self:end;appearance:none;border:0;background:none;cursor:pointer;font-weight:700;font-size:14px}
+
+.hero{border-bottom:2px solid var(--line);overflow:hidden}
+.hero .g{align-items:end;padding:40px 0 0}
+.num{grid-column:1/6;font-weight:800;font-stretch:100%;font-size:clamp(240px,44vw,680px);line-height:.73;letter-spacing:-.05em;margin:0 0 -.035em -.04em;color:var(--navy)}
+.hero .copy{grid-column:6/13;padding-bottom:28px;display:grid;grid-template-columns:repeat(7,1fr);column-gap:20px;align-items:end}
+.hero h1{grid-column:1/8;font-size:clamp(34px,4.4vw,64px);line-height:.98;letter-spacing:-.03em;font-weight:700;margin:0 0 24px;font-stretch:88%}
+.hero figure{grid-column:1/5;margin:0;background:var(--butter2)}
+.hero figure img{width:100%;aspect-ratio:1;object-fit:contain;padding:8%}
+.hero .side{grid-column:5/8;font-size:15px}
+.hero .side p{margin:0 0 14px}
+.hero .side b.p{display:block;font-size:40px;font-weight:700;letter-spacing:-.02em;line-height:1}
+.hero .side small{color:var(--mute)}
+.btn{appearance:none;border:0;background:var(--ink);color:#fff;padding:14px 18px;font-weight:700;cursor:pointer;width:100%;text-align:left;display:flex;justify-content:space-between}
+.btn:hover{background:var(--navy)}
+
+.lab{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.calc{padding:64px 0 0}
+.calc .lab{grid-column:1/4;padding-top:6px;border-top:2px solid var(--line)}
+.calc .body{grid-column:4/13;border-top:2px solid var(--line);padding-top:6px}
+.calc h2{font-size:clamp(28px,3.4vw,46px);line-height:1;letter-spacing:-.03em;margin:0 0 26px;font-weight:700;font-stretch:88%}
+.who{display:flex;flex-wrap:wrap;gap:0;margin-bottom:22px;border:2px solid var(--line);width:max-content;max-width:100%}
+.who button{appearance:none;border:0;background:none;padding:10px 16px;cursor:pointer;font-weight:600;font-size:14px}
+.who button+button{border-left:2px solid var(--line)}
+.who button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.count{display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.count input[type=range]{flex:1;min-width:200px;accent-color:var(--navy);height:28px}
+.count output{font-weight:800;font-size:56px;letter-spacing:-.03em;font-variant-numeric:tabular-nums;min-width:2.2ch;line-height:1;font-stretch:75%}
+.count span{color:var(--mute);font-size:14px}
+.plan{display:grid;grid-template-columns:repeat(9,1fr);column-gap:20px;margin-top:28px;border-top:1px solid var(--hair);padding-top:18px}
+.plan .res{grid-column:1/6}
+.plan .res p{margin:0;font-size:clamp(20px,2vw,26px);line-height:1.25;letter-spacing:-.01em}
+.plan .res p b{font-weight:700}
+.plan .res small{display:block;margin-top:8px;color:var(--mute);font-size:14px}
+.plan .act{grid-column:6/10;align-self:end}
+.cells{display:flex;flex-wrap:wrap;gap:14px;margin-top:28px}
+.grp{display:flex;gap:4px;padding:6px;border:2px solid var(--ink);position:relative}
+.grp.q3{border-style:dashed}
+.grp.q1{border-color:var(--hair)}
+.grp::before{content:attr(data-l);position:absolute;top:-10px;left:6px;background:#fff;padding:0 4px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.cell{width:78px;height:46px;background:var(--butter2);display:grid;place-items:center}
+.cell img{width:90%}
+.cell.new{animation:in .9s cubic-bezier(.16,1,.3,1) both}
+.cell.spare{background:#f3f3f3}
+.cell.spare img{opacity:.45}
+@keyframes in{0%{transform:scale(1,.7);transform-origin:50% 100%;opacity:0}30%{opacity:1}100%{transform:none}}
+
+.bars{padding:80px 0 0}
+.bars .lab{grid-column:1/4;padding-top:6px;border-top:2px solid var(--line)}
+.bars .body{grid-column:4/13;border-top:2px solid var(--line);padding-top:6px}
+.bar{display:grid;grid-template-columns:120px 1fr 90px;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid var(--hair)}
+.bar i{display:block;height:26px;background:var(--navy)}
+.bar b{text-align:right;font-variant-numeric:tabular-nums}
+.bar span{font-weight:600}
+
+.uses{padding:80px 0 0}
+.uses .lab{grid-column:1/4;padding-top:6px;border-top:2px solid var(--line)}
+.uses .body{grid-column:4/13;border-top:2px solid var(--line);padding-top:6px;display:grid;grid-template-columns:repeat(3,1fr);column-gap:20px}
+.uses h3{font-size:22px;letter-spacing:-.02em;margin:0 0 6px;font-weight:700}
+.uses p{margin:0;color:#3d434a;font-size:15px}
+.uses .body>div{padding-bottom:20px}
+.facts{padding:80px 0 0}
+.facts .lab{grid-column:1/4;padding-top:6px;border-top:2px solid var(--line)}
+.facts dl{grid-column:4/13;border-top:2px solid var(--line);margin:0;display:grid;grid-template-columns:repeat(4,1fr);column-gap:20px}
+.facts dt{font-size:12px;color:var(--mute);margin-top:8px}
+.facts dd{margin:0 0 16px;font-weight:600}
+.revs{padding:80px 0 0}
+.revs .lab{grid-column:1/4;padding-top:6px;border-top:2px solid var(--line)}
+.revs .body{grid-column:4/13;border-top:2px solid var(--line);padding-top:6px;display:grid;grid-template-columns:repeat(3,1fr);column-gap:20px}
+.revs p{margin:0 0 8px;font-size:18px;line-height:1.35;letter-spacing:-.01em}
+.revs small{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+footer{margin-top:90px;border-top:2px solid var(--line)}
+footer .g{padding:16px 0 100px;font-size:12px;color:var(--mute)}
+footer span:first-child{grid-column:1/4}footer span:last-child{grid-column:4/13}
+
+@media (max-width:900px){
+  header nav{display:none}
+  .num{grid-column:1/13;font-size:clamp(200px,70vw,420px)}
+  .hero .copy{grid-column:1/13;grid-template-columns:repeat(6,1fr)}
+  .hero h1{grid-column:1/7}
+  .hero figure{grid-column:1/4}.hero .side{grid-column:4/7}
+  .calc .lab,.bars .lab,.uses .lab,.facts .lab,.revs .lab{grid-column:1/13;border-top:2px solid var(--line);padding-bottom:12px}
+  .calc .body,.bars .body,.uses .body,.facts dl,.revs .body{grid-column:1/13;border-top:0}
+  .plan{grid-template-columns:1fr}.plan .res,.plan .act{grid-column:1/-1}.plan .act{margin-top:16px}
+  .uses .body,.revs .body{grid-template-columns:1fr}
+  .facts dl{grid-template-columns:1fr 1fr}
+  footer span{grid-column:1/13!important}
+}
+@media (max-width:520px){
+  .hero figure,.hero .side{grid-column:1/7}
+  .hero .side{margin-top:16px}
+  .bar{grid-template-columns:76px 1fr 64px;gap:10px}
+  .cell{width:56px;height:34px}
+  .count output{font-size:44px}
+}
+@media (prefers-reduced-motion:reduce){.cell.new{animation:none}}
+</style>
+</head>
+<body>
+<header><div class="g">
+  <a class="logo" href="#top">softened.</a>
+  <nav aria-label="Sections"><a href="#calc">How many</a><a href="#price">Price per stick</a><a href="#uses">Where they go</a></nav>
+  <button class="cart" data-cart-open>Cart (<span data-cart-count>0</span>)</button>
+</div></header>
+
+<main id="top">
+  <section class="hero"><div class="g">
+    <p class="num" aria-hidden="true">5</p>
+    <div class="copy">
+      <h1>Five sticks of butter. One for every desk in the row.</h1>
+      <figure><img src="../assets/r-pack5.webp" alt="Render of five butter squeeze toys stacked" width="995" height="862"></figure>
+      <div class="side">
+        <p class="lab">Five-pack</p>
+        <p><b class="p">$26.99</b><small>$5.40 a stick · singles are $6.99</small></p>
+        <p>Soft, slow-rise and silent. Squeeze toys for a classroom, an office, or a drawer of party-bag fillers.</p>
+        <button class="btn" id="add5"><span>Add five-pack</span><span>→</span></button>
+      </div>
+    </div>
+  </div></section>
+
+  <section class="calc" id="calc"><div class="g">
+    <p class="lab">01 How many</p>
+    <div class="body">
+      <h2>Count the hands. We'll do the packs.</h2>
+      <div class="who" role="group" aria-label="Quick picks">
+        <button data-n="1">Just me</button><button data-n="4">A family</button><button data-n="12">A team</button><button data-n="25">A class</button>
+      </div>
+      <div class="count">
+        <output id="nOut" for="n">12</output>
+        <input type="range" id="n" min="1" max="40" value="12" aria-label="Number of people">
+        <span>people</span>
+      </div>
+      <div class="plan">
+        <div class="res" aria-live="polite"><p id="res"></p><small id="resSub"></small></div>
+        <div class="act"><button class="btn" id="addPlan"><span>Add this to cart</span><span id="planP"></span></button></div>
+      </div>
+      <div class="cells" id="cells" aria-hidden="true"></div>
+    </div>
+  </div></section>
+
+  <section class="bars" id="price"><div class="g">
+    <p class="lab">02 Price per stick</p>
+    <div class="body" id="bars"></div>
+  </div></section>
+
+  <section class="uses" id="uses"><div class="g">
+    <p class="lab">03 Where they go</p>
+    <div class="body">
+      <div><h3>Classroom</h3><p>Silent, so it works during reading time. Write names on the end with a fine marker if they get mixed up.</p></div>
+      <div><h3>Office</h3><p>One per desk for long calls. It sits flat and doesn't roll off.</p></div>
+      <div><h3>Party bags</h3><p>A joke that lasts past the party. Not for guests under 3: it looks like food.</p></div>
+    </div>
+  </div></section>
+
+  <section class="facts"><div class="g">
+    <p class="lab">04 Each stick</p>
+    <dl>
+      <div><dt>Size</dt><dd>13.5 × 4 × 4 cm</dd></div>
+      <div><dt>Weight</dt><dd>45 g</dd></div>
+      <div><dt>Material</dt><dd>TPR, slow rise</dd></div>
+      <div><dt>Noise</dt><dd>None</dd></div>
+      <div><dt>Care</dt><dd>Squeeze, don't fold</dd></div>
+      <div><dt>Clean</dt><dd>Damp cloth, air-dry</dd></div>
+      <div><dt>Keep</dt><dd>Out of the sun</dd></div>
+      <div><dt>Age</dt><dd>Not for under 3s</dd></div>
+    </dl>
+  </div></section>
+
+  <section class="revs"><div class="g">
+    <p class="lab">05 Sample reviews</p>
+    <div class="body">
+      <div><p>"Bought five for my Year 4 class. Quieter than any fidget spinner."</p><small>Sample review</small></div>
+      <div><p>"Whole team has one now. Our standups are calmer."</p><small>Sample review</small></div>
+      <div><p>"One split when my son folded it. The other four are fine."</p><small>Sample review</small></div>
+    </div>
+  </div></section>
+</main>
+<footer><div class="g"><span>© softened. · Butter Squish</span><span>Template by js.17 · prices and reviews are sample content · product images are 3D renders built from the listing photo and measurements</span></div></footer>
+
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s);
+  K.layoutPill(8);
+  const PK = P.packs.map(p => ({id: p.id, q: p.q, price: p.price})).sort((a, b) => b.q - a.q);
+
+  /* cheapest set of packs giving at least n sticks */
+  function plan(n){
+    const best = [{cost: 0, use: {}}];
+    for (let k = 1; k <= n + 4; k++){
+      let b = null;
+      PK.forEach(p => {
+        const prev = best[Math.max(0, k - p.q)]; if (!prev) return;
+        const c = prev.cost + p.price;
+        if (!b || c < b.cost - 1e-9) b = {cost: c, use: Object.assign({}, prev.use, {[p.id]: (prev.use[p.id] || 0) + 1})};
+      });
+      best[k] = b;
+    }
+    let pick = null;
+    for (let k = n; k <= n + 4; k++) if (!pick || best[k].cost < pick.cost - 1e-9) pick = Object.assign({k}, best[k]);
+    return pick;
+  }
+
+  const range = $('#n'), out = $('#nOut'), cells = $('#cells');
+  let shown = 0, cur = null;
+  function show(n){
+    out.textContent = n; range.value = n;
+    document.querySelectorAll('.who button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.n === n));
+    cur = plan(n);
+    const parts = PK.filter(p => cur.use[p.id]).map(p => `${cur.use[p.id]} × ${p.q === 1 ? 'single' : p.q + '-pack'}`);
+    const sticks = cur.k, spare = sticks - n;
+    $('#res').innerHTML = `<b>${parts.join(' + ')}</b> covers ${n} ${n === 1 ? 'person' : 'people'}${spare ? `, with ${spare} spare` : ''}.`;
+    const singles = n * P.price;
+    $('#resSub').textContent = `${sticks} sticks · ${K.money(cur.cost / sticks)} each` + (singles - cur.cost > .005 ? ` · ${K.money(singles - cur.cost)} less than ${n} singles` : '');
+    $('#planP').textContent = K.money(cur.cost);
+    /* groups of cells, one per stick; only cells beyond what was already on screen get the squash-in */
+    let html = '', i = 0;
+    PK.forEach(p => { for (let r = 0; r < (cur.use[p.id] || 0); r++){
+      html += `<div class="grp q${p.q}" data-l="${p.q === 1 ? '1' : p.q + '-pack'}">`;
+      for (let c = 0; c < p.q; c++, i++) html += `<div class="cell${i >= shown ? ' new' : ''}${i >= n ? ' spare' : ''}" style="animation-delay:${Math.max(0, i - shown) * 25}ms"><img src="../assets/photo-stick-sm.webp" alt=""></div>`;
+      html += '</div>';
+    }});
+    cells.innerHTML = html; shown = i;
+  }
+  range.addEventListener('input', () => show(+range.value));
+  document.querySelectorAll('.who button').forEach(b => b.addEventListener('click', () => show(+b.dataset.n)));
+  show(12);
+
+  $('#addPlan').addEventListener('click', () => {
+    const ids = PK.filter(p => cur.use[p.id]);
+    ids.forEach((p, i) => K.add({pack: p.id, qty: cur.use[p.id], silent: i < ids.length - 1}));
+  });
+  $('#add5').addEventListener('click', () => K.add({pack: '5'}));
+
+  /* price per stick */
+  const max = P.price;
+  $('#bars').innerHTML = P.packs.map(p => { const each = p.price / p.q; return `<div class="bar"><span>${p.q === 1 ? 'Single' : p.q + '-pack'}</span><i style="width:${(each / max * 100).toFixed(1)}%"></i><b>${K.money(each)}</b></div>`; }).join('');
+})();
+</script>
+</body>
+</html>

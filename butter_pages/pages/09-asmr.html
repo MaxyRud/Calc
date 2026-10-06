@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Listen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital,wght@0,400;1,400&family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#13110d;--bg2:#1c1913;--ink:#efe9da;--mute:#9d978a;--line:rgba(239,233,218,.13);--butter:#f2e792;--accent:#e9d77a;
+  --kit-bg:#1c1913;--kit-fg:#efe9da;--kit-muted:#9d978a;--kit-accent:#efe9da;--kit-accent-fg:#13110d;--kit-line:rgba(239,233,218,.14);--kit-radius:6px;--kit-font:"Atkinson Hyperlegible",sans-serif;--kit-scrim:rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,sans-serif;font-size:16px;line-height:1.6;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+button{font:inherit;color:inherit}
+a{color:inherit}
+header{display:flex;justify-content:space-between;align-items:center;padding:18px clamp(16px,3vw,36px)}
+.logo{font-family:"Libre Caslon Text",serif;font-style:italic;font-size:22px;text-decoration:none}
+.cart{appearance:none;border:1px solid var(--line);background:none;border-radius:99px;padding:7px 14px;cursor:pointer;font-size:14px}
+
+.player{width:min(1240px,100% - 32px);margin:8px auto 0;display:grid;grid-template-columns:1fr 300px;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#0d0c09}
+.screen{position:relative;aspect-ratio:16/9;min-height:0;background:radial-gradient(80% 90% at 40% 30%,#2a251b 0%,#0d0c09 70%)}
+.screen canvas{position:absolute;inset:0}
+.screen img.fallback{position:absolute;inset:12%;width:76%;height:76%;object-fit:contain}
+.cc{position:absolute;left:0;right:0;bottom:26px;text-align:center;pointer-events:none;padding:0 16px;z-index:2}
+.cc span{display:inline-block;background:rgba(0,0,0,.72);color:#fff;font-size:clamp(15px,1.6vw,20px);padding:4px 10px;border-radius:3px;line-height:1.4;max-width:100%}
+.cc span:empty{display:none}
+.hint{position:absolute;left:16px;top:14px;font-size:13px;color:var(--mute);z-index:2;pointer-events:none}
+.bar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line);background:var(--bg2)}
+.bar button{appearance:none;border:0;background:none;cursor:pointer;height:34px;min-width:34px;border-radius:6px;display:grid;place-items:center;padding:0 8px;font-size:13px;font-weight:700}
+.bar button:hover{background:rgba(255,255,255,.06)}
+.bar button[aria-pressed="true"]{color:var(--accent)}
+.bar svg{width:18px;height:18px}
+.prog{flex:1;height:4px;background:var(--line);border-radius:2px;position:relative;overflow:hidden}
+.prog i{position:absolute;inset:0 auto 0 0;width:0;background:var(--ink)}
+.time{font-variant-numeric:tabular-nums;font-size:13px;color:var(--mute);min-width:76px;text-align:right}
+.list{border-left:1px solid var(--line);background:var(--bg2);display:flex;flex-direction:column}
+.list h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0;padding:16px 16px 8px}
+.list ol{list-style:none;margin:0;padding:0 8px 8px;overflow:auto}
+.trk{appearance:none;border:0;background:none;width:100%;text-align:left;cursor:pointer;display:grid;grid-template-columns:28px 1fr auto;gap:6px;align-items:baseline;padding:10px 8px;border-radius:6px}
+.trk:hover{background:rgba(255,255,255,.04)}
+.trk[aria-current="true"]{background:rgba(233,215,122,.1)}
+.trk[aria-current="true"] .t{color:var(--accent)}
+.trk .n{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.trk .t{font-weight:700;font-size:15px}
+.trk .d{font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.trk small{grid-column:2/4;font-size:13px;color:var(--mute);line-height:1.4}
+.sndnote{margin-top:auto;padding:12px 16px 16px;font-size:12px;color:var(--mute);border-top:1px solid var(--line)}
+
+.quiet{width:min(1040px,100% - 32px);margin:clamp(80px,12vw,140px) auto 0;display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(24px,6vw,80px);align-items:start}
+.quiet h2{font-family:"Libre Caslon Text",serif;font-weight:400;font-size:clamp(34px,4.6vw,60px);line-height:1.08;margin:0}
+.quiet h2 em{color:var(--accent)}
+.quiet p{color:#cfc8b8;margin:0 0 14px}
+.facts{width:min(1040px,100% - 32px);margin:56px auto 0;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line)}
+.facts div{padding:16px 16px 0 0}
+.facts b{display:block;font-family:"Libre Caslon Text",serif;font-weight:400;font-size:26px}
+.facts span{font-size:14px;color:var(--mute)}
+.buy{width:min(1040px,100% - 32px);margin:clamp(80px,12vw,140px) auto 0;display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,5vw,64px);align-items:center;border:1px solid var(--line);border-radius:10px;padding:clamp(18px,3vw,36px)}
+.buy figure{margin:0}
+.buy h2{font-family:"Libre Caslon Text",serif;font-weight:400;font-size:clamp(28px,3vw,40px);margin:0 0 6px}
+.buy .meta{color:var(--mute);font-size:14px;margin:0 0 18px}
+.packs{display:flex;gap:8px;flex-wrap:wrap}
+.pk{appearance:none;border:1px solid var(--line);background:none;border-radius:99px;padding:9px 16px;cursor:pointer;font-size:14px}
+.pk[aria-checked="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.row{display:flex;align-items:center;gap:16px;margin-top:18px;flex-wrap:wrap}
+.row b{font-family:"Libre Caslon Text",serif;font-weight:400;font-size:34px}
+.add{appearance:none;border:0;background:var(--butter);color:#1c1913;border-radius:99px;padding:14px 26px;font-weight:700;cursor:pointer}
+.fine{font-size:13px;color:var(--mute);margin:14px 0 0}
+.revs{width:min(1040px,100% - 32px);margin:clamp(70px,10vw,110px) auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.revs p{font-family:"Libre Caslon Text",serif;font-size:19px;line-height:1.45;margin:0 0 8px}
+.revs small{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);font-weight:700}
+footer{margin-top:clamp(80px,12vw,140px);border-top:1px solid var(--line);padding:22px clamp(16px,3vw,36px) 100px;font-size:12px;color:var(--mute);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+@media (max-width:900px){
+  .player{grid-template-columns:1fr}
+  .list{border-left:0;border-top:1px solid var(--line)}
+  .quiet,.buy{grid-template-columns:1fr}
+  .facts{grid-template-columns:1fr 1fr}
+  .revs{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .screen{aspect-ratio:4/3}
+  .time{min-width:0}
+  .hint{display:none}
+}
+</style>
+</head>
+<body>
+<header><a class="logo" href="#top">softened.</a><button class="cart" data-cart-open>Cart · <span data-cart-count>0</span></button></header>
+
+<main id="top">
+  <section class="player" aria-label="Close-up player">
+    <div>
+      <div class="screen" id="screen">
+        <span class="hint">Or press it yourself</span>
+        <div class="cc" id="cc" aria-live="polite"><span id="ccText"></span></div>
+      </div>
+      <div class="bar">
+        <button id="play" aria-label="Play"><svg viewBox="0 0 24 24" id="playIcon"><path d="M7 5v14l12-7z" fill="currentColor"/></svg></button>
+        <div class="prog" aria-hidden="true"><i id="prog"></i></div>
+        <span class="time" id="time">0:00 / 0:06</span>
+        <button id="ccBtn" aria-pressed="true" aria-label="Captions">CC</button>
+        <button id="snd" aria-pressed="false" aria-label="Sound"><svg><use href="#i-mute" id="sndIcon"/></svg></button>
+      </div>
+    </div>
+    <div class="list">
+      <h2>Close-ups</h2>
+      <ol id="tracks"></ol>
+      <p class="sndnote">Sound is off to start. The toy itself is almost silent; the sound here is generated in your browser, quiet and soft, for the close-ups.</p>
+    </div>
+  </section>
+
+  <section class="quiet">
+    <h2>Listen closely. <em>That's all there is.</em></h2>
+    <div>
+      <p>A slow-rise squeeze toy makes almost no sound. You hear your own skin on a soft, slightly tacky surface, and then nothing while the dent fills back in.</p>
+      <p>That's why it works in a library, a classroom or a call: the fidget no one else notices.</p>
+    </div>
+  </section>
+  <div class="facts">
+    <div><b>Silent</b><span>No click, no squeak</span></div>
+    <div><b>Slow</b><span>A few seconds to rise</span></div>
+    <div><b>45 g</b><span>Light, sits flat</span></div>
+    <div><b>13.5 cm</b><span>A real stick's length</span></div>
+  </div>
+
+  <section class="buy" aria-label="Buy">
+    <figure><img src="../assets/r-low.webp" alt="Low-angle render of the butter squeeze toy" width="1131" height="465" loading="lazy"></figure>
+    <div>
+      <h2>Butter Squish</h2>
+      <p class="meta">Slow-rise TPR squeeze toy · 13.5 × 4 × 4 cm</p>
+      <div class="packs" id="packs" role="radiogroup" aria-label="Pack"></div>
+      <div class="row"><b id="price">$6.99</b><button class="add" id="add">Add to cart</button></div>
+      <p class="fine">Not food; not for children under 3. Don't fold it in half. Arrives <span id="eta"></span>.</p>
+    </div>
+  </section>
+
+  <section class="revs" aria-label="Sample reviews">
+    <div><p>"I put the close-ups on before bed. Then I bought one."</p><small>Sample review</small></div>
+    <div><p>"Genuinely silent. My open-plan office has no idea."</p><small>Sample review</small></div>
+    <div><p>"Cool to the touch and slightly sticky, in a good way."</p><small>Sample review</small></div>
+  </section>
+</main>
+<footer><span>© softened. · Butter Squish</span><span>Template by js.17 · prices and reviews are sample content · sound is synthesized · close-ups are real-time renders of a 3D model built from the listing photo and measurements</span></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../assets/butter3d.js"></script>
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s);
+  K.layoutPill(9);
+  const screen = $('#screen'), ccText = $('#ccText');
+  let api = null;
+  if (window.Butter3D && Butter3D.supported()){
+    api = Butter3D(screen, {pose:{rx:.42, ry:.62, dist:17, tx:-1.6, ty:-.4}, fov:24, fitAspect:1.1, shadowOpacity:.5, depth:1.2, label:'Close-up of the butter stick. Press it to squish.'});
+    /* low, warm key light; most of the stick falls into shadow */
+    api.scene.children.forEach(o => {
+      if (o.isHemisphereLight) o.intensity = .22;
+      else if (o === api.key){ o.intensity = 1.25; o.color.set(0xfff0d0); o.position.set(-9, 9, 5); }
+      else if (o.isDirectionalLight && o.position.z < 0){ o.intensity = .7; o.color.set(0xffe2a8); }
+      else if (o.isDirectionalLight) o.intensity = .05;
+    });
+    api.render();
+  } else screen.insertAdjacentHTML('afterbegin', '<img class="fallback" src="../assets/r-low.webp" alt="Low-angle render of the butter squeeze toy" width="1131" height="465">');
+
+  /* ---- sound: soft filtered-noise squish, made on the fly, off by default ---- */
+  let ctx = null, soundOn = false, noise = null;
+  function audio(){
+    if (ctx) return ctx;
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const len = ctx.sampleRate * 1.5, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+    let b = 0; for (let i = 0; i < len; i++){ b = .97 * b + .03 * (Math.random() * 2 - 1); d[i] = b * 4; }   // brown-ish noise
+    noise = buf; return ctx;
+  }
+  function squish(strength, dur){
+    if (!soundOn) return; const c = audio(), t = c.currentTime;
+    const src = c.createBufferSource(); src.buffer = noise;
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.setValueAtTime(900 + 500 * strength, t); bp.frequency.exponentialRampToValueAtTime(380, t + dur); bp.Q.value = .8;
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.16 * strength, t + .05); g.gain.exponentialRampToValueAtTime(.0005, t + dur);
+    src.connect(bp).connect(g).connect(c.destination); src.start(t, Math.random() * .5); src.stop(t + dur + .05);
+  }
+  function soft(dur){                                   // the release: a quieter, airier unstick
+    if (!soundOn) return; const c = audio(), t = c.currentTime;
+    const src = c.createBufferSource(); src.buffer = noise;
+    const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1400;
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.035, t + .02); g.gain.exponentialRampToValueAtTime(.0003, t + dur);
+    src.connect(hp).connect(g).connect(c.destination); src.start(t, Math.random() * .5); src.stop(t + dur + .05);
+  }
+
+  /* ---- close-ups: scripted presses on the live model, with captions ---- */
+  const TRACKS = [
+    {t:'Slow press', d:'One thumb, slowly, then let go.', len:6, steps:[
+      [0, () => { api && api.press(-.5, 1.4, 1.5); squish(.9, .6); }, '[a thumb presses down slowly]'],
+      [1.3, () => { api && api.release(); soft(.25); }, '[lets go]'],
+      [1.7, null, '[the dent fills back in · no sound]'],
+      [4.8, null, '[silence]']]},
+    {t:'Two thumbs', d:'Left, then right.', len:7, steps:[
+      [0, () => { api && api.press(-3.2, 1.1, 1.2); squish(.7, .45); }, '[left thumb]'],
+      [.9, () => { api && api.press(2.8, 1.2, 1.2); squish(.8, .45); }, '[right thumb]'],
+      [1.9, () => { api && api.release(); soft(.25); }, '[both off]'],
+      [2.4, null, '[two dents rising, one behind the other]'],
+      [5.6, null, '[silence]']]},
+    {t:'Squeeze and wait', d:'Whole hand, four counts.', len:8, steps:[
+      [0, () => { api && api.squeeze(.25, 0); squish(.6, 1.2); }, '[a slow squeeze]'],
+      [1, () => { api && api.squeeze(.45, 0); squish(.5, .9); }, '[a little harder]'],
+      [2.4, () => { api && api.release(); soft(.3); }, '[hand opens]'],
+      [3, null, '[it takes its time]'],
+      [6.6, null, '[silence]']]},
+    {t:'A small pull', d:'A gentle stretch. Never to the limit.', len:6, steps:[
+      [0, () => { api && api.stretchTo(.1); squish(.4, .7); }, '[a gentle pull]'],
+      [1.2, () => { api && api.release(); soft(.2); }, '[let go · not too far, it can tear]'],
+      [2, null, '[settling]'],
+      [4.6, null, '[silence]']]},
+    {t:'Tap, tap, tap', d:'Fingertips along the top.', len:6, steps:[
+      [0, () => { api && api.press(-4, .8, .9); squish(.4, .22); }, '[tap]'],
+      [.35, () => { api && api.press(-1.5, .8, .9); squish(.4, .22); }, '[tap]'],
+      [.7, () => { api && api.press(1, .8, .9); squish(.4, .22); }, '[tap]'],
+      [1.05, () => { api && api.press(3.5, .85, .9); squish(.45, .22); }, '[tap]'],
+      [1.3, () => { api && api.release(); }, '[four small dents]'],
+      [4.4, null, '[silence]']]}
+  ];
+  $('#tracks').innerHTML = TRACKS.map((k, i) => `<li><button class="trk" data-i="${i}" aria-current="${i === 0}"><span class="n">0${i + 1}</span><span class="t">${k.t}</span><span class="d">0:0${k.len}</span><small>${k.d}</small></button></li>`).join('');
+  let cur = 0, playing = false, t0 = 0, next = 0, raf = 0, ccOn = true;
+  const fmt = s => '0:' + String(Math.floor(s)).padStart(2, '0');
+  function setTime(s){ const L = TRACKS[cur].len; $('#prog').style.width = Math.min(100, s / L * 100) + '%'; $('#time').textContent = fmt(Math.min(s, L)) + ' / ' + fmt(L); }
+  function caption(txt){ ccText.textContent = ccOn ? txt : ''; }
+  function setPlay(on){
+    playing = on; $('#play').setAttribute('aria-label', on ? 'Pause' : 'Play');
+    $('#playIcon').innerHTML = on ? '<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/>' : '<path d="M7 5v14l12-7z" fill="currentColor"/>';
+  }
+  function select(i){
+    cur = i; document.querySelectorAll('.trk').forEach((b, k) => b.setAttribute('aria-current', k === i));
+    play();
+  }
+  function play(){
+    cancelAnimationFrame(raf); if (api) api.release();
+    t0 = performance.now(); next = 0; setPlay(true); caption('');
+    const T = TRACKS[cur];
+    raf = requestAnimationFrame(function f(now){
+      const s = (now - t0) / 1000;
+      while (next < T.steps.length && s >= T.steps[next][0]){ const st = T.steps[next++]; if (st[1]) st[1](); caption(st[2]); }
+      setTime(s);
+      if (s < T.len) raf = requestAnimationFrame(f);
+      else { setPlay(false); caption(''); setTime(T.len); }
+    });
+  }
+  function stop(){ cancelAnimationFrame(raf); if (api) api.release(); setPlay(false); caption(''); }
+  document.querySelectorAll('.trk').forEach(b => b.addEventListener('click', () => select(+b.dataset.i)));
+  $('#play').addEventListener('click', () => playing ? stop() : play());
+  $('#ccBtn').addEventListener('click', e => { ccOn = !ccOn; e.currentTarget.setAttribute('aria-pressed', ccOn); if (!ccOn) ccText.textContent = ''; });
+  $('#snd').addEventListener('click', e => {
+    soundOn = !soundOn; e.currentTarget.setAttribute('aria-pressed', soundOn);
+    $('#sndIcon').setAttribute('href', soundOn ? '#i-sound' : '#i-mute');
+    if (soundOn){ audio(); if (ctx.state === 'suspended') ctx.resume(); }
+  });
+  setTime(0);
+
+  /* pressing it yourself interrupts the close-up and gets its own captions */
+  screen.addEventListener('butterpress', () => { if (playing) stop(); squish(.8, .5); caption('[you press it]'); });
+  screen.addEventListener('butterrelease', () => { soft(.25); caption('[rising · no sound]'); clearTimeout(screen._c); screen._c = setTimeout(() => { if (!playing) caption(''); }, 3500); });
+
+  /* buy */
+  let pick = '1';
+  $('#packs').innerHTML = P.packs.map(p => `<button class="pk" role="radio" aria-checked="${p.id === pick}" data-id="${p.id}">${p.label}</button>`).join('');
+  document.querySelectorAll('.pk').forEach(b => b.addEventListener('click', () => { pick = b.dataset.id; document.querySelectorAll('.pk').forEach(x => x.setAttribute('aria-checked', x === b)); $('#price').textContent = K.money(K.pack(pick).price); }));
+  $('#add').addEventListener('click', () => K.add({pack: pick}));
+  $('#eta').textContent = K.deliveryWindow(7, 14);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>True Size</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;800&family=Red+Hat+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --paper:#f4f2ec;--ink:#17202b;--mute:#636b75;--line:#cfd2d4;--bp:#22344b;--bp2:#2a3f59;--bpl:rgba(226,236,248,.8);--bpg:rgba(226,236,248,.08);--butter:#f2e792;--red:#c2412d;
+  --kit-bg:#f4f2ec;--kit-fg:#17202b;--kit-muted:#636b75;--kit-accent:#22344b;--kit-accent-fg:#fff;--kit-line:#cfd2d4;--kit-radius:4px;--kit-font:"Red Hat Display",sans-serif;--kit-scrim:rgba(23,32,43,.3);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Red Hat Display",system-ui,sans-serif;font-size:16px;line-height:1.55;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+button,input{font:inherit;color:inherit}
+a{color:inherit}
+.mono{font-family:"Red Hat Mono",monospace}
+.w{width:min(1180px,100% - 32px);margin:0 auto}
+header .w{display:flex;justify-content:space-between;align-items:center;height:64px}
+.logo{font-weight:800;font-size:20px;text-decoration:none;letter-spacing:-.02em}
+.cart{appearance:none;border:1.5px solid var(--ink);background:none;border-radius:4px;padding:7px 12px;cursor:pointer;font-weight:700;font-size:14px}
+.intro{padding:36px 0 0}
+.intro .k{font-family:"Red Hat Mono";font-size:13px;color:var(--mute)}
+.intro h1{font-size:clamp(40px,6.4vw,88px);line-height:.95;letter-spacing:-.04em;margin:10px 0 16px;font-weight:800;max-width:14ch}
+.intro p{max-width:56ch;color:#3b434c;margin:0}
+
+.step{margin-top:56px;border-top:1.5px solid var(--ink);padding-top:14px;display:grid;grid-template-columns:200px 1fr;gap:24px}
+.step>*{min-width:0}
+.step>.lab{font-family:"Red Hat Mono";font-size:13px}
+.step>.lab b{display:block;font-family:"Red Hat Display";font-size:20px;font-weight:700;letter-spacing:-.01em;margin-top:4px}
+.cal{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center}
+.card{border:2px dashed var(--ink);border-radius:calc(var(--pxmm) * 3.18px);width:calc(var(--pxmm) * 85.6px);height:calc(var(--pxmm) * 53.98px);position:relative;background:rgba(255,255,255,.5)}
+.card i{position:absolute;left:calc(var(--pxmm) * 10px);top:calc(var(--pxmm) * 19px);width:calc(var(--pxmm) * 11px);height:calc(var(--pxmm) * 8.5px);border:1.5px solid var(--mute);border-radius:calc(var(--pxmm) * 1.5px)}
+.card span{position:absolute;right:8px;bottom:6px;font-family:"Red Hat Mono";font-size:11px;color:var(--mute)}
+.card.port{width:calc(var(--pxmm) * 53.98px);height:calc(var(--pxmm) * 85.6px)}
+.card.port i{left:calc(var(--pxmm) * 23px);top:calc(var(--pxmm) * 10px);width:calc(var(--pxmm) * 8.5px);height:calc(var(--pxmm) * 11px)}
+.ctl label{display:block;font-weight:700;margin-bottom:6px}
+.ctl .row{display:flex;align-items:center;gap:10px}
+.ctl input[type=range]{flex:1;accent-color:var(--bp)}
+.ctl button{appearance:none;border:1.5px solid var(--ink);background:none;width:36px;height:36px;border-radius:4px;cursor:pointer;font-weight:700}
+.ctl p{font-size:14px;color:var(--mute);margin:10px 0 0}
+.ruler{margin-top:16px;height:22px;width:calc(var(--pxmm) * var(--rl,100) * 1px);border-left:1.5px solid var(--ink);border-right:1.5px solid var(--ink);position:relative;max-width:100%}
+.ruler::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:1.5px solid var(--ink)}
+.ruler span{position:absolute;left:50%;top:-2px;transform:translateX(-50%);background:var(--paper);padding:0 6px;font-family:"Red Hat Mono";font-size:12px}
+
+.actual{position:relative}
+.strip{overflow-x:auto;overflow-y:hidden;padding:34px 0 14px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.true{position:relative;width:calc(var(--pxmm) * 135px);height:calc(var(--pxmm) * 40px);margin-left:calc(var(--pxmm) * 4px)}
+.true img{position:absolute;max-width:none;left:calc(var(--pxmm) * -3.3px);top:calc(var(--pxmm) * -3.3px);width:calc(var(--pxmm) * 144.9px);height:auto}
+.true .dim{position:absolute;left:0;right:0;top:-24px;height:14px;border-left:1.5px solid var(--ink);border-right:1.5px solid var(--ink)}
+.true .dim::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:1.5px solid var(--ink)}
+.true .dim span{position:absolute;left:50%;top:-4px;transform:translateX(-50%);background:var(--paper);padding:0 6px;font-family:"Red Hat Mono";font-size:12px}
+.true .elgin{position:absolute;left:0;top:calc(var(--pxmm) * 8px);width:calc(var(--pxmm) * 121px);height:calc(var(--pxmm) * 32px);border:2px dashed var(--red);border-radius:2px;opacity:0;transition:opacity .4s ease}
+.true .elgin span{position:absolute;left:6px;bottom:4px;font-family:"Red Hat Mono";font-size:11px;color:var(--red);background:rgba(244,242,236,.85);padding:0 4px}
+.actual.cmp .elgin{opacity:1}
+.too{font-size:14px;color:var(--mute);margin:6px 0 0}
+.tog{appearance:none;border:1.5px solid var(--ink);background:none;border-radius:4px;padding:9px 14px;cursor:pointer;font-weight:700;font-size:14px;margin-top:12px}
+.tog[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+.sheet{margin-top:56px;background:var(--bp);color:var(--bpl);border-radius:6px;overflow:hidden;
+  background-image:linear-gradient(var(--bpg) 1px,transparent 1px),linear-gradient(90deg,var(--bpg) 1px,transparent 1px);background-size:24px 24px}
+.sheet .top{display:flex;justify-content:space-between;gap:16px;padding:14px 18px;border-bottom:1px solid rgba(226,236,248,.25);font-family:"Red Hat Mono";font-size:12px;flex-wrap:wrap}
+.sheet svg{display:block;width:100%;height:auto}
+.sheet svg text{font-family:"Red Hat Mono";font-size:4.2px;fill:var(--bpl)}
+.sheet svg .t{font-size:3.4px;letter-spacing:.3px;opacity:.75}
+.sheet svg .dl{stroke:var(--bpl);stroke-width:.3;fill:none}
+.sheet svg .ext{stroke:var(--bpl);stroke-width:.2;stroke-dasharray:1 .8;opacity:.6}
+.sheet svg .el{stroke:#ff9b86;stroke-width:.45;stroke-dasharray:1.6 1;fill:none;opacity:0;transition:opacity .4s ease}
+.sheet.cmp svg .el{opacity:1}
+.sheet svg .elt{fill:#ff9b86;opacity:0;transition:opacity .4s ease}
+.sheet.cmp svg .elt{opacity:1}
+.tblock{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(226,236,248,.25);font-family:"Red Hat Mono";font-size:12px}
+.tblock div{padding:10px 18px;border-right:1px solid rgba(226,236,248,.25)}
+.tblock div:last-child{border-right:0}
+.tblock small{display:block;opacity:.6}
+
+.compare{margin-top:56px;display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1.5px solid var(--ink)}
+.compare div{padding:16px 20px 0 0}
+.compare div+div{padding-left:20px;border-left:1px solid var(--line)}
+.compare b{display:block;font-size:30px;letter-spacing:-.02em;font-weight:800}
+.compare span{color:#3b434c;font-size:15px}
+.buy{margin-top:72px;display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(24px,5vw,64px);align-items:center;border:1.5px solid var(--ink);border-radius:6px;padding:clamp(18px,3vw,34px)}
+.buy h2{font-size:clamp(28px,3vw,40px);letter-spacing:-.03em;margin:0 0 6px;font-weight:800}
+.buy .meta{font-family:"Red Hat Mono";font-size:13px;color:var(--mute);margin:0 0 18px}
+.packs{display:grid;grid-template-columns:repeat(3,1fr);border:1.5px solid var(--ink);border-radius:4px;overflow:hidden}
+.pk{appearance:none;border:0;background:none;padding:12px 8px;cursor:pointer;font-weight:700;font-size:14px;line-height:1.25}
+.pk+.pk{border-left:1.5px solid var(--ink)}
+.pk small{display:block;font-family:"Red Hat Mono";font-weight:400;font-size:12px;color:var(--mute)}
+.pk[aria-checked="true"]{background:var(--ink);color:var(--paper)}
+.pk[aria-checked="true"] small{color:rgba(244,242,236,.7)}
+.add{appearance:none;border:0;background:var(--bp);color:#fff;border-radius:4px;height:52px;width:100%;margin-top:12px;cursor:pointer;font-weight:700;display:flex;justify-content:space-between;align-items:center;padding:0 18px}
+.fine{font-size:13px;color:var(--mute);margin:12px 0 0}
+.revs{margin-top:72px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.revs p{margin:0 0 6px;font-size:17px}
+.revs small{font-family:"Red Hat Mono";font-size:11px;color:var(--mute);text-transform:uppercase}
+footer{margin-top:80px;border-top:1.5px solid var(--ink);padding:18px 0 100px;font-family:"Red Hat Mono";font-size:12px;color:var(--mute)}
+footer .w{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+@media (max-width:900px){
+  .step{grid-template-columns:1fr;gap:12px}
+  .cal{grid-template-columns:1fr}
+  .cal>*{min-width:0}
+  .compare{grid-template-columns:1fr}.compare div+div{padding-left:0;border-left:0;border-top:1px solid var(--line);margin-top:14px}
+  .buy{grid-template-columns:1fr}
+  .revs{grid-template-columns:1fr}
+  .tblock{grid-template-columns:1fr 1fr}.tblock div:nth-child(2){border-right:0}.tblock div:nth-child(-n+2){border-bottom:1px solid rgba(226,236,248,.25)}
+}
+</style>
+</head>
+<body>
+<header><div class="w"><a class="logo" href="#top">softened.</a><button class="cart" data-cart-open>Cart [<span data-cart-count>0</span>]</button></div></header>
+
+<main id="top" class="w">
+  <section class="intro">
+    <div class="k">Drawing 10 · scale 1:1 · mm</div>
+    <h1>See it at its real size.</h1>
+    <p>Product photos never tell you how big a thing is. Set your screen's scale with a bank card, and the stick below is drawn at exactly 13.5 cm: the length it will be in your hand.</p>
+  </section>
+
+  <section class="step" aria-labelledby="s1">
+    <div class="lab">Step 1<b id="s1">Calibrate</b></div>
+    <div class="cal">
+      <div class="card" id="card" aria-hidden="true"><i></i><span>85.6 × 54 mm</span></div>
+      <div class="ctl">
+        <label for="scale">Hold any bank or ID card flat against the screen. Drag until the dashed outline matches its edges.</label>
+        <div class="row"><button id="minus" aria-label="Smaller">−</button><input type="range" id="scale" min="2.6" max="8" step="0.01" aria-label="Screen scale, pixels per millimetre"><button id="plus" aria-label="Larger">+</button></div>
+        <p>No card? Measure this line with a ruler: it should be exactly <span id="rlTxt">10 cm</span>. Your setting is kept in this browser only.</p>
+        <div class="ruler" id="ruler" aria-hidden="true"><span id="rlLab">100 mm</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="step" aria-labelledby="s2">
+    <div class="lab">Step 2<b id="s2">Actual size</b></div>
+    <div class="actual" id="actual">
+      <div class="strip" tabindex="0" aria-label="The butter squeeze toy drawn at actual size; scrolls sideways on narrow screens">
+        <div class="true">
+          <div class="dim"><span>135 mm</span></div>
+          <img src="../assets/r-front.webp" alt="Front view of the butter squeeze toy at actual size" width="1099" height="354">
+          <div class="elgin"><span>real 4 oz stick · 121 × 32 mm</span></div>
+        </div>
+      </div>
+      <p class="too" id="too" hidden>Your screen is narrower than the stick. Scroll sideways to see the rest of it.</p>
+      <button class="tog" id="cmp" aria-pressed="false">Compare with a real stick of butter</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="sheet" aria-label="Three-view drawing">
+    <div class="top"><span>BUTTER SQUISH · SFT-BTR-L</span><span>THIRD-ANGLE PROJECTION · DIMENSIONS IN MM</span></div>
+    <svg viewBox="0 0 250 162" role="img" aria-label="Front, end and top views. Length 135 millimetres, height 40, depth 40.">
+      <!-- front -->
+      <text class="t" x="20" y="11">FRONT</text>
+      <image href="../assets/r-front.webp" x="16.7" y="26.7" width="144.9" height="46.7"/>
+      <line class="ext" x1="20" y1="30" x2="20" y2="17"/><line class="ext" x1="155" y1="30" x2="155" y2="17"/>
+      <path class="dl" d="M20 19h135M20 19l2.2 -1M20 19l2.2 1M155 19l-2.2 -1M155 19l-2.2 1"/>
+      <text x="87.5" y="17.6" text-anchor="middle">135</text>
+      <line class="ext" x1="20" y1="30" x2="7" y2="30"/><line class="ext" x1="20" y1="70" x2="7" y2="70"/>
+      <path class="dl" d="M9 30v40M9 30l-1 2.2M9 30l1 2.2M9 70l-1 -2.2M9 70l1 -2.2"/>
+      <text x="7.6" y="50" text-anchor="middle" transform="rotate(-90 7.6 50)">40</text>
+      <rect class="el" x="20" y="38" width="121" height="32"/>
+      <text class="elt t" x="21" y="36.6">ELGIN STICK 121 × 32</text>
+      <!-- end -->
+      <text class="t" x="185" y="11">END</text>
+      <image href="../assets/r-end.webp" x="182.24" y="27.35" width="62.8" height="46.9"/>
+      <line class="ext" x1="185" y1="70" x2="185" y2="83"/><line class="ext" x1="225" y1="70" x2="225" y2="83"/>
+      <path class="dl" d="M185 81h40M185 81l2.2 -1M185 81l2.2 1M225 81l-2.2 -1M225 81l-2.2 1"/>
+      <text x="205" y="87.5" text-anchor="middle">40</text>
+      <rect class="el" x="185" y="38" width="32" height="32"/>
+      <!-- top -->
+      <text class="t" x="20" y="88.5">TOP</text>
+      <image href="../assets/r-top.webp" x="16.7" y="87.1" width="141.6" height="55.9"/>
+      <line class="ext" x1="20" y1="100" x2="7" y2="100"/><line class="ext" x1="20" y1="140" x2="7" y2="140"/>
+      <path class="dl" d="M9 100v40M9 100l-1 2.2M9 100l1 2.2M9 140l-1 -2.2M9 140l1 -2.2"/>
+      <text x="7.6" y="120" text-anchor="middle" transform="rotate(-90 7.6 120)">40</text>
+      <line class="ext" x1="155" y1="140" x2="155" y2="153"/><line class="ext" x1="20" y1="140" x2="20" y2="153"/>
+      <path class="dl" d="M20 151h135M20 151l2.2 -1M20 151l2.2 1M155 151l-2.2 -1M155 151l-2.2 1"/>
+      <text x="87.5" y="157.5" text-anchor="middle">135</text>
+      <rect class="el" x="20" y="104" width="121" height="32"/>
+      <!-- notes -->
+      <text class="t" x="185" y="106">NOTES</text>
+      <text x="185" y="113">1. TPR, SLOW RISE</text>
+      <text x="185" y="119">2. RADIUSED EDGES</text>
+      <text x="185" y="125">3. PRINT ON FRONT</text>
+      <text x="185" y="131">4. MASS 45 G</text>
+      <text x="185" y="137">5. NOT FOOD</text>
+    </svg>
+    <div class="tblock">
+      <div><small>Part</small>Butter Squish</div>
+      <div><small>Material</small>TPR</div>
+      <div><small>Scale</small>Fits sheet</div>
+      <div><small>Drawn from</small>Listing + 3D model</div>
+    </div>
+  </section>
+
+  <section class="compare" aria-label="Size comparisons">
+    <div><b>13.5 cm</b><span>A little longer than a real US stick of butter (about 12.1 cm), and a little thicker.</span></div>
+    <div><b>4 × 4 cm</b><span>Wide enough for a whole-hand squeeze; small enough to close a hand around.</span></div>
+    <div><b>45 g</b><span>Lighter than the butter it copies: a real 4 oz stick weighs 113 g.</span></div>
+  </section>
+
+  <section class="buy" aria-label="Buy">
+    <img src="../assets/r-34.webp" alt="Render of the butter squeeze toy" width="1102" height="528" loading="lazy">
+    <div>
+      <h2>Butter Squish</h2>
+      <p class="meta">135 × 40 × 40 mm · 45 g · TPR</p>
+      <div class="packs" id="packs" role="radiogroup" aria-label="Pack"></div>
+      <button class="add" id="add"><span>Add to cart</span><span id="price">$6.99</span></button>
+      <p class="fine">Not food; not for children under 3. Squeeze it, don't fold it. Arrives <span id="eta"></span>.</p>
+    </div>
+  </section>
+
+  <section class="revs" aria-label="Sample reviews">
+    <div><p>"Bigger than I expected, in a good way. Fills my hand."</p><small>Sample review</small></div>
+    <div><p>"Next to a real stick in the fridge it's the right shape, just chunkier."</p><small>Sample review</small></div>
+    <div><p>"The card trick on this page was spot on."</p><small>Sample review</small></div>
+  </section>
+</main>
+<footer><div class="w"><span>© softened. · Butter Squish</span><span>Template by js.17 · prices and reviews are sample content · views are 3D renders built from the listing photo and measurements · on-screen size depends on your calibration</span></div></footer>
+
+<script src="../assets/kit.js"></script>
+<script>
+(function(){
+  const K = window.KIT, P = K.PRODUCT, $ = s => document.querySelector(s);
+  K.layoutPill(10);
+  const KEY = 'softened-pxmm', range = $('#scale');
+  let pxmm = matchMedia('(pointer:coarse)').matches ? 6 : 96 / 25.4;
+  try { const v = parseFloat(localStorage.getItem(KEY)); if (v > 2 && v < 9) pxmm = v; } catch (e) {}
+  function apply(v, save){
+    pxmm = Math.max(2.6, Math.min(8, v));
+    document.documentElement.style.setProperty('--pxmm', pxmm.toFixed(3));
+    range.value = pxmm;
+    const strip = $('.strip'); $('#too').hidden = strip.scrollWidth <= strip.clientWidth + 1;
+    /* card turns portrait when it can't fit across; ruler shortens to 5 cm */
+    const room = $('.cal').clientWidth;
+    $('#card').classList.toggle('port', 85.6 * pxmm > room);
+    const rl = 100 * pxmm > room ? 50 : 100;
+    document.documentElement.style.setProperty('--rl', rl); $('#rlLab').textContent = rl + ' mm'; $('#rlTxt').textContent = rl / 10 + ' cm';
+    if (save) try { localStorage.setItem(KEY, pxmm.toFixed(3)); } catch (e) {}
+  }
+  range.addEventListener('input', () => apply(+range.value, true));
+  $('#minus').addEventListener('click', () => apply(pxmm - .02, true));
+  $('#plus').addEventListener('click', () => apply(pxmm + .02, true));
+  addEventListener('resize', () => apply(pxmm));
+  apply(pxmm);
+
+  $('#cmp').addEventListener('click', e => {
+    const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+    e.currentTarget.setAttribute('aria-pressed', on); $('#actual').classList.toggle('cmp', on); $('#sheet').classList.toggle('cmp', on);
+  });
+
+  let pick = '1';
+  $('#packs').innerHTML = P.packs.map(p => `<button class="pk" role="radio" aria-checked="${p.id === pick}" data-id="${p.id}">${p.label}<small>${K.money(p.price)}</small></button>`).join('');
+  document.querySelectorAll('.pk').forEach(b => b.addEventListener('click', () => { pick = b.dataset.id; document.querySelectorAll('.pk').forEach(x => x.setAttribute('aria-checked', x === b)); $('#price').textContent = K.money(K.pack(pick).price); }));
+  $('#add').addEventListener('click', () => K.add({pack: pick}));
+  $('#eta').textContent = K.deliveryWindow(7, 14);
+})();
+</script>
+</body>
+</html>

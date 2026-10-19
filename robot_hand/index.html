@@ -233,7 +233,7 @@ const SIDE_GAP = 0.5;   // degrees two straight fingers may turn towards each ot
 const KZ = 1.15;        // knuckle tendons tie on this far past the knuckle pin
 const KG = -0.45;       // ... and pass through rings this far behind it, under the knuckle block
 const TGY = -0.25;      // the long tendon threads through the knuckle head this far under the pin, so bending the knuckle hardly pulls it
-const TW_R = 0.8;       // thumb twist drum (a ring round the thumb's knuckle block), and the spool that turns it: servo angle = twist angle
+const TW_R = 0.7;       // thumb twist drum (a ring round the thumb's knuckle block), and the spool that turns it: servo angle = twist angle
 const WRIST_R = 0.7;    // wrist spools. The wrist lines run 14.5 mm above and below the joints and 14 mm out to each side
 const WRIST_ARM = [1.45, 1.4];
 const SERVOS = {
@@ -244,6 +244,8 @@ const SERVOS = {
   // sold as a 60 kg servo; ≈ 65 kg·cm at 7.4 V. Tab length and shaft position are estimates: measure yours
   DS5160: {name:'DS5160', kind:'high-torque servo', L:6.5, W:3.0,  H:4.2,  tabL:8.3,  tabY:3.0,  tabT:0.35, shaftOff:1.6,  top:0.6,  mass:160,  torque:65,  speed:0.15, dims:'65 × 30 × 48 mm',      volts:'7.4 V', psu:'7.4 V, 20 A or more (estimate)', amps:4.5}
 };
+// the eight knuckle servos sit in the palm, as on the DexHand: only a slim servo fits there, whatever the forearm uses
+const PALM_SV = SERVOS.ES3352;
 // the wrist: two serial-bus servos pull the wrist lines, a third twists the whole forearm (all three as on the DexHand)
 const WRIST_SV = {name:'SCS2332', kind:'serial bus servo', L:2.32, W:1.21, H:2.85, tabL:3.22, tabY:1.6, tabT:0.25, shaftOff:0.6, top:0.45, mass:20, torque:4.5, speed:0.09, dims:'23.2 × 12.1 × 28.5 mm'};
 const TWIST_SV = {name:'SCS15', kind:'serial bus servo', L:4.0, W:2.0, H:4.05, mass:59, torque:15, speed:0.16, dims:'40 × 20 × 40.5 mm'};
@@ -291,11 +293,11 @@ const PARTS = {
   mc:       {name:'Metacarpal', qty:'4 + thumb', size:'', mat:'PLA or PETG, printed', fn:'The long bones of the palm. Each ends in a rounded head: the knuckle you see when you make a fist.'},
   carpal:   {name:'Carpal bones', qty:'8', size:'≈ 6–15 mm each', mat:'Printed as one block, or 8 pieces glued', fn:'The wrist bones: scaphoid, lunate, triquetrum, pisiform, trapezium, trapezoid, capitate and hamate. The metacarpals bolt on, and the thumb pivots on the trapezium.'},
   swivel:   {name:'Knuckle block', qty:'5', size:'printed block, upright M3 pin, 2 × 693ZZ', mat:'PETG or nylon', fn:'Gives every knuckle two axes, like yours: the curl pin in front, an upright pin 9 mm behind it for side to side. The knuckle tendons pass through rings underneath.'},
-  knTendon: {name:'Knuckle tendons', qty:'10 (2 per finger)', size:'Braided line, see the Parts tab', mat:'Fishing line (the DexHand uses Sufix 832)', fn:'Two per finger, one each side, tied under the first bone. Pull both and the knuckle bends; pull one more than the other and the finger swings to that side. In your hand the interosseous muscles do both jobs the same way.'},
+  knTendon: {name:'Knuckle tendons', qty:'10 (2 per finger)', size:'Braided line, see the Parts tab', mat:'Fishing line (the DexHand uses Sufix 832)', fn:'Two per finger, one each side, tied under the first bone. Pull both and the knuckle bends; pull one more than the other and the finger swings to that side. The fingers\' are pulled by the servos in the palm, the thumb\'s from the forearm.'},
   longTendon:{name:'Long tendon', qty:'5', size:'Braided line, see the Parts tab', mat:'Fishing line', fn:'Runs through the pulley rings to the fingertip and curls the middle and tip joints, like your deep flexor. It threads through the knuckle head right under the pin, so bending the knuckle hardly pulls it.'},
   elastic:  {name:'Elastic cord', qty:'5', size:'1 mm round elastic', mat:'Rubber cord', fn:'Runs over the back of each finger. When the servos let the tendons out, it straightens the finger again. The DexHand\'s spools have one groove each, so the return has to come from something springy.'},
   pullpull: {name:'Pull-pull lines', qty:'6', size:'0.8 mm kite line', mat:'Braided line', fn:'One line each way round a double spool, like the cables on a model plane\'s rudder: one pulls while the other lets go. They twist the thumb and bend the wrist.'},
-  drum:     {name:'Thumb twist drum', qty:'1', size:'Ø 9 mm', mat:'Printed with the thumb\'s base', fn:'The two twist lines wrap round it in opposite directions, so one servo can roll the thumb round to face the fingers and back.'},
+  drum:     {name:'Thumb twist drum', qty:'1', size:'Ø 14 mm groove, rings the thumb\'s knuckle block', mat:'Printed with the thumb\'s base', fn:'The two twist lines wrap round it in opposite directions, so one servo can roll the thumb round to face the fingers and back.'},
   tbar:     {name:'Transverse bar', qty:'2', size:'≈ 60 × 6 × 2.5 mm', mat:'Printed or aluminium strip', fn:'Ties the four palm metacarpals together, like the ligaments between your knuckles.'},
   pulley:   {name:'Pulley ring', qty:'40', size:'Ø 2.6 mm hole', mat:'Printed with the bones', fn:'Holds a tendon close under the bone, like the pulleys in your own finger. Without them the line would bowstring and the finger would get weak.'},
   extGuide: {name:'Cord guide', qty:'15', size:'small loop on top of each bone', mat:'Printed with the bones', fn:'Keeps the elastic cord centred on the back of the finger as it wraps over each knuckle.'},
@@ -304,16 +306,18 @@ const PARTS = {
   pin:      {name:'Joint pin', qty:'20', size:'M3 × 20 mm screw + nylock nut', mat:'Steel', fn:'The axle of every joint. Tighten until the joint swings freely without wobble.'},
   bearing:  {name:'Ball bearing 693ZZ', qty:'40', size:'3 × 8 × 4 mm', mat:'Steel', fn:'One each side of every joint. The pin turns in them, so the joints stay smooth instead of wearing the plastic.'},
   pad:      {name:'Fingertip pad', qty:'5', size:'≈ 8 × 5 mm', mat:'TPU (flexible filament) or rubber', fn:'Adds grip so the hand can hold smooth objects.'},
-  shell:    {name:'Forearm cover', qty:'2 halves', size:'See the Parts tab', mat:'Printed, 2 mm wall', fn:'Hides all 19 servos, the boards and the cells, like the skin over your forearm muscles. Untick Covers to see inside.'},
-  handCover:{name:'Back-of-hand cover', qty:'1', size:'≈ 68 × 65 mm, domed', mat:'Printed, 1.5 mm wall', fn:'Covers the metacarpals and the elastic cords on the back of the hand. The fingers and the palm side stay open, as on the DexHand, so the tendons can do their work in plain sight.'},
+  shell:    {name:'Forearm cover', qty:'2 halves', size:'See the Parts tab', mat:'Printed, 2 mm wall', fn:'Hides the eleven forearm servos, the boards and the cells, like the skin over your forearm muscles. Untick Covers to see inside.'},
+  handCover:{name:'Back-of-hand cover', qty:'1', size:'≈ 64 × 66 × 48 mm', mat:'Printed, 1.5 mm wall', fn:'Covers the eight knuckle servos on the back of the hand, like the DexHand\'s shell. The fingers and the palm side stay open, so the tendons can do their work in plain sight.'},
   elbow:    {name:'Elbow mount', qty:'1', size:'Ø 70 mm plate on a stand', mat:'Printed or aluminium', fn:'Holds the arm. The forearm twist servo turns the whole forearm and hand against it, like your forearm rolling palm up and palm down.'},
   palm:     {name:'Palm plates', qty:'2', size:'≈ 72 × 68 × 3 mm each', mat:'PLA or PETG', fn:'Top and bottom plates sandwich the knuckle forks. The four finger servos drop through the cut-outs and screw to the top plate.'},
   standoff: {name:'Palm standoff', qty:'5', size:'M3 × 11 mm', mat:'Steel or brass', fn:'Spaces the two palm plates apart.'},
   wristM:   {name:'Wrist block', qty:'1', size:'64 × 16 × 9 mm', mat:'Printed', fn:'Joins the palm to the electronics box. The five servo cables pass underneath it.'},
   phal:     {name:'Finger bone (phalanx)', qty:'15', size:'See the Parts tab', mat:'PLA or PETG, 3D-printed', fn:'The rigid links of each finger. The narrow end of each bone sits inside the fork of the bone behind it.'},
   knuckle:  {name:'Knuckle fork', qty:'5', size:'Two 1.3 mm tabs per finger', mat:'Printed with the palm', fn:'Holds the first bone of each finger. The finger swings between the two tabs on an M3 pin.'},
-  servo:    {name:'Servo', qty:'16', size:'', mat:'Hobby servo', fn:'These are the muscles, all in the forearm like yours. Each turns a spool: three per finger (two knuckle tendons and the long tendon), plus one to twist the thumb.',
+  servo:    {name:'Servo', qty:'8', size:'', mat:'Hobby servo', fn:'The forearm muscles: one long tendon for each finger, and the thumb\'s four (its two base tendons, its long tendon and its twist). Each turns a spool.',
              fnM:'Turns to the angle the code asks for and holds it. Four sit in the palm behind the knuckles; the thumb\'s sits under the palm.'},
+  palmServo:{name:'Knuckle servo · ES3352', qty:'8', size:'23.2 × 9.2 × 24 mm, 12.4 g, ≈ 2.8 kg·cm', mat:'Slim metal-gear hobby servo, 6 V', fn:'Two per finger, in the palm as on the DexHand. Each pulls one knuckle tendon: both together bend the knuckle, one more than the other swings the finger sideways. Your palm has small muscles (the interossei and lumbricals) doing the same jobs.'},
+  palmRack: {name:'Palm servo rack', qty:'1', size:'≈ 60 × 56 mm plate on 4 posts + 4 tab bars', mat:'Printed', fn:'Holds the eight knuckle servos upright over the back of the hand, just clear of the elastic cords. The knuckle tendons drop through it.'},
   wristServo:{name:'Wrist servo · SCS2332', qty:'2', size:'23.2 × 12.1 × 28.5 mm, 20 g, ≈ 4.5 kg·cm', mat:'Feetech serial-bus servo, 6 V', fn:'Each turns a double spool for one corner pair of wrist lines. Turn both the same way and the wrist bends; turn them opposite ways and it swings side to side. They share one 3-wire bus.'},
   twistServo:{name:'Forearm twist servo · SCS15', qty:'1', size:'40 × 20 × 40.5 mm, 59 g, ≈ 15 kg·cm', mat:'Feetech serial-bus servo', fn:'At the elbow end. Its horn is bolted to the elbow mount, so when it turns, the whole forearm and hand roll, palm up to palm down.'},
   horn:     {name:'Servo arm (horn)', qty:'5', size:'Single arm, 12 mm from the shaft to the ball link', mat:'Comes with the servo', fn:'Turns with the servo shaft. On the fingers it pushes the pushrod; on the thumb it is screwed straight to the thumb\'s first bone.'},
@@ -321,8 +325,8 @@ const PARTS = {
   lever:    {name:'Knuckle lever', qty:'4', size:'12 mm from the knuckle pin to the ball link', mat:'Printed as part of the first finger bone', fn:'When the pushrod pushes it forward, the finger turns about its knuckle pin.'},
   link:     {name:'Coupler link', qty:'10', size:'1.5 mm strip; lengths in the Parts tab', mat:'Aluminium or steel strip, or printed', fn:'Ties the middle and tip joints to the knuckle, so one motor curls the whole finger. Runs in the 2 mm gap beside each bone.'},
   thumbmount: {name:'Thumb servo mount', qty:'1', size:'≈ 40 × 20 × 15 mm', mat:'Printed', fn:'Holds the thumb servo in line with the thumb\'s base joint, under the palm.'},
-  spool:    {name:'Spool', qty:'18', size:'Sized per tendon; see the Parts tab', mat:'Printed, screwed to the servo horn', fn:'The white circles. A one-groove spool winds in one tendon; the double spools for the thumb twist and the wrist wind one line in while letting the other out.'},
-  comb:     {name:'Eyelets and tendon comb', qty:'15 eyelets + 1 comb', size:'one hole per line', mat:'Steel wire eyelets, printed comb', fn:'An eyelet in front of each one-groove spool drops its line to a low lane beside the servo bodies, so lines from the back rows pass under the spools ahead. The comb at the front then holds all 21 lines in order on their way to the wrist.'},
+  spool:    {name:'Spool', qty:'18 (8 palm, 10 forearm)', size:'Sized per tendon; see the Parts tab', mat:'Printed, screwed to the servo horn', fn:'The white circles. A one-groove spool winds in one tendon; the double spools for the thumb twist and the wrist wind one line in while letting the other out.'},
+  comb:     {name:'Eyelets and tendon comb', qty:'9 eyelets + 1 comb', size:'one hole per line', mat:'Steel wire eyelets, printed comb', fn:'In the forearm, an eyelet in front of each spool behind the first row drops its line to a low lane beside the servo bodies, so lines from the back rows pass under the spools ahead. The comb at the front then holds all 13 lines in order on their way to the wrist.'},
   deck:     {name:'Servo deck', qty:'1', size:'', mat:'Clear acrylic, 3 mm, laser-cut (or print it)', fn:'Servo bodies drop into the cut-outs and the mounting tabs screw onto it. Clear, so you can see the electronics underneath.',
              fnM:'The lid of the electronics box. Clear, so you can see the boards underneath.'},
   rail:     {name:'Forearm rail', qty:'4', size:'5 × 10 mm', mat:'Aluminium bar or printed', fn:'The forearm\'s backbone, like your radius and ulna. Everything bolts to it.'},
@@ -336,7 +340,7 @@ const PARTS = {
   uno:      {name:'Arduino Uno R3', qty:'1', size:'68.6 × 53.4 mm', mat:'Microcontroller board', fn:'Runs your code and tells the PCA9685 what angle each servo should go to. Powered over USB.'},
   jack:     {name:'Power switch', qty:'1', size:'16 mm latching push button', mat:'Panel-mount', fn:'Turns the hand on and off.',
              fnM:'Power for the servos only. Plug in the servo power supply here.'},
-  tunnel:   {name:'Carpal tunnel guide', qty:'1', size:'≈ 24 × 6 mm slot', mat:'Steel strip', fn:'Like the band across the palm side of your wrist: it holds the 17 tendons in their row as they drop under the wrist bones and fan out to the fingers.'},
+  tunnel:   {name:'Carpal tunnel guide', qty:'1', size:'≈ 24 × 6 mm slot', mat:'Steel strip', fn:'Like the band across the palm side of your wrist: it holds the 9 tendons from the forearm in their row as they drop under the wrist bones and fan out to the fingers.'},
   wire:     {name:'Wiring', qty:'', size:'Servo leads, jumpers, 18 AWG power', mat:'', fn:'Servo leads: brown = ground, red = power, orange = signal.'}
 };
 
@@ -459,7 +463,7 @@ function gripN(mode, S){
   return FINGERS.map((f, i) => {
     const L = f.L;
     if (mode === 'motor') return S.torque * (i ? LEVER_R / HORN_R : 1) / (L[0] + L[1] + L[2]) * 9.81;
-    const t = TT[i], m = FLEX(f), kT = S.torque / t.rk, lT = S.torque / t.rT;   // tendon tensions, kgf
+    const t = TT[i], m = FLEX(f), kT = (i ? PALM_SV : S).torque / t.rk, lT = S.torque / t.rT;   // tendon tensions, kgf (finger knuckles: palm servos)
     const knuckle = (2 * kT * m + lT * Math.abs(TGY)) / (L[0] + L[1] + L[2]);  // the whole finger turning at the knuckle
     const middle = lT * m / (L[1] + L[2]);                                      // the long tendon holding the middle joint
     return Math.min(knuckle, middle) * 9.81;
@@ -469,7 +473,7 @@ const tipForceN = (mode, S) => gripN(mode, S)[1];
 const PAD_MU = 0.5;  // rubber or TPU pad on a dry surface, on the cautious side
 // best case for a wrap grip: fingers on one side, thumb and palm on the other, friction on both
 const holdKg = squeeze => 2 * PAD_MU * squeeze / 9.81;
-const maxPullKgf = S => S.torque / Math.min(...TT.map(t => Math.min(t.rk, t.rT))); // the smallest spool pulls hardest
+const maxPullKgf = S => Math.max(...TT.map((t, i) => Math.max((i ? PALM_SV : S).torque / t.rk, S.torque / t.rT))); // the hardest pull on any tendon
 function lineSpec(S){ // tendon line rated at least twice the hardest pull
   const need = 2 * maxPullKgf(S);
   return need <= 36 ? 'Sufix 832 braid, 80 lb (≈ 36 kg rated)' : need <= 125 ? '1 mm Dyneema cord (≈ 130 kg rated)' : 'Dyneema cord thicker than 1 mm (check its rating)';
@@ -483,33 +487,30 @@ const tendonPsu = S => `${S.volts}, ≈ ${Math.round(16 * S.amps * 0.6 + 2)} A p
 function forearmLayout(mode, S){
   const deckTop = -0.45;
   if (mode === 'tendon'){
-    // three columns of spools, one row per finger: knuckle tendon A (thumb side), long tendon, knuckle tendon B. Thumb at the front,
-    // and in front of that the two wrist spools and the thumb-twist spool. Each line drops through an eyelet just in front of its
-    // spool and runs forward low down, beside the slim servo bodies and under the spools ahead, so all the rows can sit level.
-    const rk = Math.max(...TT.map(t => t.rk)) + FLANGE, rT = Math.max(...TT.map(t => t.rT)) + FLANGE, rW = WRIST_R + FLANGE;
-    const side = Math.max(rk, rW, TW_R + FLANGE);
-    // lanes clear the servo bodies; lines drop from their spool's groove to the lane
-    const laneS = Math.max(rk - FLANGE + 0.05, S.W / 2 + 0.15, WRIST_SV.W / 2 + 0.15), laneM = Math.max(rT - FLANGE + 0.05, S.W / 2 + 0.15);
-    const cx = Math.max(rT + side + 0.3, laneM + laneS + 0.3, (S.W + WRIST_SV.W) / 2 + 0.5);
-    const pitch = Math.max(S.tabL, 2 * rT, 2 * side) + 0.2, pitch0 = Math.max((S.tabL + WRIST_SV.tabL) / 2, rT + side) + 0.2;   // row 0 → row 1, then the rest
-    const combZ = ZF - 0.35, z0 = combZ - 0.45 - Math.max(rT, side) - (WRIST_SV.L / 2 - WRIST_SV.shaftOff);
+    // the knuckle servos are in the palm, as on the DexHand. The forearm keeps the four long-tendon servos, the thumb's four and the
+    // two wrist servos: two columns, five rows, wrist servos at the front. A line from a spool further back drops through an eyelet
+    // and runs forward low down, beside the slim servo bodies and under the spools ahead, so the rows can sit level.
+    const radius = q => q.kind === 'k' ? TT[0].rk : q.kind === 't' ? TT[q.finger].rT : q.kind === 'tw' ? TW_R : WRIST_R;
+    const rows = [[['w', null, 1], ['w', null, -1]], [['k', 0, 1], ['k', 0, -1]], [['t', 0], ['tw']], [['t', 1], ['t', 2]], [['t', 3], ['t', 4]]];
+    const proto = rows.flat().map(([kind, finger, side]) => ({kind, finger, side}));
+    const rMax = Math.max(...proto.map(radius)) + FLANGE;
+    const off = r => Math.max(r + 0.05, S.W / 2 + 0.15, WRIST_SV.W / 2 + 0.15);   // a lane clears its own servo body and the wrist servos'
+    const cx = Math.max(rMax + 0.12, off(Math.max(...TT.map(t => t.rT))) + 0.15, (S.W + 0.1));
+    const pitch = Math.max(S.tabL, 2 * rMax) + 0.25, pitch0 = Math.max((S.tabL + WRIST_SV.tabL) / 2, 2 * rMax) + 0.25;
+    const combZ = ZF - 0.35, z0 = combZ - 0.45 - (WRIST_R + FLANGE) - (WRIST_SV.L / 2 - WRIST_SV.shaftOff);
     const slots = [];
-    for (let r = 0; r < 6; r++) [cx, 0, -cx].forEach((x, col) => {
-      const z = r ? z0 - pitch0 - (r - 1) * pitch : z0;
-      if (!r) slots.push({x, z, row:r, kind:col === 1 ? 'tw' : 'w', sv:col === 1 ? S : WRIST_SV, side:col ? -1 : 1});
-      else slots.push({x, z, row:r, kind:col === 1 ? 't' : 'k', sv:S, finger:r - 1, side:col === 0 ? 1 : col === 2 ? -1 : 0});
-    });
-    // code order: finger i → A 3i, B 3i+1, long 3i+2; then thumb twist 15; wrist servos 16 (thumb side) and 17
-    const order = [];
-    for (let i = 0; i < 5; i++) order.push(slots.find(q => q.finger === i && q.side === 1), slots.find(q => q.finger === i && q.side === -1), slots.find(q => q.finger === i && q.kind === 't'));
-    order.push(slots.find(q => q.kind === 'tw'), slots.find(q => q.kind === 'w' && q.side === 1), slots.find(q => q.kind === 'w' && q.side === -1));
-    const lastZ = z0 - pitch0 - 4 * pitch, deckBack = lastZ - S.tabL / 2 - 0.15;
+    rows.forEach((row, r) => row.forEach(([kind, finger, side], col) => {
+      const x = col ? -cx : cx, z = r ? z0 - pitch0 - (r - 1) * pitch : z0;
+      const q = {x, z, row:r, kind, finger, side, sv:kind === 'w' ? WRIST_SV : S}; q.r = radius(q); slots.push(q);
+    }));
+    // code order: thumb A, B, long, twist; index … little long; wrist servos (thumb side, little side)
+    const find = (k, f, sd) => slots.find(q => q.kind === k && (f == null || q.finger === f) && (sd == null || q.side === sd));
+    const order = [find('k', 0, 1), find('k', 0, -1), find('t', 0), find('tw'), find('t', 1), find('t', 2), find('t', 3), find('t', 4), find('w', null, 1), find('w', null, -1)];
+    const lastZ = z0 - pitch0 - 3 * pitch, deckBack = lastZ - S.tabL / 2 - 0.15;
     const twistZ = deckBack - 0.2 - TWIST_SV.H / 2, back = twistZ - TWIST_SV.H / 2 - 0.45;
-    // the bay under the servos only has to hold flat boards; the cells lie across under the forearm twist servo
-    const FW = 2 * (cx + side) + 0.9, bayY = deckTop - Math.max(S.tabY, WRIST_SV.tabY) - 1.2;
-    // low lanes: x of each column's lines, and one height per row so lines from further back pass over the eyelets in front
-    const lane = {x:[cx - laneS, laneM, -(cx - laneS)], y:r => deckTop + 0.3 + 0.12 * (r - 1)};
-    return {FW, slots:order, rows:6, pitch, pitch0, cx, combZ, deckTop, deckFront:combZ + 0.2, deckBack, z0, lastZ, lane, bayY, twistZ, back, len:ZF - back, midZ:(ZF + back) / 2};
+    const FW = 2 * (cx + rMax) + 0.9, bayY = deckTop - Math.max(S.tabY, WRIST_SV.tabY) - 2.15;   // deep enough for the cells under the servos
+    const lane = {off, y:r => deckTop + 0.3 + 0.13 * (r - 1)};
+    return {FW, slots:order, rows:5, pitch, pitch0, cx, combZ, deckTop, deckFront:combZ + 0.2, deckBack, z0, lastZ, lane, bayY, twistZ, back, len:ZF - back, midZ:(ZF + back) / 2};
   }
   const FW = 7.6; // electronics only: the servo driver is 62.5 mm long
   const pcaZ = -2.4, unoFront = pcaZ - 2.1, unoBack = unoFront - 6.86, back = unoBack - 0.9;
@@ -623,8 +624,8 @@ function servoSpecText(){
   const S = SERVOS[servoKey], tip = tipForceN(drive, S);
   const head = `<b>${S.name}</b> ${S.kind} · ${S.dims} · ${S.mass} g<br>torque ≈ ${S.torque} kg·cm · speed ${S.speed} s/60°<br>`;
   if (drive === 'motor') return head + `knuckle torque ≈ <b>${S.torque} kg·cm</b> · fingertip force ≈ <b>${fmtN(tip)} N</b> (estimate)<br>motor weight in the hand: <b>${fmt(5 * S.mass)} g</b><br>servo power supply: ${S.psu}<br>Only the MG90S fits: four servos have to fit in the palm.`;
-  return head + `16 of these + 2 SCS2332 wrist servos + 1 SCS15, all in the forearm<br>hardest tendon pull ≈ <b>${fmt(maxPullKgf(S), 1)} kgf</b> · fingertip force ≈ <b>${fmtN(tip)} N</b> (estimate)<br>motor weight in the hand: <b>none</b><br>servo power: ${tendonPsu(S)}` +
-    (S.torque > 3 ? '<br>Bigger servos make a bigger forearm: only the ES3352 and MG90S keep it human-sized.' : '');
+  return head + `8 of these in the forearm, 2 SCS2332 wrist servos and an SCS15 with them; 8 ES3352 in the palm<br>hardest tendon pull ≈ <b>${fmt(maxPullKgf(S), 1)} kgf</b> · fingertip force ≈ <b>${fmtN(tip)} N</b> (estimate)<br>motor weight in the hand: <b>${fmt(8 * PALM_SV.mass)} g</b> (the 8 palm servos)<br>servo power: ${tendonPsu(S)}` +
+    (S.torque > 3 ? '<br>The palm servos stay ES3352: nothing bigger fits there. Bigger forearm servos make a bigger forearm; only the ES3352 and MG90S keep it human-sized.' : '');
 }
 function renderGrip(){
   const S = SERVOS[servoKey], g = gripN(drive, S), sq = g.reduce((a, b) => a + b, 0), kg = holdKg(sq);
@@ -657,7 +658,7 @@ function renderDrive(){
   const m = drive === 'motor';
   ['ES3352', 'DS3218', 'DS5160'].forEach(k => { $('#sv-' + k).disabled = m; $('#sv-' + k).title = m ? 'Doesn\'t fit this palm' : ''; });
   $('#driveNote').textContent = m ? 'One servo per finger, in the palm. A pushrod turns the knuckle; links inside the finger curl the other two joints.'
-                                  : 'Like The Robot Studio\'s DexHand: three tendons per finger, four for the thumb, and a wrist that bends, swings and twists. All 19 servos sit in the forearm, out of sight.';
+                                  : 'Like The Robot Studio\'s DexHand: three tendons per finger, four for the thumb, and a wrist that bends, swings and twists. 8 servos in the palm work the knuckles, 11 more sit in the forearm, and covers hide them all.';
   $('#fingHint').textContent = m ? 'servo angle · knuckle angle' : 'servo angle · long tendon pulled';
   $('#curlH').textContent = m ? 'Curl' : 'Finger curl';
   $('#dexA').hidden = $('#dexB').hidden = m; $('#circles').hidden = m;
@@ -666,7 +667,7 @@ function renderDrive(){
   else FINGERS.forEach((f, i) => setKnuck(i, state.target[i])); // tendons: the knuckle follows the curl until moved on its own
   $('#ly-covers').closest('label').hidden = m;
   $('#lyDrive').textContent = m ? 'Linkages' : 'Tendons';
-  $('#hudSub').textContent = (m ? 'One servo per finger, 3D-printable' : '27 bones like yours, DexHand-style tendons, every motor hidden in the forearm') + '. Drag to orbit, scroll to zoom, click any part.';
+  $('#hudSub').textContent = (m ? 'One servo per finger, 3D-printable' : '27 bones like yours, DexHand-style tendons, every motor under a cover') + '. Drag to orbit, scroll to zoom, click any part.';
   $('#legend').innerHTML = (m ? '' : '<b class="f">amber</b> tendons, pull · <b class="e">blue</b> elastic, opens · white: pull-pull lines · ') + 'grid 1 cm';
   $('#servoSpec').innerHTML = servoSpecText(); renderGrip(); renderParts(); renderHow(); updateReadouts();
 }
@@ -687,7 +688,7 @@ function showInfo(key){
   const p = PARTS[key]; if (!p) return;
   const S = SERVOS[servoKey], d = dimsNow, t = drive === 'tendon';
   let size = p.size, name = p.name, qty = p.qty;
-  if (key === 'servo'){ name = `Servo · ${S.name}`; size = `${S.dims}, ${S.mass} g, ≈ ${S.torque} kg·cm`; qty = t ? '16' : '5'; }
+  if (key === 'servo'){ name = `Servo · ${S.name}`; size = `${S.dims}, ${S.mass} g, ≈ ${S.torque} kg·cm`; qty = t ? '8' : '5'; }
   if (key === 'deck' || key === 'bay') size = `≈ ${fmt(d.forearmW*10)} × ${fmt(d.forearmL*10 - 8)} mm`;
   if (key === 'endplate') size = `${fmt(d.forearmW*10)} × ${t ? fmt(d.height*10 - 10) : 36} × 4 mm`;
   if (key === 'shell') size = `≈ ${fmt(d.forearmW*10 + 4)} × ${fmt(d.height*10 + 4)} × ${fmt(d.forearmL*10)} mm`;
@@ -700,13 +701,13 @@ function showInfo(key){
 }
 
 /* ---------- parts tab ---------- */
-let dimsNow = {overallL:44, handL:17.5, foreL:27, handW:7.4, forearmW:7.8, forearmL:22, height:8, kLen:[40,40,40,40,40], tLen:[40,40,40,40,40]};
+let dimsNow = {overallL:44, handL:17.5, handT:5.5, foreL:24, handW:7.4, forearmW:7.8, forearmL:22, height:8, kLen:[40,40,40,40,40], tLen:[40,40,40,40,40]};
 const span = (v, d = 0) => { const a = Math.min(...v).toFixed(d), b = Math.max(...v).toFixed(d); return a === b ? a : `${a}–${b}`; };
 function renderParts(){
   const S = SERVOS[servoKey], d = dimsNow, m = drive === 'motor';
   $('#overall').innerHTML = m
     ? `<b>${fmt(d.overallL*10)} mm</b> long (forearm end to middle fingertip) · hand <b>${fmt(d.handW*10)} mm</b> wide at the knuckles · electronics box <b>${fmt(d.forearmW*10)} × ${fmt(d.height*10)} mm</b>`
-    : `hand <b>${fmt(d.handL*10)} mm</b> long (an adult's is about 175–190) and <b>${fmt(d.handW*10)} mm</b> wide at the knuckles (75–90) · forearm <b>${fmt(d.foreL*10)} mm</b> from wrist to elbow (225–240: this one is longer because it carries all 19 servos) · forearm cover <b>${fmt(d.forearmW*10)} × ${fmt(d.height*10)} mm</b> · <b>${fmt(d.overallL*10)} mm</b> elbow to fingertip`;
+    : `hand <b>${fmt(d.handL*10)} mm</b> long (an adult's is about 175–190) and <b>${fmt(d.handW*10)} mm</b> wide at the knuckles (75–90) · <b>${fmt(d.handT*10)} mm</b> thick over the palm servos (yours is about 30; the DexHand's palm is 55) · forearm <b>${fmt(d.foreL*10)} mm</b> from wrist to elbow (225–240) · forearm cover <b>${fmt(d.forearmW*10)} × ${fmt(d.height*10)} mm</b> · <b>${fmt(d.overallL*10)} mm</b> elbow to fingertip`;
   const rails = ['Forearm rails', '4', `2 × (5 × 10 mm), 2 × (5 × 4.5 mm), ${fmt(d.forearmL*10)} mm long`, 'aluminium bar or printed'];
   let rows;
   if (m){ const rods = MT.slice(1).map(x => Math.round(x.rod * 10));
@@ -727,13 +728,15 @@ function renderParts(){
     ['Bay floor, end plate, wrist block', '3', '3–4 mm plates', 'printed'],
     ['Wiring', '—', '4 jumper wires, 18 AWG red/black', 'servo leads run back under the wrist']]; }
   else { const big = S.torque > 3;
-    rows = [['Finger servos', '16', `${S.name}, ${S.dims}`, 'in the forearm: 3 per finger, 4 for the thumb'],
+    rows = [['Knuckle servos', '8', `${PALM_SV.name}, ${PALM_SV.dims}`, 'in the palm, two per finger, spools on the back of the hand'],
+    ['Finger servos', '8', `${S.name}, ${S.dims}`, 'in the forearm: the four long tendons and the thumb\'s four'],
     ['Wrist servos', '2', `${WRIST_SV.name} serial bus, ${WRIST_SV.dims}`, 'bend and side to side'],
     ['Forearm twist servo', '1', `${TWIST_SV.name} serial bus, ${TWIST_SV.dims}`, 'at the elbow end'],
     ['Arduino Mega 2560 Pro', '1', '38 × 54 mm', 'drives the finger servos straight from its pins'],
     ['Serial servo adapter', '1', 'Feetech TTL linker', 'wrist servos on the Mega\'s Serial2'],
     ['Li-ion cells', '2', '18650, high drain, in a 2-cell holder', big ? 'too weak for these servos: use a bench supply' : '8.4 V full, inside the forearm'],
     ['DC-DC converter', '1', `${S.volts} out, ${Math.round(16 * S.amps * 0.6 + 2)} A or more`, 'feeds every servo'],
+    ['Palm servo rack', '1', '≈ 60 × 56 mm plate on 4 posts + 4 tab bars', 'printed'],
     ['Power switch', '1', '16 mm latching push button', ''],
     ['Bones', '27', '8 carpals, 5 metacarpals, 14 phalanges', S.torque >= 20 ? 'PETG or nylon, solid round the pins and pulleys' : 'the same set as your hand; PLA/PETG'],
     ['Joint pins', '20', 'M3 × 20 mm + nylock nut', '15 curl pins + 5 upright knuckle pins'],
@@ -747,12 +750,12 @@ function renderParts(){
     ['Elastic cords', '5', '1 mm round elastic, ≈ 15 cm each', 'straighten the fingers'],
     ['Transverse bars', '2', '≈ 60 × 6 × 2.5 mm', 'tie the metacarpals together'],
     ['Fingertip pads', '5', '≈ 8 × 5 mm', 'TPU'], rails,
-    ['Servo deck', '1', '3 mm clear acrylic, 18 cut-outs', 'laser-cut, or print it'],
-    ['Eyelets', '15', 'bent steel wire on a post', 'drop each line to its lane'],
+    ['Servo deck', '1', '3 mm clear acrylic, 10 cut-outs', 'laser-cut, or print it'],
+    ['Eyelets', '9', 'bent steel wire on a post', 'drop each forearm line to its lane'],
     ['Comb, bay floor, end plate', '3', '3–4 mm plates', 'printed'],
-    ['Covers', '4', 'forearm in 2 halves, back and palm of the hand', 'printed, 1.5–2 mm wall'],
+    ['Covers', '3', 'forearm in 2 halves, back of the hand', 'printed, 1.5–2 mm wall'],
     ['Elbow mount', '1', 'Ø 70 mm plate on a stand', 'the forearm turns against it'],
-    ['Wiring', '—', '16 servo leads, a 3-wire bus, 18 AWG red/black', 'leads run under the servo deck']]; }
+    ['Wiring', '—', '16 servo leads, a 3-wire bus, 18 AWG red/black', 'the palm servos\' leads run back over the wrist']]; }
   $('#bom').innerHTML = '<thead><tr><th>Part</th><th>Qty</th><th>Size / spec</th></tr></thead><tbody>' +
     rows.map(r => `<tr><td>${r[0]}${r[3] ? `<small>${r[3]}</small>` : ''}</td><td class="n">${r[1]}</td><td>${r[2]}</td></tr>`).join('') + '</tbody>';
   if (m) $('#bones').innerHTML = '<thead><tr><th>Finger</th><th>Bone 1</th><th>Bone 2</th><th>Bone 3</th><th>Width</th></tr></thead><tbody>' +
@@ -775,7 +778,8 @@ const IDEA = {
           'The spools have one groove each, as on the DexHand, so a servo can only pull. An elastic cord over the back of each finger straightens it again when the tendons are let out.',
           'The thumb has four servos: two base tendons bend it and swing it out, the long tendon curls it, and a pull-pull drum twists it round to face the fingers, the way your thumb opposes.',
           'The wrist has two bend joints with a side joint between them, sharing the bend like the two rows of your wrist bones. Two serial-bus servos pull lines at its corners: turned the same way the wrist bends, turned opposite ways it swings sideways. A third servo at the elbow twists the whole forearm. The finger tendons pass through the middle of each wrist joint, right on its axis, so moving the wrist hardly tugs the fingers.',
-          'The real DexHand keeps eight finger servos in the palm. Here all 16 sit in the forearm with the wrist servos, so nothing shows: 18 spools in six level rows, one row per finger. Each line drops through an eyelet just in front of its spool and runs forward low down, beside the slim servo bodies and under the spools ahead, so the forearm stays about as thick as yours, and the cover hides it all.',
+          'As on the DexHand, the eight knuckle servos sit in the palm, two per finger, standing on a rack over the back of the hand with their spools on top. Each knuckle tendon drops from its spool through the gap between two metacarpals to a ring on the palm side, then runs forward to the knuckle. Short tendons make the knuckles quick and precise; the price is a thicker hand, about 55 mm over the servos, like the DexHand\'s.',
+          'The forearm holds the other eleven: the four long tendons, the thumb\'s four, the two wrist servos and the forearm twist. Ten spools in two columns; a line from further back drops through an eyelet and runs forward low down, beside the slim servo bodies, so the rows sit level and the forearm stays slim. Covers hide both groups of servos.',
           'Try spreading your fingers while making a fist: you can\'t, because the side ligaments of your knuckles go tight as they bend. The model does the same, so the side swing shrinks as a knuckle bends. The thumb stops when it meets a finger, the way it stops on anything you grip; its servos just hold there.'],
   motor:['Each finger has its own servo, sitting in the palm just behind the knuckle. A short pushrod (the kind used on RC planes) joins the servo\'s arm to a lever on the finger\'s first bone, so when the servo turns, the finger swings about its knuckle pin.',
          'Two thin rigid links run inside each finger, beside the bones. They tie the middle and tip joints to the knuckle, so the whole finger curls from one motor, the way yours does. The thumb\'s servo sits under the palm and turns the thumb\'s base joint directly.',
@@ -794,7 +798,8 @@ function renderFormula(){
 }
 function renderWiring(){
   const rows = drive === 'tendon' ? [
-    ['Finger servos: thumb A, B, long, then index, middle, ring, little', 'Mega pins 22–36, in that order'], ['Thumb twist servo', 'pin 37'],
+    ['Palm servos: index A, B, middle A, B, ring A, B, little A, B', 'Mega pins 22–29, in that order'],
+    ['Forearm servos: thumb A, B, long, thumb twist, then index, middle, ring, little long', 'pins 30–37'],
     ['All 16 servo + and −', 'DC-DC converter output, 6 V'],
     ['Wrist servos (ID 1 thumb side, ID 2) and forearm twist (ID 3)', 'chained on one 3-wire bus to the adapter'],
     ['Adapter TX / RX', 'Mega Serial2: TX2 16, RX2 17'], ['Serial servo power', 'DC-DC 6 V (the SCS2332 is a 6 V servo)'],
@@ -810,9 +815,9 @@ function renderHow(){
   renderFormula();
   const M9 = SERVOS.MG90S, ES = SERVOS.ES3352, DS = SERVOS.DS5160, len = (mode, S) => fmt((tipZ() - forearmLayout(mode, S).back) * 10);
   const rows = [
-    ['Where the motors sit', 'all 19 in the forearm, like your muscles', '4 in the palm, 1 under the thumb'],
+    ['Where the motors sit', '8 in the palm (knuckles), 11 in the forearm', '4 in the palm, 1 under the thumb'],
     ['Movements', '19: bend, curl and side for each finger, thumb twist, wrist bend and side, forearm twist', '5: one curl per finger'],
-    ['Motor weight in the hand', 'none', `${fmt(5 * M9.mass)} g`],
+    ['Motor weight in the hand', `${fmt(8 * PALM_SV.mass)} g`, `${fmt(5 * M9.mass)} g`],
     ['What opens the finger', 'an elastic cord over the back', 'the same servo, through the links'],
     ['Fingertip force, estimate', `≈ ${fmtN(tipForceN('tendon', ES))} N (ES3352) to ${fmtN(tipForceN('tendon', DS))} N (DS5160)`, `≈ ${fmtN(tipForceN('motor', M9))} N`],
     ['Can it crush a can?', `with DS5160: squeeze ≈ ${fmt(gripN('tendon', DS).reduce((a, b) => a + b, 0))} N, but a huge forearm`, `no: squeeze ≈ ${fmt(gripN('motor', M9).reduce((a, b) => a + b, 0))} N`],
@@ -859,9 +864,11 @@ void loop() {
 `#include <Servo.h>
 #include "SCServo.h"     // Feetech serial servos: copy SCServo.* and Serial.* from the DexHand repo
 
-// 16 finger servos on pins 22–37: thumb A, B, long; index A, B, long; middle …; little A, B, long; thumb twist
+// pins 22–29: the knuckle servos in the palm: index A, B, middle A, B, ring A, B, little A, B
+// pins 30–37: the forearm: thumb A, B, long, thumb twist, then index, middle, ring, little long tendons
 // A = knuckle tendon on the thumb side, B = on the little-finger side, long = curls the middle and tip joints
-Servo sv[16];
+Servo sv[16];                                   // sv[k] is on pin 22 + k
+const int A_SV[5] = {8, 0, 2, 4, 6}, B_SV[5] = {9, 1, 3, 5, 7}, LONG_SV[5] = {10, 12, 13, 14, 15}, TWIST_SV = 11;
 SCServo bus;             // wrist servos: ID 1 thumb side, ID 2 little side. ID 3 twists the forearm
 const float BEND[5] = {${arr(i => TT[i].bend[N] / TT[i].rk / D2R)}};   // servo degrees for a full knuckle bend
 const float SIDE[5] = {${arr(i => TT[i].sideDeg)}};   // servo degrees per degree of side swing
@@ -874,14 +881,14 @@ void knuckle(int f, float bend, float side) {   // bend 0..1, side in degrees (+
     if (k < 0) k = 0;
     side *= k;
   }
-  sv[3 * f].write(ZERO[f] + bend * BEND[f] + side * SIDE[f]);
-  sv[3 * f + 1].write(ZERO[f] + bend * BEND[f] - side * SIDE[f]);
+  sv[A_SV[f]].write(ZERO[f] + bend * BEND[f] + side * SIDE[f]);
+  sv[B_SV[f]].write(ZERO[f] + bend * BEND[f] - side * SIDE[f]);
 }
 void curl(int f, float c) {                     // c 0..1; the long tendon only ever pulls, so its zero is 10°
-  sv[3 * f + 2].write(10 + c * CURL[f]);
+  sv[LONG_SV[f]].write(10 + c * CURL[f]);
 }
 void thumbTwist(float deg) {                    // drum and spool are the same size
-  sv[15].write(90 + deg);
+  sv[TWIST_SV].write(90 + deg);
 }
 void wrist(float bend, float side) {            // degrees: + bend = towards the palm, + side = towards the thumb
   bus.WritePos(1, 512 + (${WRIST_ARM[0]} * bend + ${WRIST_ARM[1]} * side) * 3.41, 300);   // SCS2332: 1024 steps = 300°
@@ -1283,7 +1290,7 @@ function build3D(){
   ].forEach(([x, y, z, rx, ry, rz]) => { const c = blob(rx, ry, rz, M.chrome, 'carpal'); c.position.set(x, y, z); carpals.add(c); });
   const capitateM = marker(carpals, 0.55, 0.5, 0.62);
   // thumb tendons: guides on the trapezium side of the palm
-  const thG = only('tendon', new THREE.Group()); hand.add(thG); thG.position.set(2.55, -0.95, 0.55); thG.rotation.y = 0.55;
+  const thG = only('tendon', new THREE.Group()); hand.add(thG); thG.position.set(2.1, -1.25, 0.2); thG.rotation.y = 0.55;
   const thb = box(1.1, 0.1, 0.2, M.chrome, 'pulley'); thb.position.y = 0.25; thG.add(thb);
   [0, 1, -1].forEach(sx => ring(thG, 0, 0, 'pulley', 0.25, null, sx * 0.4));
   palmG[0] = [marker(thG, 0, 0, 0), marker(thG, 0.4, 0, 0), marker(thG, -0.4, 0, 0)];
@@ -1292,10 +1299,49 @@ function build3D(){
   palmAnchor[0] = marker(carpals, 2.0, 0.55, 0.0);
   { const hk = only('tendon', cylY(0.07, 0.3, M.steel, 'elastic', 8)); hk.position.set(2.0, 0.42, 0.0); hand.add(hk); }
 
+  /* ---- knuckle servos in the palm (tendon drive), as on the DexHand: two per finger, standing on a rack over the back of the hand ---- */
+  // each knuckle tendon leaves its spool right over a gap between two metacarpals, drops through it to a ring on the palm side,
+  // then runs forward to the knuckle. Front row: the thumb-side (A) tendons; back row: the little-finger-side (B) ones
+  const PSV = PALM_SV, RACK_Y = 0.82, ROW_Z = [3.55, 2.0];
+  const palmTopY = RACK_Y + 0.1 + PSV.H + PSV.top + 0.2 + 0.36 + 0.2;   // highest spool flange
+  const mcX = (i, z) => { const f = FINGERS[i], B = new THREE.Vector3(f.mc[0], 0, f.mc[1]), N = toHand(f, PIVOT - 0.7); return B.x + (N.x - B.x) * (z - B.z) / (N.z - B.z); };
+  const gapX = (i, j, z) => j ? (i === 4 ? mcX(4, z) - 0.72 : (mcX(i, z) + mcX(i + 1, z)) / 2) : (i === 1 ? mcX(1, z) + 0.72 : (mcX(i, z) + mcX(i - 1, z)) / 2);
+  const palmSv = [null], rackG = only('tendon', new THREE.Group()); hand.add(rackG); explodable(rackG, [0, 2.6, 0]);
+  const dropG = only('tendon', new THREE.Group()); hand.add(dropG);
+  let rackX0 = 9, rackX1 = -9;
+  for (let i = 1; i < 5; i++){
+    palmSv[i] = [0, 1].map(j => {
+      const z = ROW_Z[j], r = TT[i].rk, drop = gapX(i, j, z), toward = j ? 1 : -1;   // the spool sits on its own finger's side of the gap
+      const sx = drop + toward * (r + 0.05), lift = (i + j) % 2 ? 0.36 : 0;          // neighbouring spools at two heights so they can overlap
+      const sg = new THREE.Group(); sg.position.set(sx, 0, z); rackG.add(sg);
+      // standing servo: front row turned round so its body runs forward over the knuckles, back row's runs back over the wrist bones
+      const back = j ? -1 : 1, bc = back * (PSV.L / 2 - PSV.shaftOff), bottom = RACK_Y + 0.1;
+      const body = box(PSV.W, PSV.H, PSV.L, M.servo, 'palmServo'); body.position.set(0, bottom + PSV.H / 2, bc); sg.add(body);
+      const st = box(PSV.W + 0.02, PSV.H * 0.45, PSV.L * 0.62, M.sticker, 'palmServo'); st.position.set(0, bottom + PSV.H * 0.42, bc + back * PSV.L * 0.08); sg.add(st);
+      const tabs = box(PSV.W, PSV.tabT, PSV.tabL, M.servo, 'palmServo'); tabs.position.set(0, bottom + PSV.tabY, bc); sg.add(tabs);
+      const topY = bottom + PSV.H, bump = cylY(PSV.W * 0.42, PSV.top * 0.55 + lift, M.servo, 'palmServo'); bump.position.y = topY + (PSV.top * 0.55 + lift) / 2; sg.add(bump);
+      const spoolY = topY + PSV.top + 0.2 + lift, spool = new THREE.Group(); spool.position.y = spoolY; sg.add(spool);
+      spool.add(cylY(r, 0.2, M.spool, 'spool', 28));
+      [-0.13, 0.13].forEach(y => { const f2 = cylY(r + FLANGE, 0.06, M.spool, 'spool', 28); f2.position.y = y; spool.add(f2); });
+      spool.add(cylY(r + 0.04, 0.12, M.knuck, 'knTendon', 28));
+      const horn = box(1.0, 0.08, 0.3, M.spool, 'spool'); horn.position.y = 0.2; spool.add(horn);
+      // ring on the palm side where the line turns forward
+      ring(dropG, -1.02, z, 'pulley', -0.6, 0.1, drop);
+      rackX0 = Math.min(rackX0, sx - 0.6); rackX1 = Math.max(rackX1, sx + 0.6);
+      const k = 2 * (i - 1) + j, route = [marker(hand, sx * 0.7, palmTopY - 0.6, -0.2), marker(hand, (k - 3.5) * 0.12, 1.7, -1.0)];
+      return {g:sg, spool, dir:-toward, r, route, exit:marker(sg, -toward * (r + 0.05), spoolY, 0), drop:marker(dropG, drop, -1.02, z),
+              top:marker(sg, 0, topY + 0.3, 0), spoolM:marker(sg, 0, spoolY + 0.3, 0), lead:marker(sg, 0, bottom + 0.35, bc - back * (PSV.L / 2 + 0.25))};
+    });
+  }
+  // the rack: a plate on posts, just above the elastic cords, and a bar across each row at the servos' mounting tabs
+  { const plate = box(rackX1 - rackX0, 0.1, 5.6, M.print, 'palmRack'); plate.position.set((rackX0 + rackX1) / 2, RACK_Y + 0.05, 2.75); rackG.add(plate);
+    [[0.35], [5.2]].forEach(([z]) => [rackX0 + 0.3, rackX1 - 0.3].forEach(x => { const p = cylY(0.1, RACK_Y - 0.05, M.steel, 'palmRack', 8); p.position.set(x, (RACK_Y + 0.05) / 2, z); rackG.add(p); }));
+    ROW_Z.forEach((z, j) => [-1, 1].forEach(e => { const bar = box(rackX1 - rackX0, 0.12, 0.2, M.print, 'palmRack'); bar.position.set((rackX0 + rackX1) / 2, RACK_Y + 0.1 + PSV.tabY + 0.12, z + (j ? -1 : 1) * (PSV.L / 2 - PSV.shaftOff) + e * (PSV.tabL / 2 - 0.15)); rackG.add(bar); })); }
+
   /* ---- the wrist (tendon drive): two bend joints with a side joint between them, as on the DexHand ---- */
   // every finger tendon passes the wrist on the bend axes, in one row (bundle position n), so bending the wrist hardly pulls them
-  const BUNDLE = 17, bundleX = n => 1.0 - 2.0 * n / (BUNDLE - 1);
-  const lineN = (i, j) => i ? 5 + 3 * (i - 1) + j : j;   // j: 0 knuckle A, 1 knuckle B, 2 long; thumb twist lines 3 and 4
+  const BUNDLE = 9, bundleX = n => 0.8 - 1.6 * n / (BUNDLE - 1);
+  const lineN = (i, j) => i ? 4 + i : j;   // thumb: 0 knuckle A, 1 knuckle B, 2 long, 3 and 4 twist; fingers 1–4: their long tendons
   const wFix = only('tendon', new THREE.Group()); arm.add(wFix);
   const wlG = only('tendon', new THREE.Group()); wl.add(wlG);
   const wyG = only('tendon', new THREE.Group()); wy.add(wyG);
@@ -1341,19 +1387,19 @@ function build3D(){
   }); });
   const wristM = marker(wy, 0, 1.3, 0.4);
 
-  /* ---- back-of-hand cover (tendon drive) ---- */
+  /* ---- back-of-hand cover (tendon drive): a rounded shell over the palm servos, like the DexHand's ---- */
   const coverG = only('tendon', new THREE.Group()); hand.add(coverG);
   {
     const edge = FINGERS.slice(1).map(f => { const p = toHand(f, -HEAD(f) - 0.35); return [p.x, p.z]; });   // just behind each knuckle head
-    const pts = [[2.4, -0.55], [3.2, 1.6], [3.35, edge[0][1] - 0.9], [edge[0][0] + 0.75, edge[0][1]]].concat(edge,
-      [[edge[3][0] - 0.65, edge[3][1] - 0.2], [-3.1, 4.0], [-2.2, -0.55]]);
+    const pts = [[1.8, -0.45], [2.8, 2.0], [2.95, edge[0][1] - 0.9], [edge[0][0] + 0.45, edge[0][1]]].concat(edge,
+      [[edge[3][0] - 0.45, edge[3][1] - 0.2], [-2.85, 3.8], [-2.0, -0.45]]);
     const sh = new THREE.Shape(); pts.forEach((p, k) => k ? sh.lineTo(p[0], p[1]) : sh.moveTo(p[0], p[1])); sh.lineTo(pts[0][0], pts[0][1]);
-    const geo = plateY(sh, 0.16), pos = geo.attributes.position;
-    for (let k = 0; k < pos.count; k++) pos.setY(k, pos.getY(k) - 0.012 * pos.getX(k) * pos.getX(k));   // domed across, like the back of a hand
-    geo.computeVertexNormals();
-    const cv = mesh(geo, M.shell, 'handCover'); cv.position.y = 1.08; coverG.add(cv); explodable(cv, [0, 2.4, 0]);
+    const H = palmTopY + 0.15 - (RACK_Y - 0.05), bv = 0.35;
+    const geo = new THREE.ExtrudeGeometry(sh, {depth:H - 2 * bv, bevelEnabled:true, bevelThickness:bv, bevelSize:0.22, bevelSegments:4, curveSegments:12});
+    geo.rotateX(Math.PI / 2); geo.translate(0, palmTopY + 0.15 - bv, 0);   // occupies y from the rack plate up to just over the spools
+    const cv = mesh(geo, M.shell, 'handCover'); coverG.add(cv); explodable(cv, [0, 3.0, 0]);
   }
-  const coverM = marker(hand, 0.4, 1.25, 2.6);
+  const coverM = marker(hand, 0.4, palmTopY + 0.35, 2.6);
 
   /* palm servos for the four fingers (motor drive): tabs on the top plate, single-arm horn pushing a rod to the knuckle lever */
   FINGERS.forEach((f, i) => {
@@ -1430,7 +1476,7 @@ function build3D(){
     arm.add(out.wires);
     return out;
   }
-  // tendon build: 18 spools in the forearm, the boards and cells under them, a cover over it all, an elbow mount behind
+  // tendon build: 10 spools in the forearm, the boards and cells under them, a cover over it all, an elbow mount behind
   function localBox(root){ // bounding box of everything under root, in root's own frame
     const bb = new THREE.Box3(), inv = new THREE.Matrix4(), m = new THREE.Matrix4(), b = new THREE.Box3();
     root.updateMatrixWorld(true); inv.copy(root.matrixWorld).invert();
@@ -1461,7 +1507,7 @@ function build3D(){
       const shaftZ = sv.L / 2 - sv.shaftOff, topY = bottom + sv.H;
       const bump = cylY(sv.W * 0.42, sv.top * 0.55, M.servo, part); bump.position.set(0, topY + sv.top * 0.27, shaftZ); sg.add(bump);
       const lead = box(0.34, 0.14, 0.4, M.wire.brown, 'wire'); lead.position.set(0, bottom + 0.4, -sv.L / 2 - 0.15); sg.add(lead);
-      const dbl = q.kind === 'w' || q.kind === 'tw', r = q.kind === 'k' ? TT[q.finger].rk : q.kind === 't' ? TT[q.finger].rT : q.kind === 'tw' ? TW_R : WRIST_R;
+      const dbl = q.kind === 'w' || q.kind === 'tw', r = q.r;
       const mat = q.kind === 'k' ? M.knuck : q.kind === 't' ? M.tendon : M.side, linePart = q.kind === 'k' ? 'knTendon' : q.kind === 't' ? 'longTendon' : 'pullpull';
       const spool = new THREE.Group(), spoolY = topY + sv.top + (dbl ? 0.32 : 0.2); spool.position.set(0, spoolY, shaftZ); sg.add(spool);
       const flanges = dbl ? [-0.26, 0, 0.26] : [-0.13, 0.13];
@@ -1471,15 +1517,17 @@ function build3D(){
       const hy = flanges[flanges.length - 1] + 0.07, horn = box(Math.max(1.0, 1.6 * r), 0.08, 0.32, M.spool, 'spool'); horn.position.y = hy; spool.add(horn);
       const scr = cylY(0.11, 0.06, M.steel, 'spool', 8); scr.position.y = hy + 0.06; spool.add(scr);
       explodable(sg, [0, 3.2, 0]); explodable(spool, [0, 1.6, 0]);
-      const ex = []; let dir = 1;
-      if (dbl) [[1, -0.13], [-1, 0.13]].forEach(([sx, dy]) => ex.push([marker(sg, sx * (r + 0.05), spoolY + dy, shaftZ)]));
-      else {
-        const col = q.x > 0.01 ? 0 : q.x < -0.01 ? 2 : 1, lx = Lo.lane.x[col] - q.x, ly = Lo.lane.y(q.row), ez = shaftZ + r + FLANGE + 0.25;
-        dir = Math.sign(lx) || 1;
+      // where each line leaves. Front row: straight to the comb. Further back: down through an eyelet to a low lane beside the servos
+      const inward = q.x > 0 ? -1 : 1, ex = [], dir = inward;
+      const exits = dbl ? [[inward, -0.13], [-inward, 0.13]] : [[inward, 0]];
+      exits.forEach(([sx, dy]) => {
+        const out = marker(sg, sx * (r + 0.05), spoolY + dy, shaftZ);
+        if (!q.row){ ex.push([out]); return; }
+        const lx = sx * Lo.lane.off(r), ly = Lo.lane.y(q.row) + (sx === inward ? 0 : 0.06), ez = shaftZ + r + FLANGE + 0.25;
         const post = box(0.07, ly - deckTop - 0.08, 0.07, M.steel, 'comb'); post.position.set(lx, (ly + deckTop) / 2 - 0.04, ez); sg.add(post);
         const eye = mesh(new THREE.TorusGeometry(0.07, 0.025, 6, 12), M.steel, 'comb'); eye.position.set(lx, ly, ez); sg.add(eye);
-        ex.push([marker(sg, dir * (r + 0.05), spoolY, shaftZ), marker(sg, lx, ly, ez)]);
-      }
+        ex.push([out, marker(sg, lx, ly, ez)]);
+      });
       return {g:sg, spool, spoolY, q, r, ex, dir, comb:[], lead:marker(sg, 0, bottom + 0.4, -sv.L / 2 - 0.35), top:marker(sg, 0, topY, 0), spoolM:marker(sg, 0, spoolY + 0.3, shaftZ)};
     });
     /* comb: a hole for every line, just behind the wrist */
@@ -1502,22 +1550,22 @@ function build3D(){
     const endp = box(FW, deckTop + 2.6 - bayY, 0.4, M.print, 'endplate'); endp.position.set(0, (deckTop + 2.6 + bayY) / 2, back + 0.2); g.add(endp); explodable(endp, [0, 0, -3.5]);
     /* boards and cells, under the servo deck */
     const zr = r => r < 1 ? Lo.z0 - r * Lo.pitch0 : Lo.z0 - Lo.pitch0 - (r - 1) * Lo.pitch, bx = FW / 2 - 0.5;
-    const mega = new THREE.Group(); mega.position.set(-0.3, bayY + 0.32, zr(1.6)); g.add(mega); explodable(mega, [0, -4.2, 0]);
+    const mega = new THREE.Group(); mega.position.set(-0.45, bayY + 0.32, zr(1.0)); g.add(mega); explodable(mega, [0, -4.2, 0]);
     mega.add(box(3.8, 0.16, 5.4, M.pcbBlue, 'mega'));
     const mcu = box(1.4, 0.12, 1.4, M.black, 'mega'); mcu.position.set(-0.3, 0.14, 0.3); mega.add(mcu);
     const usbm = box(0.9, 0.35, 0.8, M.steel, 'mega'); usbm.position.set(0, 0.25, 2.6); mega.add(usbm);
-    const strip = box(0.95, 0.75, 4.6, M.black, 'mega'); strip.position.set(2.45, 0.42, -0.1); mega.add(strip);   // servo header, 16 × G V S
-    const hdr = []; for (let k = 0; k < 16; k++){ const z = -2.15 + k * 0.27; hdr.push({g:marker(mega, 2.13, 0.85, z), v:marker(mega, 2.45, 0.85, z), s:marker(mega, 2.77, 0.85, z)}); }
-    const linker = new THREE.Group(); linker.position.set(-0.6, bayY + 0.32, zr(0) + 0.8); g.add(linker); explodable(linker, [0, -4.2, 0]);
+    const strip = box(0.95, 0.75, 4.6, M.black, 'mega'); strip.position.set(2.4, 0.42, -0.1); mega.add(strip);   // servo header, 16 × G V S
+    const hdr = []; for (let k = 0; k < 16; k++){ const z = -2.15 + k * 0.27; hdr.push({g:marker(mega, 2.08, 0.85, z), v:marker(mega, 2.4, 0.85, z), s:marker(mega, 2.72, 0.85, z)}); }
+    const linker = new THREE.Group(); linker.position.set(-0.4, bayY + 0.32, zr(0) - 0.2); g.add(linker); explodable(linker, [0, -4.2, 0]);
     linker.add(box(2.4, 0.16, 1.6, M.pcbTeal, 'linker'));
     const lc = box(0.9, 0.5, 0.6, M.black, 'linker'); lc.position.set(0.5, 0.3, 0); linker.add(lc);
-    const dcdc = new THREE.Group(); dcdc.position.set(-bx + 1.25, bayY + 0.32, zr(3.2)); g.add(dcdc); explodable(dcdc, [0, -4.2, 0]);
+    const dcdc = new THREE.Group(); dcdc.position.set(0, bayY + 0.32, twistZ); g.add(dcdc); explodable(dcdc, [0, -4.2, 0]);
     dcdc.add(box(2.2, 0.16, 4.5, M.pcbBlue, 'dcdc'));
     const ind = cylY(0.65, 0.5, M.black, 'dcdc', 18); ind.position.set(0, 0.33, 0.6); dcdc.add(ind);
     [-1.3, -0.5].forEach(z => { const cap = cylY(0.35, 0.45, M.steel, 'dcdc', 14); cap.position.set(0.4, 0.3, z); dcdc.add(cap); });
-    const cells = new THREE.Group(); cells.position.set(0, bayY + 0.2, twistZ); g.add(cells); explodable(cells, [0, -4.2, 0]);
-    const holder = box(7.0, 0.3, 4.0, M.black, 'cells'); cells.add(holder);
-    [-0.95, 0.95].forEach(z => { const c = cylX(0.9, 6.5, M.wire.blue, 'cells', 24); c.position.set(0, 0.95, z); cells.add(c); const cap = cylX(0.92, 0.6, M.steel, 'cells', 24); cap.position.set(2.95, 0.95, z); cells.add(cap); });
+    const cells = new THREE.Group(); cells.position.set(0, bayY + 0.2, zr(3.0)); g.add(cells); explodable(cells, [0, -4.2, 0]);
+    const holder = box(4.0, 0.3, 7.0, M.black, 'cells'); cells.add(holder);
+    [-0.95, 0.95].forEach(x => { const c = cylZ(0.9, 6.5, M.wire.blue, 'cells', 24); c.position.set(x, 0.95, 0); cells.add(c); const cap = cylZ(0.92, 0.6, M.steel, 'cells', 24); cap.position.set(x, 0.95, 2.95); cells.add(cap); });
     const swc = box(0.9, 0.9, 0.5, M.black, 'jack'); swc.position.set(-bx + 0.6, deckTop - 0.9, back + 0.05); g.add(swc);
     const swb = cylZ(0.45, 0.25, M.steel, 'jack', 18); swb.position.set(-bx + 0.6, deckTop - 0.9, back - 0.2); g.add(swb);
     /* the cover: a rounded shell over the whole forearm, slimmer at the wrist end. Untick Covers to see inside */
@@ -1553,10 +1601,10 @@ function build3D(){
     const brg = cylZ(1.6, 0.25, M.black, 'elbow', 28); brg.position.set(0, 0, mz + 0.35); mount.add(brg);
     const post = box(1.4, -3.1 - FLOOR_Y + 0.4, 1.0, M.chrome, 'elbow'); post.position.set(0, (FLOOR_Y + -2.7) / 2, mz - 0.1); mount.add(post);
     const foot = box(6.0, 0.4, 5.0, M.chrome, 'elbow'); foot.position.set(0, FLOOR_Y + 0.2, mz - 0.6); mount.add(foot);
-    const out = {g, mount, S, FW, back, len, midZ, deckTop, bayY, top, servos, hdr, shell,
+    const out = {g, mount, S, FW, back, len, midZ, deckTop, bayY, combZ, top, servos, hdr, shell,
       mega, linker, dcdc, cells, twistM:marker(tw, 0, T.W / 2, 0), megaM:marker(mega, -1.0, 0.2, -1.6), linkerM:marker(linker, 0.6, 0.2, 0), dcdcM:marker(dcdc, 0, 0.7, 0.6),
-      cellsM:marker(cells, -1.5, 1.85, 0.95), shellM:marker(g, wid * 0.4, top, (ZF + back) / 2 - 3), mountM:marker(mount, -2.0, 1.8, mz), switchM:marker(swc, 0, 0.45, 0),
-      leadTwist:marker(tw, T.L / 2 - 0.3, -0.6, T.H / 2 - 0.3), linkIn:marker(linker, -1.0, 0.3, 0), dcIn:marker(dcdc, 0, 0.2, -2.1), dcOut:marker(dcdc, 0, 0.2, 2.1), cellsOut:marker(cells, -3.3, 0.4, -1.6), megaVin:marker(mega, -1.6, 0.2, -2.4),
+      cellsM:marker(cells, 0.95, 1.85, -1.0), shellM:marker(g, wid * 0.4, top, (ZF + back) / 2 - 3), mountM:marker(mount, -2.0, 1.8, mz), switchM:marker(swc, 0, 0.45, 0),
+      leadTwist:marker(tw, T.L / 2 - 0.3, -0.6, T.H / 2 - 0.3), linkIn:marker(linker, -1.0, 0.3, 0), dcIn:marker(dcdc, 0, 0.2, -2.1), dcOut:marker(dcdc, 0, 0.2, 2.1), cellsOut:marker(cells, -1.6, 0.4, 3.3), megaVin:marker(mega, -1.6, 0.2, -2.4),
       wires:new THREE.Group(), explodeStart:startCount};
     arm.add(out.wires);
     return out;
@@ -1587,8 +1635,15 @@ function build3D(){
   // tendon paths: spool → (eyelet) → comb → through the wrist on its bend axes → carpal tunnel → palm guide → finger
   const fromSpool = (sv, e) => sv.ex[e].map(W).concat(W(sv.comb[e]));
   const throughWrist = n => [W(wlPts[n]), W(wuPts[n]), W(tunnelPts[n])];
-  function longPath(i){ return fromSpool(fore.servos[3 * i + 2], 0).concat(throughWrist(lineN(i, 2)), W(palmG[i][0]), fingers[i].long.map(W)); }
-  function knPath(i, sx){ const j = sx > 0 ? 0 : 1; return fromSpool(fore.servos[3 * i + j], 0).concat(throughWrist(lineN(i, j)), W(palmG[i][1 + j]), fingers[i].kn[sx].map(W)); }
+  // forearm servos, in code order: thumb A, B, long, twist; index … little long; wrist (thumb side), wrist (little side)
+  const longSv = i => fore.servos[i ? 3 + i : 2];
+  function longPath(i){ return fromSpool(longSv(i), 0).concat(throughWrist(lineN(i, 2)), W(palmG[i][0]), fingers[i].long.map(W)); }
+  function knPath(i, sx){
+    const j = sx > 0 ? 0 : 1;
+    if (!i) return fromSpool(fore.servos[j], 0).concat(throughWrist(lineN(0, j)), W(palmG[0][1 + j]), fingers[0].kn[sx].map(W));
+    const ps = palmSv[i][j];   // a palm servo: straight down through the hand, then forward (the back row's through its palm guide)
+    return [W(ps.exit), W(ps.drop)].concat(j ? [W(palmG[i][2])] : [], fingers[i].kn[sx].map(W));
+  }
   function extPath(i){
     const f = fingers[i], F = FINGERS[i], me = EXT(F);
     const pts = [W(palmAnchor[i]), W(palmExt[i]), W(f.hood)];
@@ -1598,9 +1653,9 @@ function build3D(){
     });
     pts.push(W(f.extEnd)); return pts;
   }
-  const twistPath = sx => fromSpool(fore.servos[15], sx > 0 ? 0 : 1).concat(throughWrist(sx > 0 ? 3 : 4), fingers[0].twist[sx].slice().reverse().map(W));
+  const twistPath = sx => fromSpool(fore.servos[3], sx > 0 ? 0 : 1).concat(throughWrist(sx > 0 ? 3 : 4), fingers[0].twist[sx].slice().reverse().map(W));
   // wrist lines: wrist servo 16 works the thumb-side corners, 17 the little-finger side; one groove pulls the palm side, the other the back
-  const wristPath = (sx, sy) => fromSpool(fore.servos[sx > 0 ? 16 : 17], sy < 0 ? 0 : 1).concat(W(wGuide[sx][sy]), W(wAnchor[sx][sy]));
+  const wristPath = (sx, sy) => fromSpool(fore.servos[sx > 0 ? 8 : 9], sy < 0 ? 0 : 1).concat(W(wGuide[sx][sy]), W(wAnchor[sx][sy]));
   const pathLen = pts => { let s = 0; for (let k = 0; k < pts.length - 1; k++) s += pts[k].distanceTo(pts[k + 1]); return s; };
   function updateDriveParts(){
     if (drive === 'tendon'){
@@ -1625,16 +1680,18 @@ function build3D(){
     const V = (x, y, z) => new THREE.Vector3(x, y, z);
     arm.updateMatrixWorld(true);
     if (drive === 'tendon'){
-      // 16 finger servo leads run down beside their servos and along the bay to the servo header beside the Mega
-      fore.servos.slice(0, 16).forEach((sv, k) => {
-        const a = A(sv.lead), pins = fore.hdr[k];
-        [['brown', pins.g, -0.08], ['red', pins.v, 0], ['orange', pins.s, 0.08]].forEach(([col, pin, dx]) => {
-          const b = A(pin);
-          w.add(tube([a.clone().add(V(dx, 0, 0)), a.clone().add(V(dx, -0.5, -0.4)), V(a.x * 0.85 + dx, fore.bayY + 1.3, (a.z + b.z) / 2), b.clone().add(V(0, 0.7, 0)), b], M.wire[col], 0.035));
-        });
+      // servo header pins 0–7: the palm servos (index A, B … little A, B); 8–15: the forearm's (thumb A, B, long, twist, index … little long)
+      const lead = (a, pins, mid) => [['brown', pins.g, -0.08], ['red', pins.v, 0], ['orange', pins.s, 0.08]].forEach(([col, pin, dx]) => {
+        const b = A(pin); w.add(tube([a.clone().add(V(dx, 0, 0))].concat(mid.map(m => m.clone().add(V(dx, 0, 0))), [b.clone().add(V(0, 0.7, 0)), b]), M.wire[col], 0.035));
+      });
+      fore.servos.slice(0, 8).forEach((sv, k) => { const a = A(sv.lead); lead(a, fore.hdr[8 + k], [a.clone().add(V(0, -0.5, -0.4)), V(a.x * 0.85, fore.bayY + 1.3, (a.z + A(fore.hdr[8 + k].v).z) / 2)]); });
+      // palm servo leads run back over the wrist (they're redrawn as the wrist moves) and down into the bay
+      for (let i = 1; i < 5; i++) palmSv[i].forEach((ps, j) => {
+        const k = 2 * (i - 1) + j, a = A(ps.lead), x0 = (k - 3.5) * 0.12;
+        lead(a, fore.hdr[k], [A(ps.route[0]), A(ps.route[1]), V(x0, 2.0, WL - 0.6), V(x0, 1.0, fore.combZ - 0.6), V(x0 * 2, fore.bayY + 1.5, fore.combZ - 2.0)]);
       });
       // the serial bus: wrist servo → wrist servo → forearm twist servo → adapter, three wires each hop
-      const chain = [A(fore.servos[16].lead), A(fore.servos[17].lead), A(fore.leadTwist), A(fore.linkIn)];
+      const chain = [A(fore.servos[8].lead), A(fore.servos[9].lead), A(fore.leadTwist), A(fore.linkIn)];
       [['black', -0.08], ['red', 0], ['yellow', 0.08]].forEach(([col, dx]) => {
         for (let k = 0; k < 3; k++){ const a = chain[k].clone().add(V(dx, 0, 0)), b = chain[k + 1].clone().add(V(dx, 0, 0));
           w.add(tube([a, a.clone().add(V(0, -0.6, -0.3)), V((a.x + b.x) / 2, fore.bayY + 1.0, (a.z + b.z) / 2), b.clone().add(V(0, -0.5, 0.3)), b], M.wire[col], 0.035)); }
@@ -1680,15 +1737,16 @@ function build3D(){
     {text:'Knuckle · 2 axes', drive:'tendon', at:() => W(fingers[2].pivotM)},
     {text:'Wrist · 2 bend joints + 1 side joint', drive:'tendon', at:() => W(wristM)},
     {text:'Thumb twist drum', drive:'tendon', at:() => W(fingers[0].twist[1][0])},
-    {text:'Forearm cover · 19 servos inside', drive:'tendon', cover:true, at:() => W(fore.shellM)},
-    {text:'Back-of-hand cover', drive:'tendon', cover:true, at:() => W(coverM)},
+    {text:'Forearm cover · 11 servos inside', drive:'tendon', cover:true, at:() => W(fore.shellM)},
+    {text:'Back-of-hand cover · 8 servos inside', drive:'tendon', cover:true, at:() => W(coverM)},
+    {text:'Knuckle servos ×8 · in the palm', drive:'tendon', inside:true, at:() => W(palmSv[2][0].spoolM)},
     {text:'Metacarpals ×5', drive:'tendon', inside:true, at:() => W(mcMid[1])},
     {text:'Carpal bones ×8', drive:'tendon', at:() => W(capitateM)},
     {text:'Pulley rings, like your finger\'s', drive:'tendon', at:() => W(fingers[1].long[4])},
     {text:'Carpal tunnel guide', drive:'tendon', inside:true, at:() => W(tunnelPts[8])},
-    {text:'Spools ×18 · the muscles', drive:'tendon', inside:true, at:() => W(fore.servos[5].spoolM)},
-    {text:'Wrist servos ×2 · serial bus', drive:'tendon', inside:true, at:() => W(fore.servos[16].spoolM)},
-    {text:'Thumb twist spool', drive:'tendon', inside:true, at:() => W(fore.servos[15].spoolM)},
+    {text:'Long-tendon spools · the forearm muscles', drive:'tendon', inside:true, at:() => W(fore.servos[5].spoolM)},
+    {text:'Wrist servos ×2 · serial bus', drive:'tendon', inside:true, at:() => W(fore.servos[8].spoolM)},
+    {text:'Thumb twist spool', drive:'tendon', inside:true, at:() => W(fore.servos[3].spoolM)},
     {text:'Forearm twist servo', drive:'tendon', inside:true, at:() => W(fore.twistM)},
     {text:'Arduino Mega 2560 Pro', drive:'tendon', inside:true, at:() => W(fore.megaM)},
     {text:'2 × 18650 cells', drive:'tendon', inside:true, at:() => W(fore.cellsM)},
@@ -1738,7 +1796,8 @@ function build3D(){
     // tendon lengths (open pose, plus 8 cm for knots) for the parts list
     const kLen = t ? fingers.map((f, i) => (pathLen(knPath(i, 1)) + pathLen(knPath(i, -1))) / 2 + 8) : dimsNow.kLen;
     const tLen = t ? fingers.map((f, i) => pathLen(longPath(i)) + 8) : dimsNow.tLen;
-    dimsNow = {overallL:overall, handL:tz - wristZ, foreL:wristZ - back, handW:hw, forearmW:t ? box3.max.x - box3.min.x : FW, forearmL:fore.len, height, kLen, tLen};
+    // hand thickness: from the rings on the palm side to the top of the cover over the palm servos
+    dimsNow = {overallL:overall, handL:tz - wristZ, handT:t ? new THREE.Box3().setFromObject(coverG).max.y + 1.15 : 0, foreL:wristZ - back, handW:hw, forearmW:t ? box3.max.x - box3.min.x : FW, forearmL:fore.len, height, kLen, tLen};
     modelCZ = (tz + back) / 2; foreMidZ = fore.midZ;
     keys.forEach(k => { state[k] = saved[k]; }); state.twist = savedT; state.explode = savedE; applyPose(); applyExplode();
     renderParts();
@@ -1761,15 +1820,17 @@ function build3D(){
     if (!t) return;
     fingers.forEach((f, i) => {
       const q = i ? 1 : state.thumbAt, sv = tServos(i, state.knuck[i] * q, state.curl[i] * q, sideNow(i));
-      [0, 1, 2].forEach(j => { const s = fore.servos[3 * i + j]; s.spool.rotation.y = s.dir * sv[j] * D2R; });
+      const kn = i ? palmSv[i] : [fore.servos[0], fore.servos[1]];
+      kn.forEach((s, j) => { s.spool.rotation.y = s.dir * sv[j] * D2R; });
+      const l = longSv(i); l.spool.rotation.y = l.dir * sv[2] * D2R;
     });
     const ws = wristServos(state.wrist[0], state.wrist[1]);
-    fore.servos[15].spool.rotation.y = state.twist * D2R;
-    fore.servos[16].spool.rotation.y = ws[0] * D2R; fore.servos[17].spool.rotation.y = ws[1] * D2R;
+    fore.servos[3].spool.rotation.y = state.twist * D2R;
+    fore.servos[8].spool.rotation.y = ws[0] * D2R; fore.servos[9].spool.rotation.y = ws[1] * D2R;
   }
 
   /* the thumb stops where it meets a finger, as a real one does: its servo stalls there, like gripping an object */
-  const THUMB_GAP = 1.85, RING_GAP = 1.3;   // a thumb bone's centre line (or pulley ring) this close to a finger's and the parts touch
+  const THUMB_GAP = 1.85, RING_GAP = 1.3, PALM_GAP = 1.25;   // a thumb bone's centre line (or pulley ring) this close to a finger's and the parts touch
   const _sa = new THREE.Vector3(), _sb = new THREE.Vector3(), _sc = new THREE.Vector3(), clamp01 = x => Math.max(0, Math.min(1, x));
   function segDist(p1, q1, p2, q2){   // closest distance between two segments (either may be a single point)
     const d1 = _sa.subVectors(q1, p1), d2 = _sb.subVectors(q2, p2), r = _sc.subVectors(p1, p2);
@@ -1799,8 +1860,15 @@ function build3D(){
   function thumbTo(q){ const a = jointAngles(0, state.curl[0] * q, state.knuck[0] * q); fingers[0].joints.forEach((j, k) => j.rotation.x = a[k] * D2R); }
   // bone to bone, or bone to pulley ring (ring to ring can't touch first)
   function thumbFree(q, others){ thumbTo(q); return bones(0, []).every(([p, q2, g1]) => others.every(([p2, r2, g2]) => (g1 < THUMB_GAP && g2 < THUMB_GAP) || segDist(p, q2, p2, r2) > Math.min(g1, g2))); }
+  // the knuckle-tendon rings on the palm side (the thumb can press on those too), in hand space, taken once with nothing moved
+  let palmRings = null;
   function thumbStop(){
-    const others = []; for (let i = 1; i < 5; i++) bones(i, others);
+    if (!palmRings && drive === 'tendon'){
+      hand.updateWorldMatrix(true, true); const inv = new THREE.Matrix4().copy(hand.matrixWorld).invert();
+      palmRings = [];
+      for (let i = 1; i < 5; i++) palmSv[i].map(ps => ps.drop).concat(palmG[i]).forEach(mk => { const p = W(mk).applyMatrix4(inv); palmRings.push([p, p, PALM_GAP]); });
+    }
+    const others = drive === 'tendon' ? palmRings.slice() : []; for (let i = 1; i < 5; i++) bones(i, others);
     let q = 1;
     if (!thumbFree(1, others)){
       let lo = 0, hi = 1;
@@ -1854,7 +1922,7 @@ function build3D(){
   function shown(o){ while (o){ if (!o.visible) return false; o = o.parent; } return true; }
   const sel = new THREE.BoxHelper(undefined, 0xf0a73c); sel.visible = false; scene.add(sel);
   let selObj = null;
-  const GROUPED = {servo:1, wristServo:1, twistServo:1, pca:1, uno:1, mega:1, linker:1, dcdc:1, cells:1, spool:1, horn:1, carpal:1, drum:1};
+  const GROUPED = {servo:1, palmServo:1, wristServo:1, twistServo:1, pca:1, uno:1, mega:1, linker:1, dcdc:1, cells:1, spool:1, horn:1, carpal:1, drum:1};
   function highlight(o){ selObj = GROUPED[partOf(o)] && o.parent ? o.parent : o; sel.setFromObject(selObj); sel.visible = true; kickRender(); }
 
   /* camera presets */
@@ -1921,7 +1989,9 @@ function build3D(){
     }
     state.twist = ease(state.twist, state.twistT, rate);
     const wr = 60 / WRIST_SV.speed * WRIST_R / WRIST_ARM[0];
+    const w0 = state.wrist[0], w1 = state.wrist[1];
     state.wrist = [ease(state.wrist[0], state.wristT[0], wr), ease(state.wrist[1], state.wristT[1], wr), ease(state.wrist[2], state.wristT[2], 60 / TWIST_SV.speed)];
+    if (drive === 'tendon' && state.layers.wiring && (w0 !== state.wrist[0] || w1 !== state.wrist[1])) wiresDirty = true;   // the palm servo leads cross the wrist
     if (Math.abs(state.explodeTarget - state.explode) > 0.0005){
       const step = reduced ? 1 : dt / 0.75;
       state.explode += Math.sign(state.explodeTarget - state.explode) * Math.min(Math.abs(state.explodeTarget - state.explode), step);

@@ -145,8 +145,11 @@ pre{position:relative;margin:0;background:#0f1216;border:1px solid var(--line);b
       <p class="lead" id="driveNote"></p>
       <h2>Pose</h2>
       <div class="chips" id="presets"></div>
-      <h2>Fingers <small id="fingHint">servo angle · flexor pulled</small></h2>
+      <h2>Curl <small id="fingHint">servo angle · flexor pulled</small></h2>
       <div id="fingers"></div>
+      <h2>Side to side <small>finger angle</small></h2>
+      <div id="sides"></div>
+      <p class="note" id="sideNote">Fingers push their neighbours aside when they meet, and can only spread when fairly straight, like yours. Thumb: + swings it out in front of the palm.</p>
       <h2>Servo</h2>
       <div class="seg" role="group" aria-label="Servo model">
         <button id="sv-MG90S" aria-pressed="true">MG90S</button><button id="sv-DS3218" aria-pressed="false">DS3218</button><button id="sv-DS5160" aria-pressed="false">DS5160</button>
@@ -209,6 +212,11 @@ const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce
 
 /* ---------- design data (centimetres unless noted) ---------- */
 const FLANGE = 0.18;  // spool flange lip beyond the groove
+// side to side: each knuckle swivels on an upright pin PIVOT behind its curl pin. A pull-pull pair of lines tugs one of two side arms (lugs)
+const PIVOT = -0.9;
+const SIDE_GAP = 0.5;   // degrees two straight fingers may turn towards each other past parallel before the joint caps touch
+const SIDE_SERVO = {name:'ES9051', kind:'sub-micro servo', L:1.97, W:0.83, H:1.9, top:0.42, shaftOff:0.45, mass:4.1, torque:0.8, speed:0.09, dims:'≈ 20 × 8.5 × 23 mm'};
+const SIDE_HORN = 0.6;  // side servo arm; the finger's lugs sit 4.5 mm out, so servo angle = 0.75 × finger angle
 const SERVOS = {
   MG90S:  {name:'MG90S',  kind:'micro servo',    L:2.28, W:1.22, H:2.27, tabL:3.22, tabY:1.6, tabT:0.25, shaftOff:0.6, top:0.45, mass:13.4, torque:2.2, speed:0.10, dims:'22.8 × 12.2 × 28.5 mm', psu:'5–6 V, 5 A'},
   DS3218: {name:'DS3218', kind:'standard servo', L:4.0,  W:2.0,  H:3.75, tabL:5.45, tabY:2.8, tabT:0.3,  shaftOff:1.0, top:0.75, mass:60,   torque:20,  speed:0.16, dims:'40 × 20 × 40.5 mm',   psu:'6 V, 10 A'},
@@ -217,29 +225,33 @@ const SERVOS = {
 };
 // right hand, palm down, fingers along +z: the thumb sits on the +x side.
 // mc: [x, z] of each metacarpal's base, where it meets the wrist bones. hole: x of the finger's tendons at the wrist.
+// side: side-to-side range in degrees (+ = towards the thumb; thumb: + = out in front of the palm).
+// lug: side arm [x out, up, behind the swivel] and the roller that turns its line, [z from the knuckle pin].
 // link: coupler-link anchors as [along the bone, up] — A on the knuckle fork (from the knuckle pin), b on bone 2 (from its pin),
 // C on bone 1 (from the middle pin), d on bone 3 (from its pin). slot: palm servo [x, z] for motor-per-finger.
 const FINGERS = [
-  {id:'thumb',  name:'Thumb',  base:[3.3,-0.4,1.7],    yaw:32,  pitch:12, roll:-55, L:[3.8,3.0,2.4], w:1.75, t:1.5,  rest:[0,6,4], range:[38,55,70], hole:1.9,
+  {id:'thumb',  name:'Thumb',  base:[3.3,-0.4,1.7],    yaw:32,  pitch:12, roll:-55, L:[3.8,3.0,2.4], w:1.75, t:1.5,  rest:[0,6,4], range:[38,55,70], hole:1.9,  side:[-12,35], lug:[0.9,0,-0.05,-1.9],
    link:{A:[-0.15,0.65], b:[0.05,-0.35], C:[-0.15,-0.65], d:[-0.45,0.25]}},
-  {id:'index',  name:'Index',  base:[2.55,0,7.0],      yaw:4,   pitch:0,  roll:0,   L:[4.0,2.4,1.8], w:1.58, t:1.35, rest:[5,5,3], range:[80,95,65], hole:1.0,  mc:[1.65,1.3],
+  {id:'index',  name:'Index',  base:[2.55,0,7.0],      yaw:4,   pitch:0,  roll:0,   L:[4.0,2.4,1.8], w:1.58, t:1.35, rest:[5,5,3], range:[80,95,65], hole:1.0,  mc:[1.65,1.3],  side:[-8,22],  lug:[0.45,0.55,-0.5,-2.5],
    link:{A:[-0.35,-0.475], b:[-0.45,0.225], C:[-0.15,-0.375], d:[-0.45,0.325]}, slot:[2.28,3.75]},
-  {id:'middle', name:'Middle', base:[0.83,0,7.35],     yaw:0,   pitch:0,  roll:0,   L:[4.4,2.7,1.9], w:1.64, t:1.4,  rest:[5,5,3], range:[80,95,65], hole:0.25, mc:[0.55,1.45],
+  {id:'middle', name:'Middle', base:[0.83,0,7.35],     yaw:0,   pitch:0,  roll:0,   L:[4.4,2.7,1.9], w:1.64, t:1.4,  rest:[5,5,3], range:[80,95,65], hole:0.25, mc:[0.55,1.45], side:[-12,12], lug:[0.45,0.55,-0.5,-2.5],
    link:{A:[-0.25,-0.4], b:[-0.35,0.2], C:[-0.15,-0.3], d:[-0.25,0.4]}, slot:[0.6,3.25]},
-  {id:'ring',   name:'Ring',   base:[-0.88,0,7.0],     yaw:-4,  pitch:0,  roll:0,   L:[4.1,2.6,1.9], w:1.55, t:1.35, rest:[5,5,3], range:[80,95,65], hole:-0.5, mc:[-0.55,1.4],
+  {id:'ring',   name:'Ring',   base:[-0.88,0,7.0],     yaw:-4,  pitch:0,  roll:0,   L:[4.1,2.6,1.9], w:1.55, t:1.35, rest:[5,5,3], range:[80,95,65], hole:-0.5, mc:[-0.55,1.4], side:[-12,10], lug:[0.45,0.55,-0.5,-2.5],
    link:{A:[-0.35,-0.475], b:[-0.45,0.225], C:[-0.15,-0.375], d:[-0.35,0.425]}, slot:[-1.06,3.0]},
-  {id:'little', name:'Little', base:[-2.52,0,6.2],     yaw:-10, pitch:0,  roll:0,   L:[3.3,1.9,1.7], w:1.35, t:1.2,  rest:[5,5,3], range:[80,95,65], hole:-1.25, mc:[-1.45,1.25],
+  {id:'little', name:'Little', base:[-2.52,0,6.2],     yaw:-10, pitch:0,  roll:0,   L:[3.3,1.9,1.7], w:1.35, t:1.2,  rest:[5,5,3], range:[80,95,65], hole:-1.25, mc:[-1.45,1.25], side:[-28,8], lug:[0.45,0.55,-0.5,-2.5],
    link:{A:[-0.25,-0.5], b:[-0.45,0.2], C:[-0.15,-0.32], d:[-0.4,0.28]}, slot:[-2.62,2.6]}
 ];
 const MC_LEN = FINGERS.map(f => f.mc ? Math.hypot(f.base[0] - f.mc[0], f.base[2] - f.mc[1]) : f.L[0]); // metacarpal, base to knuckle pin
-const PRESETS = [
-  ['Open',  [0,0,0,0,0]],
-  ['Fist',  [1,1,1,1,1]],
-  ['Point', [1,0,1,1,1]],
-  ['Peace', [1,0,0,1,1]],
-  ['Rock',  [0.9,0,1,1,0]],
-  ['Pinch', [0.62,0.6,0,0,0]],
-  ['Grip',  [0.5,0.55,0.55,0.55,0.55]]
+const PRESETS = [ // [name, curl 0..1, side degrees]
+  ['Open',   [0,0,0,0,0],                [0,0,0,0,0]],
+  ['Fist',   [1,1,1,1,1],                [0,0,0,0,0]],
+  ['Point',  [1,0,1,1,1],                [0,0,0,0,0]],
+  ['Peace',  [1,0,0,1,1],                [0,10,-4,0,0]],
+  ['Rock',   [0.9,0,1,1,0],              [0,6,0,0,-12]],
+  ['Pinch',  [0.62,0.6,0,0,0],           [22,0,0,0,0]],
+  ['Grip',   [0.5,0.55,0.55,0.55,0.55],  [12,0,0,0,0]],
+  ['Spread', [0,0,0,0,0],                [-12,18,1,-8,-24]],
+  ['Vulcan', [0,0,0,0,0],                [0,0,2,-8,-8]]
 ];
 // fnM: the description to use when the hand is driven by a motor per finger
 const PARTS = {
@@ -249,6 +261,11 @@ const PARTS = {
   thumbMC:  {name:'Thumb metacarpal', qty:'1', size:'38 mm pin to pin', mat:'PLA or PETG, printed', fn:'The thumb\'s first bone. Unlike the other four metacarpals it moves, swinging on the trapezium (a wrist bone).'},
   mc:       {name:'Metacarpal', qty:'4 + thumb', size:'', mat:'PLA or PETG, printed', fn:'The long bones of the palm. Each ends in a rounded head: the knuckle you see when you make a fist.'},
   carpal:   {name:'Carpal bones', qty:'8', size:'≈ 6–15 mm each', mat:'Printed as one block, or 8 pieces glued', fn:'The wrist bones: scaphoid, lunate, triquetrum, pisiform, trapezium, trapezoid, capitate and hamate. The metacarpals bolt on, and the thumb pivots on the trapezium.'},
+  swivel:   {name:'Knuckle swivel', qty:'5', size:'printed block, upright M3 pin, 2 × 693ZZ', mat:'PETG or nylon', fn:'The second axis of each knuckle. The curl pin sits in front, an upright pin 9 mm behind lets the whole finger swing side to side, so the knuckle moves both ways like yours.'},
+  sideServo:{name:'Side-to-side servo · ES9051', qty:'4', size:'≈ 20 × 8.5 × 23 mm, 4 g, ≈ 0.8 kg·cm', mat:'Sub-micro hobby servo, 5 V', fn:'Swings one finger left or right through a pair of lines. In your hand this job is done by small muscles between the palm bones (the interossei), so these sit on the back of the hand too, like the servos in your photo.'},
+  pullpull: {name:'Pull-pull lines', qty:'10', size:'0.5 mm braided PE', mat:'Fishing line', fn:'Two lines per finger, like the cables on a model plane\'s rudder: one pulls the left arm of the knuckle back while the other lets the right arm go, and the other way round.'},
+  roller:   {name:'Roller', qty:'10', size:'M2 screw with a printed sleeve', mat:'Steel + PLA', fn:'Turns each side line so it pulls straight back on the knuckle\'s arm.'},
+  backplate:{name:'Back plate', qty:'1', size:'≈ 60 × 25 × 2 mm on 4 posts', mat:'Printed', fn:'Holds the four side-to-side servos above the back of the hand. The extensor tendons run underneath it.'},
   tbar:     {name:'Transverse bar', qty:'2', size:'≈ 60 × 6 × 2.5 mm', mat:'Printed or aluminium strip', fn:'Ties the four palm metacarpals together, like the ligaments between your knuckles.'},
   pulley:   {name:'Pulley ring (A1–A5)', qty:'30', size:'Ø 2.6 mm hole, 9 mm from each joint pin', mat:'Printed with the bones', fn:'Holds the flexor close under the bone, like the pulleys in your own finger. Without them the line would bowstring and the finger would get weak.'},
   extGuide: {name:'Extensor guide', qty:'15', size:'small loop on top of each bone', mat:'Printed with the bones', fn:'Keeps the extensor centred on the back of the finger as it wraps over each knuckle.'},
@@ -399,7 +416,8 @@ function forearmLayout(mode, S){
     fl = Math.max(...TT.map(t => Math.max(t.rf, t.re))) + FLANGE;
     const cx = Math.max(fl + 0.12, S.W / 2 + 0.25), pitch = Math.max(S.tabL, 2 * fl) + 0.6;
     combZ = -3.1; const front = combZ - 0.5 - fl - (S.L / 2 - S.shaftOff);
-    slots = [[cx, 1], [cx, 0], [0, 2], [-cx, 0], [-cx, 1]].map(([x, row]) => ({x, z:front - row * pitch, lift:row * STEP})); // thumb, index, middle, ring, little
+    // thumb, index, middle, ring, little curl servos, then the thumb-out servo
+    slots = [[cx, 1], [cx, 0], [-cx, 2], [-cx, 0], [-cx, 1], [cx, 2]].map(([x, row]) => ({x, z:front - row * pitch, lift:row * STEP}));
     FW = 2 * (cx + fl) + 1.2;
   } else FW = 7.6; // electronics only: the servo driver is 62.5 mm long
   const pcaZ = slots.length ? Math.min(...slots.map(s => s.z - S.tabL / 2)) - 1.9 : -2.4;
@@ -411,7 +429,7 @@ const fmt = (n, d = 0) => n.toFixed(d);
 const fmtN = n => fmt(n, n < 10 ? 1 : 0);
 const mm = (x, d = 1) => fmt(x * 10, d);
 
-const state = {curl:[0,0,0,0,0], target:[0,0,0,0,0], explode:0, explodeTarget:0,
+const state = {curl:[0,0,0,0,0], target:[0,0,0,0,0], side:[0,0,0,0,0], sideT:[0,0,0,0,0], explode:0, explodeTarget:0,
   layers:{tendons:true, wiring:true, labels:innerWidth > 560, dims:false}};
 $('#ly-labels').checked = state.layers.labels;
 
@@ -423,15 +441,57 @@ FINGERS.forEach((f, i) => {
 FINGERS.forEach((f, i) => $('#f-' + f.id).addEventListener('input', e => { stopDemo(); setTarget(i, e.target.value / 100); markPreset(null); }));
 const presetsEl = $('#presets');
 PRESETS.forEach(([name, v]) => presetsEl.insertAdjacentHTML('beforeend', `<button class="chip" data-p="${name}">${name}</button>`));
-presetsEl.insertAdjacentHTML('beforeend', '<button class="chip run" id="demo">Run demo</button>');
+presetsEl.insertAdjacentHTML('beforeend', '<button class="chip run" id="demo">Run demo</button><button class="chip run" id="circles">Finger circles</button>');
 $$('[data-p]').forEach(b => b.addEventListener('click', () => { stopDemo(); applyPreset(b.dataset.p); }));
-function applyPreset(name){ const p = PRESETS.find(x => x[0] === name); p[1].forEach((v, i) => setTarget(i, v)); markPreset(name); }
+function applyPreset(name){ const p = PRESETS.find(x => x[0] === name); p[1].forEach((v, i) => setTarget(i, v)); setSides(p[2]); markPreset(name); }
+/* side to side: fingers can't pass through each other, so a finger pushes its neighbours aside (keep = the finger being moved) */
+function fixSides(s, keep){
+  s = s.slice();
+  const Y = i => FINGERS[i].yaw, lim = i => FINGERS[i].side, cl = (i, v) => Math.max(lim(i)[0], Math.min(lim(i)[1], v));
+  const up = i => s[i - 1] + Y(i - 1) - Y(i) + SIDE_GAP;   // furthest towards the thumb finger i can go, given the finger on its thumb side
+  const dn = i => s[i + 1] + Y(i + 1) - Y(i) - SIDE_GAP;   // furthest away from the thumb, given the finger on its little-finger side
+  for (let i = 0; i < 5; i++) s[i] = cl(i, s[i]);
+  const k = keep >= 1 && keep <= 4 ? keep : 1;
+  for (let i = k + 1; i <= 4; i++) s[i] = cl(i, Math.min(s[i], up(i)));
+  for (let i = k - 1; i >= 1; i--) s[i] = cl(i, Math.max(s[i], dn(i)));
+  for (let i = 3; i >= 1; i--) s[i] = Math.max(s[i], dn(i));   // a neighbour already at its limit stops the moving finger
+  for (let i = 2; i <= 4; i++) s[i] = Math.min(s[i], up(i));
+  return s;
+}
+// like your knuckle's side ligaments, which go tight as the finger bends: a curled finger can't spread (the thumb's base joint can)
+const sideK = i => i ? Math.max(0, 1 - state.curl[i] / 0.9) : 1;
+const sideNow = i => state.side[i] * sideK(i);
+function setSides(v, keep){ state.sideT = fixSides(v, keep); FINGERS.forEach((f, i) => { $('#s-' + f.id).value = Math.round(state.sideT[i]); }); kick(); }
+const sidesEl = $('#sides');
+FINGERS.forEach((f, i) => sidesEl.insertAdjacentHTML('beforeend', `<div class="fing"><label for="s-${f.id}">${f.name}</label><input type="range" id="s-${f.id}" min="${f.side[0]}" max="${f.side[1]}" step="1" value="0" aria-describedby="os-${f.id}"><output id="os-${f.id}">0°</output></div>`));
+FINGERS.forEach((f, i) => $('#s-' + f.id).addEventListener('input', e => { stopDemo(); const v = state.sideT.slice(); v[i] = +e.target.value; setSides(v, i); markPreset(null); }));
 function markPreset(name){ $$('[data-p]').forEach(b => b.classList.toggle('on', b.dataset.p === name)); }
 function setTarget(i, v){ state.target[i] = v; $('#f-' + FINGERS[i].id).value = Math.round(v * 100); kick(); }
 
 let demoTimer = null;
 const DEMO = ['Fist','Open','Point','Peace','Rock','Pinch','Open'];
-function stopDemo(){ if (demoTimer){ clearTimeout(demoTimer); demoTimer = null; $('#demo').textContent = 'Run demo'; } }
+function stopDemo(){
+  if (demoTimer){ clearTimeout(demoTimer); demoTimer = null; $('#demo').textContent = 'Run demo'; }
+  if (circleRAF){ cancelAnimationFrame(circleRAF); circleRAF = null; $('#circles').textContent = 'Finger circles'; }
+}
+// each finger in turn draws two circles with its tip: side to side and curl, a quarter turn apart. Neighbours step aside to make room.
+let circleRAF = null;
+const CIRCLE = {order:[1, 2, 3, 4, 0], each:3.2, period:1.6, centre:[10, 6, 0, -2, -10], amp:[22, 12, 9, 9, 14]};
+$('#circles').addEventListener('click', () => {
+  if (circleRAF){ stopDemo(); return; }
+  stopDemo(); if (drive !== 'tendon') setDrive('tendon');
+  const t0 = performance.now(); $('#circles').textContent = 'Stop circles'; markPreset(null);
+  (function step(now){
+    const t = (now - t0) / 1000, k = Math.floor(t / CIRCLE.each);
+    if (k >= CIRCLE.order.length){ circleRAF = null; $('#circles').textContent = 'Finger circles'; applyPreset('Open'); return; }
+    const i = CIRCLE.order[k], a = Math.min(1, (t - k * CIRCLE.each) / 0.4) * 1, ph = (t - k * CIRCLE.each) / CIRCLE.period * 2 * Math.PI;
+    const curl = [0, 0, 0, 0, 0], side = [0, 0, 0, 0, 0];
+    curl[i] = i ? 0.06 + 0.24 * (1 - Math.cos(ph)) / 2 : 0.1 + 0.6 * (1 - Math.cos(ph)) / 2;
+    side[i] = CIRCLE.centre[i] + a * CIRCLE.amp[i] * Math.sin(ph);
+    curl.forEach((v, j) => setTarget(j, v)); setSides(side, i);
+    circleRAF = requestAnimationFrame(step);
+  })(t0);
+});
 $('#demo').addEventListener('click', () => {
   if (demoTimer){ stopDemo(); return; }
   let k = 0; $('#demo').textContent = 'Stop demo';
@@ -478,6 +538,9 @@ function renderDrive(){
   $('#driveNote').textContent = m ? 'One servo per finger, in the palm. A pushrod turns the knuckle; links inside the finger curl the other two joints.'
                                   : 'Built like your hand: no motors in the fingers. Five servos in the forearm are the muscles; each pulls a flexor to close a finger and an extensor to open it.';
   $('#fingHint').textContent = m ? 'servo angle · knuckle angle' : 'servo angle · flexor pulled';
+  $$('#sides input').forEach(x => x.disabled = m); $('#circles').disabled = m;
+  $('#sideNote').textContent = m ? 'Side to side is part of the human-tendons build.' : 'Fingers push their neighbours aside when they meet, and can only spread when fairly straight, like yours. Thumb: + swings it out in front of the palm.';
+  if (m){ state.sideT = [0,0,0,0,0]; FINGERS.forEach(f => { $('#s-' + f.id).value = 0; }); }
   $('#lyDrive').textContent = m ? 'Linkages' : 'Tendons';
   $('#hudSub').textContent = (m ? 'One servo per finger, 3D-printable' : '27 bones like yours, tendons as muscles') + '. Drag to orbit, scroll to zoom, click any part.';
   $('#legend').innerHTML = (m ? '' : '<b class="f">amber</b> flexor, closes · <b class="e">blue</b> extensor, opens · ') + 'grid 1 cm';
@@ -535,10 +598,15 @@ function renderParts(){
     ['Bay floor, end plate, wrist block', '3', '3–4 mm plates', 'printed'],
     ['Wiring', '—', '4 jumper wires, 18 AWG red/black', 'servo leads run back under the wrist']]); }
   else { const fl = d.flexLen.map(x => Math.round(x)), el = d.extLen.map(x => Math.round(x)), sp = Math.max(...TT.map(t => t.spring));
-    rows = [['Servo', '5', `${S.name}, ${S.dims}`, 'all in the forearm: these are the muscles']].concat(shared1, [
+    rows = [['Servo', '6', `${S.name}, ${S.dims}`, 'in the forearm: 5 curl the fingers, 1 swings the thumb out'],
+    ['Side-to-side servos', '4', `${SIDE_SERVO.name} sub-micro, ${SIDE_SERVO.dims}, ${SIDE_SERVO.mass} g`, S.torque > 30 ? 'on the back of the hand; give them their own 5 V supply' : 'on the back of the hand, 5 V']].concat(shared1, [
     ['Bones', '27', '8 carpals, 5 metacarpals, 14 phalanges', S.torque >= 40 ? 'PETG or nylon, solid round the pins and pulleys' : 'the same set as your hand; PLA/PETG'],
-    ['Joint pins', '15', 'M3 × 20 mm + nylock nut', ''],
-    ['Ball bearings', '30', '693ZZ, 3 × 8 × 4 mm', 'two per joint, pressed into the forks'],
+    ['Joint pins', '20', 'M3 × 20 mm + nylock nut', '15 curl pins + 5 upright swivel pins'],
+    ['Ball bearings', '40', '693ZZ, 3 × 8 × 4 mm', 'two per pin, pressed into the forks and yokes'],
+    ['Knuckle swivels', '5', 'printed neck block with two side arms', 'second axis at every knuckle'],
+    ['Pull-pull lines', '10', '0.5 mm braided PE (≈ 60 kg rated)', 'two per finger, for side to side'],
+    ['Rollers', '10', 'M2 screw + printed sleeve', 'turn each side line towards its knuckle'],
+    ['Back plate', '1', '≈ 60 × 25 × 2 mm on 4 posts', 'holds the side servos above the extensors'],
     ['Double spools', '5', `flexor groove r ${mm(Math.min(...TT.map(t => t.rf)))}–${mm(Math.max(...TT.map(t => t.rf)))} mm, extensor r ${mm(Math.min(...TT.map(t => t.re)))}–${mm(Math.max(...TT.map(t => t.re)))} mm`, 'printed, on the servo horn'],
     ['Flexor tendons', '5', `${lineSpec(S)}, ${Math.min(...fl)}–${Math.max(...fl)} cm each`, `pulls up to ≈ ${fmt(maxPullKgf(S))} kgf; includes 8 cm for knots`],
     ['Extensor tendons', '5', `same line, ${Math.min(...el)}–${Math.max(...el)} cm each`, 'includes 8 cm for knots'],
@@ -567,7 +635,10 @@ function renderParts(){
 const IDEA = {
   tendon:['Built like your own hand, with the same 27 bones: 8 carpals in the wrist, 5 metacarpals in the palm and 14 phalanges in the fingers. Each joint is a rounded bone head held in a fork on the next bone by an M3 pin, so it bends one way, like yours.',
           'There are no motors in the fingers, the same as in your body: the muscles that bend your fingers are in your forearm. Here five servos in the forearm are the muscles and the strings are the tendons. The flexor runs under the finger through pulley rings, like the ones in your finger, and closes it. The extensor runs over the back and opens it.',
-          'Each servo turns a double spool. As it turns, one groove winds the flexor in while the other lets the extensor out, so the pair always pull against each other like real muscles. The two lines don\'t change length by exactly the same amount, so a small spring in each extensor takes up the difference: about a millimetre.'],
+          'Each servo turns a double spool. As it turns, one groove winds the flexor in while the other lets the extensor out, so the pair always pull against each other like real muscles. The two lines don\'t change length by exactly the same amount, so a small spring in each extensor takes up the difference: about a millimetre.',
+          'Every knuckle also swivels on an upright pin just behind it, so a finger can swing side to side as well as curl, like yours. In your hand that is done by small muscles between the palm bones (the interossei), so here four small servos on the back of the hand do it, each pulling a pair of lines like a model plane\'s rudder. The thumb\'s outward muscle starts in your forearm, so the thumb gets a sixth forearm servo. Curl and side to side together let every finger draw circles with its tip.',
+          'The flexor and extensor pass right past each swivel pin, so swinging a finger sideways hardly changes their length: the two movements don\'t fight each other.',
+          'Try spreading your fingers while making a fist: you can\'t, because the side ligaments of your knuckles go tight as they bend. The model does the same, so the side swing shrinks as a finger curls and is gone by a full fist. The thumb stops when it meets a finger, the way it stops on anything you grip; its servo just holds there.'],
   motor:['Each finger has its own servo, sitting in the palm just behind the knuckle. A short pushrod (the kind used on RC planes) joins the servo\'s arm to a lever on the finger\'s first bone, so when the servo turns, the finger swings about its knuckle pin.',
          'Two thin rigid links run inside each finger, beside the bones. They tie the middle and tip joints to the knuckle, so the whole finger curls from one motor, the way yours does. The thumb\'s servo sits under the palm and turns the thumb\'s base joint directly.',
          'No strings and no springs: the servo pushes the finger closed and pulls it open again.']
@@ -581,12 +652,17 @@ function renderFormula(){
   const t = TT[i], r = a.map((x, j) => x - FINGERS[i].rest[j]), N = t.pull.length - 1;
   $('#formula').innerHTML = `servo φ = flexor in ÷ r<sub>flexor</sub> = extensor out ÷ r<sub>extensor</sub><br>Index spool: r<sub>flexor</sub> = ${mm(t.rf)} mm · r<sub>extensor</sub> = ${mm(t.re)} mm<br>Index now: θ = ${r.map(x => fmt(x) + '°').join(' + ')}<br>→ <em>flexor in ${mm(pullCm(i, c))} mm</em> · <i>extensor out ${mm(lerpT(t.ext, c))} mm</i> · servo φ = <em>${fmt(servoDeg(i, c))}°</em><br>Fully closed: ${mm(t.pull[N])} mm in, ${mm(t.ext[N])} mm out, ${SERVO_TRAVEL}° of servo.<br>The spring takes up the gap between the two: at most ${mm(t.spring)} mm.`;
 }
-$('#wiremap').innerHTML = '<thead><tr><th>From</th><th>To</th></tr></thead><tbody>' + [
-  ['Thumb servo', 'PCA9685 channel 0'], ['Index servo', 'channel 1'], ['Middle servo', 'channel 2'], ['Ring servo', 'channel 3'], ['Little servo', 'channel 4'],
-  ['PCA9685 VCC', 'Arduino 5V'], ['PCA9685 GND', 'Arduino GND'], ['PCA9685 SDA', 'Arduino A4'], ['PCA9685 SCL', 'Arduino A5'],
-  ['Power supply +', 'PCA9685 V+ terminal'], ['Power supply −', 'PCA9685 GND terminal'], ['Arduino', 'USB to your computer']
-].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('') + '</tbody>';
+function renderWiring(){
+  const t = drive === 'tendon';
+  $('#wiremap').innerHTML = '<thead><tr><th>From</th><th>To</th></tr></thead><tbody>' + [
+    ['Thumb curl servo', 'PCA9685 channel 0'], ['Index curl servo', 'channel 1'], ['Middle curl servo', 'channel 2'], ['Ring curl servo', 'channel 3'], ['Little curl servo', 'channel 4']]
+    .concat(t ? [['Index … little side servos', 'channels 5–8'], ['Thumb-out servo', 'channel 9']] : [], [
+    ['PCA9685 VCC', 'Arduino 5V'], ['PCA9685 GND', 'Arduino GND'], ['PCA9685 SDA', 'Arduino A4'], ['PCA9685 SCL', 'Arduino A5'],
+    ['Power supply +', 'PCA9685 V+ terminal'], ['Power supply −', 'PCA9685 GND terminal'], ['Arduino', 'USB to your computer']])
+    .map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('') + '</tbody>';
+}
 function renderHow(){
+  renderWiring();
   $('#idea').innerHTML = IDEA[drive].map(p => `<p>${p}</p>`).join('');
   renderFormula();
   const M9 = SERVOS.MG90S, DS = SERVOS.DS5160, len = mode => fmt((tipZ() - forearmLayout(mode, M9).back) * 10);
@@ -604,34 +680,76 @@ function renderHow(){
   $('#compare').innerHTML = `<thead><tr><th></th><th${on('tendon')}>Human tendons</th><th${on('motor')}>Motor per finger</th></tr></thead><tbody>` +
     rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('') + '</tbody>';
   const MAXDEG = FINGERS.map((f, i) => Math.round(servoDeg(i, 1)));
-  $('#codetext').textContent =
+  const head =
 `#include <Adafruit_PWMServoDriver.h>
 Adafruit_PWMServoDriver pwm;              // address 0x40
 
 // channel: 0 thumb, 1 index, 2 middle, 3 ring, 4 little
 const int MAX_DEG[5] = {${MAXDEG.join(', ')}};   // servo travel to close each finger
 
-void setFinger(int ch, float curl) {      // curl: 0 = open, 1 = closed
-  float deg = curl * MAX_DEG[ch];
-  int us = 500 + deg / 180.0 * 2000;      // 500–2500 µs covers 0–180°
-  pwm.writeMicroseconds(ch, us);
+void servoTo(int ch, float deg) {         // 500–2500 µs covers 0–180°
+  pwm.writeMicroseconds(ch, 500 + deg / 180.0 * 2000);
+}
+
+${drive === 'motor' ? '' : `float curlNow[5];                         // last curl sent to each finger
+
+`}void setFinger(int f, float curl) {       // curl: 0 = open, 1 = closed
+${drive === 'motor' ? '' : '  curlNow[f] = curl;\n'}  servoTo(f, curl * MAX_DEG[f]);
+}
+`;
+  $('#codetext').textContent = drive === 'motor' ? head +
+`
+void setup() {
+  pwm.begin();
+  pwm.setPWMFreq(50);                     // servos expect 50 Hz
+  for (int f = 0; f < 5; f++) setFinger(f, 0);
+}
+
+void loop() {
+  for (int f = 0; f < 5; f++) setFinger(f, 1);  // fist
+  delay(1000);
+  for (int f = 0; f < 5; f++) setFinger(f, 0);  // open
+  delay(1000);
+}` : head +
+`
+// side to side: channels 5–8 index … little (servos on the back of the hand), 9 thumb out
+// side servos sit at 90° with the finger straight; their arm is longer than the knuckle's, so they turn 0.75° per finger degree
+// a bent finger can't spread (your knuckle's side ligaments go tight too), so the angle shrinks as the finger curls
+void setSide(int f, float deg) {          // deg: + = towards the thumb (thumb: + = out in front of the palm)
+  if (f == 0) { servoTo(9, 90 + deg); return; }
+  float k = 1 - curlNow[f] / 0.9;
+  if (k < 0) k = 0;
+  servoTo(4 + f, 90 + deg * k * 0.75);
+}
+
+// one circle with a fingertip: side to side and curl, a quarter turn apart
+void circle(int f, float centre, float size, int ms) {
+  for (int k = 0; k <= 60; k++) {
+    float a = k * 2 * PI / 60;
+    setSide(f, centre + size * sin(a));
+    setFinger(f, (f == 0 ? 0.1 : 0.06) + (f == 0 ? 0.6 : 0.24) * (1 - cos(a)) / 2);
+    delay(ms / 60);
+  }
 }
 
 void setup() {
   pwm.begin();
   pwm.setPWMFreq(50);                     // servos expect 50 Hz
-  for (int ch = 0; ch < 5; ch++) setFinger(ch, 0);
+  for (int f = 0; f < 5; f++) { setFinger(f, 0); setSide(f, 0); }
 }
 
 void loop() {
-  for (int ch = 0; ch < 5; ch++) setFinger(ch, 1);  // fist
-  delay(1000);
-  for (int ch = 0; ch < 5; ch++) setFinger(ch, 0);  // open
-  delay(1000);
+  circle(1, 6, 12, 1600);                 // index: away from the middle finger
+  setSide(1, 0);
+  circle(4, -10, 14, 1600);               // little finger
+  setSide(4, 0);
+  circle(0, 10, 22, 1600);                // thumb
+  setSide(0, 0);
+  delay(500);
 }`;
   $('#codeNote').textContent = 'Needs the "Adafruit PWM Servo Driver" library (Arduino IDE: Tools → Manage Libraries). Test one finger at a time and adjust MAX_DEG until the finger closes fully without straining.' +
     (drive === 'motor' ? ' Fit each servo arm with the finger open and the servo at 0°. If a finger moves the wrong way, use 180 − deg for that channel.'
-                       : ' Tie both tendons with the finger open and the servo at 0°: flexor snug, extensor spring stretched a few millimetres.');
+                       : ' Tie both tendons with the finger open and the servo at 0°: flexor snug, extensor spring stretched a few millimetres. Fit the side servo arms at 90° with the finger straight. This code doesn\'t stop fingers bumping into each other, so circle the middle and ring fingers only with their neighbours spread, as the page does.');
 }
 $('#copy').addEventListener('click', () => {
   const txt = $('#codetext').textContent, b = $('#copy');
@@ -641,13 +759,14 @@ $('#copy').addEventListener('click', () => {
 });
 
 function updateReadouts(){
-  FINGERS.forEach((f, i) => { const c = state.curl[i];
+  FINGERS.forEach((f, i) => { const v = Math.round(sideNow(i)); $('#os-' + f.id).textContent = (v > 0 ? '+' : '') + v + '°'; });
+  FINGERS.forEach((f, i) => { const c = i || state.thumbAt === undefined ? state.curl[i] : state.thumbAt;
     $('#o-' + f.id).textContent = drive === 'motor' ? `${fmt(servoDeg(i, c))}° · ${fmt(jointAngles(i, c)[0])}°` : `${fmt(servoDeg(i, c))}° · ${mm(pullCm(i, c))} mm`; });
   renderFormula();
 }
 
 /* ---------- 3D ---------- */
-let scene3d = null, kick = () => { if (!scene3d){ state.curl = state.target.slice(); state.explode = state.explodeTarget; updateReadouts(); } };
+let scene3d = null, kick = () => { if (!scene3d){ state.curl = state.target.slice(); state.side = state.sideT.slice(); state.explode = state.explodeTarget; updateReadouts(); } };
 function webglOK(){ try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))); } catch (e) { return false; } }
 
 renderDrive();
@@ -711,6 +830,7 @@ function build3D(){
     rubber:  ph({color:0x25282c, shininess:6}),
     tendon:  ph({color:0xf0a73c, emissive:0x3d2400, shininess:40}),
     ext:     ph({color:0x5aa9e6, emissive:0x0b2236, shininess:40}),
+    side:    ph({color:0xeef1f4, emissive:0x22262b, shininess:40}),
     pcbBlue: ph({color:0x1f4c8f, specular:0x333a44, shininess:40}),
     pcbTeal: ph({color:0x0f7380, specular:0x333a44, shininess:40}),
     black:   ph({color:0x101215, shininess:25}),
@@ -841,8 +961,10 @@ function build3D(){
     base.rotation.set(f.pitch * D2R, f.yaw * D2R, f.roll * D2R, 'YXZ');
     hand.add(base);
     const mf = only('motor', new THREE.Group()); base.add(mf); forkInto(mf, f.w, f.t + 0.05, TAB, 'knuckle');
+    const abd = new THREE.Group(); abd.position.z = PIVOT; base.add(abd);     // swings side to side on the upright pin
+    const knk = new THREE.Group(); knk.position.z = -PIVOT; abd.add(knk);     // back at the curl pin
     const joints = [];
-    let parent = base;
+    let parent = knk;
     f.L.forEach((L, j) => {
       const jg = new THREE.Group(); parent.add(jg); joints.push(jg);
       const tip = j === 2;
@@ -854,17 +976,40 @@ function build3D(){
         const next = new THREE.Group(); next.position.z = L; jg.add(next); parent = next;
       }
     });
-    const out = {base, joints, tipM:marker(joints[2], 0, 0, f.L[2] + f.t / 2), pinM:marker(joints[1], 0, 0, 0)};
+    const out = {base, abd, knk, joints, tipM:marker(joints[2], 0, 0, f.L[2] + f.t / 2), pinM:marker(joints[1], 0, 0, 0),
+                 home:new THREE.Matrix4().compose(base.position.clone(), base.quaternion.clone(), base.scale.clone())};
 
     /* tendon drive: knuckle head (metacarpal, or the trapezium for the thumb), A1 pulley, extensor hood, tendon paths */
-    const tk = only('tendon', new THREE.Group()); base.add(tk);
-    condyles(tk, f, 0, fi ? 'mc' : 'carpal'); anatPin(tk, f, 0);
-    const m = FLEX(f), me = EXT(f);
-    ring(tk, -m, -0.7, 'pulley', -0.32 * f.t);
-    ring(tk, me, -0.9, 'extGuide', 0.3 * f.t, 0.12);
-    out.flex = [marker(base, 0, -m, -0.7)];
+    const tk = only('tendon', new THREE.Group()); base.add(tk);              // fixed to the palm (or the trapezium)
+    const tm = only('tendon', new THREE.Group()); knk.add(tm);               // swings with the finger
+    const sp = 'swivel', m = FLEX(f), me = EXT(f), [lx, ly, lz, rz] = f.lug;
+    condyles(tm, f, 0, fi ? 'mc' : 'carpal'); anatPin(tm, f, 0);
+    // knuckle swivel: a neck block behind the head turns on an upright pin held by a fixed yoke
+    const neck = box(0.7, 0.56, 0.8, M.chrome, sp); neck.position.z = -0.65; tm.add(neck);
+    [-1, 1].forEach(sy => { const yk = box(0.6, 0.06, 0.7, M.chrome, sp); yk.position.set(0, sy * 0.33, PIVOT); tk.add(yk); });
+    const yb = box(0.6, 0.72, 0.25, M.chrome, sp); yb.position.z = PIVOT - 0.45; tk.add(yb);
+    const vp = cylY(0.15, 0.9, M.steel, 'pin'); vp.position.z = PIVOT; tk.add(vp);
+    [-1, 1].forEach(sy => { const bc = cylY(0.3, 0.05, M.black, 'bearing', 20); bc.position.set(0, sy * 0.38, PIVOT); tk.add(bc); });
+    // side arms (lugs): pulling one back swings the finger towards that side
+    out.lug = {}; out.roll = {};
+    [-1, 1].forEach(sx => {
+      const arm = ly ? box(0.14, 0.08, -lz + 0.55, M.chrome, sp) : box(lx - 0.4, 0.12, 0.14, M.chrome, sp);
+      if (ly){ arm.position.set(sx * lx, ly - 0.07, PIVOT + lz / 2 - 0.05); } else arm.position.set(sx * (lx + 0.4) / 2, 0, PIVOT + lz);
+      tm.add(arm);
+      const eye = cylY(0.1, 0.18, M.steel, sp, 10); eye.position.set(sx * lx, ly, PIVOT + lz); tm.add(eye);
+      out.lug[sx] = marker(knk, sx * lx, ly, PIVOT + lz);
+      const rl = cylY(0.12, 0.22, M.steel, 'roller', 12); rl.position.set(sx * lx, ly, rz); tk.add(rl);
+      if (ly){ const post = box(0.06, ly - 0.2, 0.06, M.steel, 'roller'); post.position.set(sx * lx, (ly + 0.2) / 2 - 0.11, rz); tk.add(post); }
+      out.roll[sx] = marker(base, sx * lx, ly, rz);
+    });
+    if (ly){ const br = box(2 * lx + 0.14, 0.08, 0.3, M.chrome, sp); br.position.set(0, ly - 0.07, PIVOT + lz); tm.add(br); }
+    out.pivotM = marker(base, 0, 0.4, PIVOT);
+    ring(tm, -m, -0.7, 'pulley', -0.28);                                       // A1, under the knuckle
+    ring(tk, -m, PIVOT - 0.7, 'pulley', -0.3 * f.t);                           // fixed guide behind the swivel
+    ring(tk, me, PIVOT - 1.1, 'extGuide', 0.3 * f.t, 0.12);                    // extensor hood, behind the swinging side arms
+    out.flex = [marker(base, 0, -m, PIVOT - 0.7), marker(knk, 0, -m, -0.7)];
     joints.forEach((jg, j) => { if (j < 2) out.flex.push(marker(jg, 0, -m, GUIDE), marker(jg, 0, -m, f.L[j] - GUIDE)); else out.flex.push(marker(jg, 0, -m, GUIDE), marker(jg, 0, -0.3 * f.t, insZ(f))); });
-    out.hood = marker(base, 0, me, -0.9); out.extEnd = marker(joints[2], 0, me * 0.92, 0.55);
+    out.hood = marker(base, 0, me, PIVOT - 1.1); out.extEnd = marker(joints[2], 0, me * 0.92, 0.55);
 
     /* motor drive: coupler links run in the gap between each bone and the fork tabs around it */
     const k = f.link, gx = (f.w * 0.28 + f.w / 2 - 0.145) / 2;
@@ -902,7 +1047,7 @@ function build3D(){
   const palmFlex = [], palmExt = [], mcMid = [];
   FINGERS.forEach((f, i) => {
     if (!i) return;
-    const B = new THREE.Vector3(f.mc[0], 0, f.mc[1]), N = toHand(f, -HEAD(f) * 0.9);
+    const B = new THREE.Vector3(f.mc[0], 0, f.mc[1]), N = toHand(f, PIVOT - 0.7);
     const shaft = new THREE.CylinderGeometry(0.31, 0.38, B.distanceTo(N), 16);
     const mcg = only('tendon', new THREE.Group()); hand.add(mcg); explodable(mcg, [0, 0, 1.6]);
     mcg.add(between(mesh(shaft, M.chrome, 'mc'), B, N));
@@ -931,6 +1076,36 @@ function build3D(){
   ring(thFlex, 0, 0, 'pulley'); thFlex.position.set(2.55, -0.95, 0.55); palmFlex[0] = marker(thFlex, 0, 0, 0);
   const thExt = only('tendon', new THREE.Group()); hand.add(thExt);
   ring(thExt, 0, 0, 'extGuide', null, 0.12); thExt.position.set(3.0, 0.55, 0.85); palmExt[0] = marker(thExt, 0, 0, 0);
+
+  /* side-to-side servos on the back of the hand (tendon drive), on a plate above the extensors, like the servos in the photo */
+  const sideSv = [null], DSV = SIDE_SERVO, PLATE_Y = 0.95, PLATE_T = 0.2, D_TOP = PLATE_Y + PLATE_T + DSV.H, D_HORN = D_TOP + DSV.top + 0.04;
+  let plateFront = 9;
+  FINGERS.forEach((f, i) => {
+    if (!i) return;
+    const roll = toHand(f, f.lug[3]), zs = roll.z - 1.0;
+    const B = new THREE.Vector3(f.mc[0], 0, f.mc[1]), N = toHand(f, PIVOT - 0.7), xs = B.x + (N.x - B.x) * (zs - B.z) / (N.z - B.z);
+    const sg = only('tendon', new THREE.Group()); sg.position.set(xs, 0, zs); hand.add(sg); explodable(sg, [0, 2.6, 0]);
+    const zc = -(DSV.L / 2 - DSV.shaftOff);
+    const body = box(DSV.W, DSV.H, DSV.L, M.servo, 'sideServo'); body.position.set(0, PLATE_Y + PLATE_T + DSV.H / 2, zc); sg.add(body);
+    const st = box(DSV.W + 0.02, DSV.H * 0.45, DSV.L * 0.6, M.sticker, 'sideServo'); st.position.set(0, PLATE_Y + PLATE_T + DSV.H * 0.45, zc - 0.1); sg.add(st);
+    const bump = cylY(DSV.W * 0.42, DSV.top * 0.6, M.servo, 'sideServo'); bump.position.y = D_TOP + DSV.top * 0.3; sg.add(bump);
+    const horn = new THREE.Group(); horn.position.y = D_HORN; sg.add(horn);
+    horn.add(cylY(0.2, 0.1, M.spool, 'horn', 14));
+    const arm = box(2 * SIDE_HORN + 0.24, 0.07, 0.24, M.spool, 'horn'); horn.add(arm);
+    const tip = {}; [-1, 1].forEach(sx => { tip[sx] = marker(horn, sx * SIDE_HORN, 0.05, 0); });
+    sideSv[i] = {g:sg, horn, tip, top:marker(sg, 0, D_TOP, zc), lead:marker(sg, 0, PLATE_Y + PLATE_T + 0.3, zc - DSV.L / 2 - 0.2)};
+    // where this finger's lines drop past the plate: the plate must stop short of it
+    plateFront = Math.min(plateFront, zs + (D_HORN - PLATE_Y - PLATE_T) / (D_HORN - f.lug[1]) * (roll.z - zs) - 0.15);
+  });
+  {
+    const xs = sideSv.slice(1).map(d => d.g.position.x), zb = Math.min(...sideSv.slice(1).map(d => d.g.position.z)) - 1.75;
+    const x0 = Math.min(...xs) - 0.7, x1 = Math.max(...xs) + 0.7;
+    const plate = only('tendon', box(x1 - x0, PLATE_T, plateFront - zb, M.print, 'backplate')); plate.position.set((x0 + x1) / 2, PLATE_Y + PLATE_T / 2, (zb + plateFront) / 2); hand.add(plate); explodable(plate, [0, 1.8, 0]);
+    // posts between the metacarpals, clear of the extensor tendons
+    [[(xs[0] + xs[1]) / 2, zb + 0.3], [(xs[2] + xs[3]) / 2, zb + 0.3], [(xs[0] + xs[1]) / 2, plateFront - 0.3], [(xs[2] + xs[3]) / 2, plateFront - 0.3]].forEach(([x, z]) => {
+      const p = only('tendon', cylY(0.12, PLATE_Y, M.steel, 'backplate', 10)); p.position.set(x, PLATE_Y / 2, z); hand.add(p); explodable(p, [0, 1.8, 0]);
+    });
+  }
 
   /* palm servos for the four fingers (motor drive): tabs on the top plate, single-arm horn pushing a rod to the knuckle lever */
   FINGERS.forEach((f, i) => {
@@ -984,7 +1159,7 @@ function build3D(){
     const jackIn = marker(jack, 0, 0, 0.5);
     /* servos with double spools (tendon drive only): the lower groove winds the flexor in, the upper one lets the extensor out */
     const servos = slots.map((s, i) => {
-      const t = TT[i], sg = new THREE.Group(); sg.position.set(s.x, 0, s.z); g.add(sg);
+      const t = i < 5 ? TT[i] : {rf:FINGERS[0].lug[0], re:FINGERS[0].lug[0]}, sg = new THREE.Group(); sg.position.set(s.x, 0, s.z); g.add(sg);
       const bottom = deckTop + s.lift - S.tabY;
       const body = box(S.W, S.H, S.L, M.servo, 'servo'); body.position.y = bottom + S.H / 2; sg.add(body);
       const st = box(S.W + 0.02, S.H * 0.45, S.L * 0.62, M.sticker, 'servo'); st.position.set(0, bottom + S.H * 0.42, -S.L * 0.08); sg.add(st);
@@ -997,7 +1172,8 @@ function build3D(){
       const rmax = Math.max(t.rf, t.re);
       spool.add(cylY(t.rf, 0.2, M.spool, 'spool', 28).translateY(-0.13), cylY(t.re, 0.2, M.spool, 'spool', 28).translateY(0.13));
       [-0.26, 0, 0.26].forEach(y => { const fl2 = cylY(rmax + FLANGE, 0.06, M.spool, 'spool', 28); fl2.position.y = y; spool.add(fl2); });
-      spool.add(cylY(t.rf + 0.04, 0.12, M.tendon, 'flexor', 28).translateY(-0.13), cylY(t.re + 0.04, 0.12, M.ext, 'extensor', 28).translateY(0.13));
+      if (i < 5) spool.add(cylY(t.rf + 0.04, 0.12, M.tendon, 'flexor', 28).translateY(-0.13), cylY(t.re + 0.04, 0.12, M.ext, 'extensor', 28).translateY(0.13));
+      else spool.add(cylY(t.rf + 0.04, 0.12, M.side, 'pullpull', 28).translateY(-0.13), cylY(t.re + 0.04, 0.12, M.side, 'pullpull', 28).translateY(0.13));
       const horn = box(1.9, 0.08, 0.4, M.spool, 'spool'); horn.position.y = 0.33; spool.add(horn);
       const scr = cylY(0.12, 0.06, M.steel, 'spool', 8); scr.position.y = 0.39; spool.add(scr);
       explodable(sg, [0, 4.2, 0]); explodable(spool, [0, 2.0, 0]);
@@ -1005,7 +1181,7 @@ function build3D(){
               lead:marker(sg, 0, bottom + 0.4, -S.L / 2 - 0.35), top:marker(sg, 0, topY, 0)};
     });
     /* comb, wrist ring (retinacula) and extensor springs */
-    let combF = [], combE = [], wristP = [], wristD = [], retM = null, springM = null;
+    let combF = [], combE = [], wristP = [], wristD = [], wristS = [], retM = null, springM = null;
     if (tendon){
       const lines = servos.map(sv => [sv.flexT, sv.extT].map(m => m.position.clone().add(sv.g.position)));
       const topLine = Math.max(...lines.flat().map(p => p.y));
@@ -1026,9 +1202,10 @@ function build3D(){
       FINGERS.forEach(f => [[0.95, wristD], [-0.95, wristP]].forEach(([y, list]) => {
         const rg = mesh(new THREE.TorusGeometry(0.14, 0.05, 6, 14), M.black, 'retin'); rg.position.set(f.hole, y, 0.31); ret.add(rg); list.push(marker(ret, f.hole, y, 0));
       }));
+      [-0.45, 0.45].forEach(y => { const rg = mesh(new THREE.TorusGeometry(0.14, 0.05, 6, 14), M.black, 'retin'); rg.position.set(2.62, y, 0.31); ret.add(rg); wristS.push(marker(ret, 2.62, y, 0)); }); // thumb-out lines
       retM = marker(ret, 1.6, -1.15, 0);
       // a short spring on each extensor between the comb and the wrist (a helix tube, drawn where the line runs)
-      combE.forEach((ce, i) => {
+      combE.slice(0, 5).forEach((ce, i) => {
         g.updateMatrixWorld(true); const a = W(ce), b = W(wristD[i]), c = a.clone().lerp(b, 0.42), dir = b.clone().sub(a).normalize();
         const pts = []; for (let k = 0; k <= 96; k++){ const u = k / 96, an = u * Math.PI * 2 * 9; pts.push(new THREE.Vector3(Math.cos(an) * 0.13, (u - 0.5) * 1.3, Math.sin(an) * 0.13)); }
         const sp = mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 160, 0.025, 4), M.steel, 'spring');
@@ -1044,7 +1221,7 @@ function build3D(){
     [-0.25, 0, 0.25].forEach(dz => { const gp = box(4.0, 0.04, 0.05, M.gold, 'pca'); gp.position.set(0.25, 0.36, 0.82 + dz); pca.add(gp); });
     const term = box(0.85, 0.75, 0.75, M.term, 'pca'); term.position.set(0.25, 0.45, -0.85); pca.add(term);
     const i2c = box(0.3, 0.26, 1.52, M.black, 'pca'); i2c.position.set(-2.9, 0.21, 0); pca.add(i2c);
-    const ch = [0,1,2,3,4].map(k => { const x = -1.78 + k * 0.254 + 0.25; return {g:marker(pca, x, 0.42, 0.57), v:marker(pca, x, 0.42, 0.82), s:marker(pca, x, 0.42, 1.07)}; });
+    const ch = [0,1,2,3,4,5,6,7,8,9].map(k => { const x = -1.78 + k * 0.254 + 0.25; return {g:marker(pca, x, 0.42, 0.57), v:marker(pca, x, 0.42, 0.82), s:marker(pca, x, 0.42, 1.07)}; });
     const pI2C = {vcc:marker(pca, -2.9, 0.4, -0.38), gnd:marker(pca, -2.9, 0.4, 0.62), sda:marker(pca, -2.9, 0.4, 0.12), scl:marker(pca, -2.9, 0.4, 0.37)};
     const pPow = {p:marker(pca, 0.05, 0.85, -0.85), n:marker(pca, 0.45, 0.85, -0.85)};
     /* Arduino Uno */
@@ -1055,7 +1232,7 @@ function build3D(){
     const bj = box(0.9, 1.1, 1.4, M.black, 'uno'); bj.position.set(-1.6, 0.63, -2.95); uno.add(bj);
     [[-2.45, 1.9, 1.6], [-2.45, -0.4, 2.0], [2.45, 1.4, 2.0], [2.45, -1.0, 2.0]].forEach(([x, z, l]) => { const h = box(0.26, 0.85, l, M.black, 'uno'); h.position.set(x, 0.5, z); uno.add(h); });
     const pUno = {a4:marker(uno, -2.45, 0.95, 2.45), a5:marker(uno, -2.45, 0.95, 2.7), v5:marker(uno, -2.45, 0.95, -0.6), gnd:marker(uno, -2.45, 0.95, -0.85)};
-    const out = {g, S, FW, back, len, midZ, deckTop, servos, combF, combE, wristP, wristD, retM, springM, ch, pI2C, pPow, pUno, jackIn,
+    const out = {g, S, FW, back, len, midZ, deckTop, servos, combF, combE, wristP, wristD, wristS, retM, springM, ch, pI2C, pPow, pUno, jackIn,
       pcaM:marker(pca, 1.8, 0.2, -0.2), unoM:marker(uno, 1.5, 0.2, 1.8), jackM:marker(jack, 0, 0, -0.45), wires:new THREE.Group(), explodeStart:startCount};
     scene.add(out.wires);
     return out;
@@ -1063,8 +1240,8 @@ function build3D(){
 
   /* tendons drawn as thin cylinders through their guide points; pushrods and links as rigid bars */
   const unitCyl = new THREE.CylinderGeometry(1, 1, 1, 6, 1, true), unitCylC = new THREE.CylinderGeometry(1, 1, 1, 8);
-  const flexGroup = new THREE.Group(), extGroup = new THREE.Group(), linkGroup = new THREE.Group(), rodGroup = new THREE.Group();
-  scene.add(flexGroup, extGroup, linkGroup, rodGroup);
+  const flexGroup = new THREE.Group(), extGroup = new THREE.Group(), sideGroup = new THREE.Group(), linkGroup = new THREE.Group(), rodGroup = new THREE.Group();
+  scene.add(flexGroup, extGroup, sideGroup, linkGroup, rodGroup);
   const segPool = (group, mat, r, part) => { const list = []; return function(points, k){
     for (let i = 0; i < points.length - 1; i++){
       let m = list[k + i]; if (!m){ m = new THREE.Mesh(unitCyl, mat); m.userData.part = part; m.castShadow = false; list.push(m); group.add(m); }
@@ -1078,7 +1255,7 @@ function build3D(){
     m.position.copy(a).addScaledVector(d, 0.5); m.scale.set(r, L, r); m.quaternion.setFromUnitVectors(_up, d.normalize());
     return k + 1; }; };
   const _d = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0), _v = new THREE.Vector3();
-  const drawFlex = segPool(flexGroup, M.tendon, 0.045, 'flexor'), drawExt = segPool(extGroup, M.ext, 0.045, 'extensor');
+  const drawFlex = segPool(flexGroup, M.tendon, 0.045, 'flexor'), drawExt = segPool(extGroup, M.ext, 0.045, 'extensor'), drawSide = segPool(sideGroup, M.side, 0.032, 'pullpull');
   const drawLink = barPool(linkGroup, M.chrome, 0.07, 'link'), drawRod = barPool(rodGroup, M.steel, 0.06, 'rod');
   const W = o => o.getWorldPosition(new THREE.Vector3());
   const LP = (obj, z, y) => _v.set(0, y, z).applyMatrix4(obj.matrixWorld).clone();
@@ -1087,17 +1264,26 @@ function build3D(){
   function extPath(i){
     const f = fingers[i], F = FINGERS[i], me = EXT(F), sv = fore.servos[i];
     const pts = [W(sv.extT), W(fore.combE[i]), W(fore.wristD[i]), W(palmExt[i]), W(f.hood)];
-    [[f.base, 0], [f.joints[0], F.L[0]], [f.joints[1], F.L[1]]].forEach(([fr, z], j) => {
+    [[f.knk, 0], [f.joints[0], F.L[0]], [f.joints[1], F.L[1]]].forEach(([fr, z], j) => {
       const th = f.joints[j].rotation.x;
       for (let s = 0; s <= 4; s++){ const b = th * s / 4; pts.push(LP(fr, z + me * Math.sin(b), me * Math.cos(b))); }
     });
     pts.push(W(f.extEnd)); return pts;
+  }
+  // side lines: from a back-of-hand servo arm (or the thumb-out spool in the forearm) over a roller to the knuckle's side arm
+  function sidePath(i, sx){
+    const f = fingers[i];
+    if (i) return [W(sideSv[i].tip[sx]), W(f.roll[sx]), W(f.lug[sx])];
+    const sv = fore.servos[5], a = sx > 0;
+    return [W(a ? sv.flexT : sv.extT), W(a ? fore.combF[5] : fore.combE[5]), W(fore.wristS[a ? 0 : 1]), W(f.roll[sx]), W(f.lug[sx])];
   }
   const pathLen = pts => { let s = 0; for (let k = 0; k < pts.length - 1; k++) s += pts[k].distanceTo(pts[k + 1]); return s; };
   function updateDriveParts(){
     if (drive === 'tendon'){
       let k = 0, e = 0;
       fingers.forEach((f, i) => { k = drawFlex(flexPath(i), k); e = drawExt(extPath(i), e); });
+      let q = 0;
+      fingers.forEach((f, i) => [1, -1].forEach(sx => { q = drawSide(sidePath(i, sx), q); }));
       return;
     }
     let k = 0, r = 0;
@@ -1113,8 +1299,16 @@ function build3D(){
     const w = fore.wires; while (w.children.length){ const c = w.children.pop(); c.geometry.dispose(); }
     if (!state.layers.wiring) return;
     const V = (x, y, z) => new THREE.Vector3(x, y, z);
+    if (drive === 'tendon') sideSv.slice(1).forEach((d, j) => {
+      const a = W(d.lead), pins = fore.ch[5 + j];
+      [['brown', pins.g, -0.08], ['red', pins.v, 0], ['orange', pins.s, 0.08]].forEach(([col, pin, dx]) => {
+        const b = W(pin); // back over the wrist, down in front of the servo deck, then along the bay
+        w.add(tube([a.clone().add(V(dx, 0, 0)), a.clone().add(V(dx, 0.15, -0.7)), V(a.x * 0.5 + dx, 1.35, -1.0), V(b.x * 0.5 + dx, -1.4, -2.0), V(b.x + dx, b.y + 0.9, b.z + 1.4), b], M.wire[col], 0.04));
+      });
+    });
     const leads = drive === 'motor' ? motorServos.map(s => s.lead) : fore.servos.map(s => s.lead);
     leads.forEach((lead, i) => {
+      if (i === 5) i = 9; // the thumb-out servo sits on channel 9
       const a = W(lead), pins = fore.ch[i];
       [['brown', pins.g, -0.08], ['red', pins.v, 0], ['orange', pins.s, 0.08]].forEach(([col, pin, dx]) => {
         const b = W(pin);
@@ -1145,9 +1339,13 @@ function build3D(){
     {text:'Metacarpals ×5', drive:'tendon', at:() => W(mcMid[1])},
     {text:'Carpal bones ×8', drive:'tendon', at:() => W(capitateM)},
     {text:'Pulley rings, like your finger\'s', drive:'tendon', at:() => W(fingers[1].flex[2])},
+    {text:'Side-to-side servos ×4', drive:'tendon', at:() => W(sideSv[2].top)},
+    {text:'Knuckle swivel · upright pin', drive:'tendon', at:() => W(fingers[1].pivotM)},
+    {text:'Pull-pull lines', drive:'tendon', layer:'tendons', at:() => W(sideSv[3].tip[1]).lerp(W(fingers[3].roll[1]), 0.45)},
     {text:'Knuckle · M3 pin', drive:'tendon', at:() => W(fingers[2].base)},
     {text:'Wrist ring · carpal tunnel', drive:'tendon', at:() => W(fore.retM)},
-    {text:'Servos ×5 · the muscles', drive:'tendon', at:() => W(fore.servos[1].top)},
+    {text:'Servos ×6 · the muscles', drive:'tendon', at:() => W(fore.servos[1].top)},
+    {text:'Thumb-out servo', drive:'tendon', at:() => W(fore.servos[5].top)},
     {text:'Double spool', drive:'tendon', at:() => up(W(fore.servos[2].spool), 0.45)},
     {text:'Extensor spring', drive:'tendon', layer:'tendons', at:() => W(fore.springM)},
     {text:'Thumb servo · turns the base joint', drive:'motor', at:() => W(motorServos[0].top)},
@@ -1201,9 +1399,46 @@ function build3D(){
     fingers.forEach((f, i) => {
       const a = jointAngles(i, state.curl[i]);
       f.joints.forEach((j, k) => j.rotation.x = a[k] * D2R);
+      const sd = drive === 'tendon' ? sideNow(i) : 0;
+      f.abd.rotation.y = sd * D2R;
       if (drive === 'tendon') fore.servos[i].spool.rotation.y = servoDeg(i, state.curl[i]) * D2R;
+      if (drive === 'tendon' && i) sideSv[i].horn.rotation.y = sd * FINGERS[i].lug[0] / SIDE_HORN * D2R;   // arm tip pulls its line as the lug swings back
+      if (drive === 'tendon' && !i) fore.servos[5].spool.rotation.y = sd * D2R;                            // even spool, r = the thumb's lug arm
       else if (i) motorServos[i].horn.rotation.y = -lerpT(MT[i].sv, state.curl[i]) * D2R; // arm swings forward to push the rod
     });
+    state.thumbAt = thumbStop();
+    if (drive === 'tendon') fore.servos[0].spool.rotation.y = servoDeg(0, state.thumbAt) * D2R;
+  }
+
+  /* the thumb stops where it meets a finger, as a real one does: its servo stalls there, like gripping an object */
+  const THUMB_GAP = 1.7, RING_GAP = 1.2;   // a thumb bone's centre line (or pulley ring) this close to a finger's and the parts touch
+  const _sa = new THREE.Vector3(), _sb = new THREE.Vector3(), _sc = new THREE.Vector3(), clamp01 = x => Math.max(0, Math.min(1, x));
+  function segDist(p1, q1, p2, q2){   // closest distance between two segments
+    const d1 = _sa.subVectors(q1, p1), d2 = _sb.subVectors(q2, p2), r = _sc.subVectors(p1, p2);
+    const a = d1.dot(d1), e = d2.dot(d2), b = d1.dot(d2), c = d1.dot(r), f = d2.dot(r), den = a * e - b * b;
+    let s = den > 1e-9 ? clamp01((b * f - c * e) / den) : 0, t = (b * s + f) / e;
+    if (t < 0){ t = 0; s = a > 1e-9 ? clamp01(-c / a) : 0; } else if (t > 1){ t = 1; s = a > 1e-9 ? clamp01((b - c) / a) : 0; }
+    return Math.hypot(r.x + d1.x * s - d2.x * t, r.y + d1.y * s - d2.y * t, r.z + d1.z * s - d2.z * t);
+  }
+  function bones(i, out){   // each bone's centre line, in hand space with nothing exploded
+    const f = fingers[i], F = FINGERS[i];
+    f.base.updateMatrixWorld(true);
+    const m = new THREE.Matrix4().copy(f.base.matrixWorld).invert().premultiply(f.home);
+    f.joints.forEach((j, k) => out.push([j.localToWorld(new THREE.Vector3()).applyMatrix4(m), j.localToWorld(new THREE.Vector3(0, 0, F.L[k] + (k === 2 ? F.t / 2 : 0))).applyMatrix4(m), THUMB_GAP]));
+    if (!i) f.flex.slice(1).forEach(mk => { const p = mk.getWorldPosition(new THREE.Vector3()).applyMatrix4(m); out.push([p, p, RING_GAP]); });
+    return out;
+  }
+  function thumbTo(c){ const a = jointAngles(0, c); fingers[0].joints.forEach((j, k) => j.rotation.x = a[k] * D2R); }
+  function thumbFree(c, others){ thumbTo(c); return bones(0, []).every(([p, q, gap]) => others.every(([p2, q2]) => segDist(p, q, p2, q2) > gap)); }
+  function thumbStop(){
+    const others = []; for (let i = 1; i < 5; i++) bones(i, others);
+    let c = state.curl[0];
+    if (!thumbFree(c, others)){
+      let lo = 0, hi = c;
+      for (let n = 0; n < 10; n++){ const m = (lo + hi) / 2; if (thumbFree(m, others)) lo = m; else hi = m; }
+      c = lo; thumbTo(c);
+    }
+    return c;
   }
   function applyExplode(){
     const e = state.explode * state.explode * (3 - 2 * state.explode);
@@ -1227,7 +1462,7 @@ function build3D(){
 
   function layersChanged(){
     const m = drive === 'motor', L = state.layers.tendons;
-    flexGroup.visible = extGroup.visible = !m && L;
+    flexGroup.visible = extGroup.visible = sideGroup.visible = !m && L;
     linkGroup.visible = m && L; rodGroup.visible = m && L && state.explode < 0.01;
     fore.wires.visible = state.layers.wiring; wiresDirty = true;
     dimGroup.visible = state.layers.dims;
@@ -1249,7 +1484,7 @@ function build3D(){
   function shown(o){ while (o){ if (!o.visible) return false; o = o.parent; } return true; }
   const sel = new THREE.BoxHelper(undefined, 0xf0a73c); sel.visible = false; scene.add(sel);
   let selObj = null;
-  const GROUPED = {servo:1, pca:1, uno:1, spool:1, horn:1, carpal:1};
+  const GROUPED = {servo:1, sideServo:1, pca:1, uno:1, spool:1, horn:1, carpal:1};
   function highlight(o){ selObj = GROUPED[partOf(o)] && o.parent ? o.parent : o; sel.setFromObject(selObj); sel.visible = true; kickRender(); }
 
   /* camera presets */
@@ -1306,6 +1541,10 @@ function build3D(){
         state.curl[i] = (cur + step) / full; moving = true;
       }
     }
+    for (let i = 0; i < 5; i++){
+      const d = state.sideT[i] - state.side[i], r = (i ? 60 / SIDE_SERVO.speed * SIDE_HORN / FINGERS[i].lug[0] : rate) * dt;
+      if (Math.abs(d) > 0.01){ state.side[i] += reduced ? d : Math.sign(d) * Math.min(Math.abs(d), r); moving = true; }
+    }
     if (Math.abs(state.explodeTarget - state.explode) > 0.0005){
       const step = reduced ? 1 : dt / 0.75;
       state.explode += Math.sign(state.explodeTarget - state.explode) * Math.min(Math.abs(state.explodeTarget - state.explode), step);
@@ -1337,7 +1576,7 @@ function build3D(){
   buildDims(); layersChanged(); resize();
   camera.position.copy(viewPos(VIEWS.three)); controls.target.copy(viewTarget(VIEWS.three));
   requestAnimationFrame(tick);
-  window.__hand = {state, applyPreset, setDrive, camera, controls, scene, fingers, motorServos, kick:kickRender, get frames(){ return frames; }};
+  window.__hand = {state, applyPreset, setSides, setDrive, camera, controls, scene, fingers, motorServos, sideSv, kick:kickRender, get frames(){ return frames; }};
   return {rebuildForearm, layersChanged, driveChanged};
 }
 })();

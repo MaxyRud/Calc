@@ -36,6 +36,7 @@ button,input{font:inherit;color:inherit}
 .legend .e{color:var(--blue)}
 .labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 [hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .tag{position:absolute;left:0;top:0;display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:11.5px;font-weight:500;color:var(--fg);will-change:transform}
 .tag i{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px rgba(240,167,60,.22);flex:none}
 .tag span{background:rgba(18,22,27,.78);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
@@ -94,6 +95,13 @@ td small{display:block;color:var(--mute);font-size:11.5px}
 pre{position:relative;margin:0;background:#0f1216;border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;font-family:var(--mono);font-size:11.5px;line-height:1.55;color:#cfd6dd}
 .copy{position:absolute;right:6px;top:6px;appearance:none;border:1px solid var(--line);background:var(--raise);border-radius:5px;font-size:11px;padding:2px 8px;cursor:pointer;color:var(--mute)}
 .note{font-size:12px;color:var(--dim);margin-top:10px}
+.grip{list-style:none;margin:8px 0 0;padding:0;font-size:13px}
+.grip li{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:8px;padding:4px 0;border-bottom:1px solid var(--line)}
+.grip li b{font-weight:600}
+.grip .y b{color:var(--ok)}
+.grip .n b{color:#e0705a}
+.grip .v{font-family:var(--mono);font-size:12px;color:var(--mute)}
+.warn{font-size:12px;color:#e6b46e;margin:8px 0 0}
 [role=tabpanel]{min-width:0}
 
 @media (max-width: 860px){
@@ -141,9 +149,13 @@ pre{position:relative;margin:0;background:#0f1216;border:1px solid var(--line);b
       <div id="fingers"></div>
       <h2>Servo</h2>
       <div class="seg" role="group" aria-label="Servo model">
-        <button id="sv-MG90S" aria-pressed="true">MG90S</button><button id="sv-DS3218" aria-pressed="false">DS3218</button>
+        <button id="sv-MG90S" aria-pressed="true">MG90S</button><button id="sv-DS3218" aria-pressed="false">DS3218</button><button id="sv-DS5160" aria-pressed="false">DS5160</button>
       </div>
       <p class="spec" id="servoSpec"></p>
+      <h2>Grip test <small>with this servo</small></h2>
+      <p class="spec" id="gripSum"></p>
+      <ul class="grip" id="grip"></ul>
+      <p class="warn" id="gripWarn" hidden>A hand that can crush a can can hurt a finger. Test with a current-limited supply, keep a big switch on the servo power, and keep your own fingers out of it.</p>
       <h2>Show</h2>
       <div class="toggles">
         <label><input type="checkbox" id="ly-tendons" checked> <span id="lyDrive">Tendons</span></label>
@@ -199,7 +211,9 @@ const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce
 const FLANGE = 0.18;  // spool flange lip beyond the groove
 const SERVOS = {
   MG90S:  {name:'MG90S',  kind:'micro servo',    L:2.28, W:1.22, H:2.27, tabL:3.22, tabY:1.6, tabT:0.25, shaftOff:0.6, top:0.45, mass:13.4, torque:2.2, speed:0.10, dims:'22.8 × 12.2 × 28.5 mm', psu:'5–6 V, 5 A'},
-  DS3218: {name:'DS3218', kind:'standard servo', L:4.0,  W:2.0,  H:3.75, tabL:5.45, tabY:2.8, tabT:0.3,  shaftOff:1.0, top:0.75, mass:60,   torque:20,  speed:0.16, dims:'40 × 20 × 40.5 mm',   psu:'6 V, 10 A'}
+  DS3218: {name:'DS3218', kind:'standard servo', L:4.0,  W:2.0,  H:3.75, tabL:5.45, tabY:2.8, tabT:0.3,  shaftOff:1.0, top:0.75, mass:60,   torque:20,  speed:0.16, dims:'40 × 20 × 40.5 mm',   psu:'6 V, 10 A'},
+  // sold as a 60 kg servo; ≈ 65 kg·cm at 7.4 V. Tab length and shaft position are estimates: measure yours
+  DS5160: {name:'DS5160', kind:'high-torque servo', L:6.5, W:3.0,  H:4.2,  tabL:8.3,  tabY:3.0, tabT:0.35, shaftOff:1.6, top:0.6,  mass:160,  torque:65,  speed:0.15, dims:'65 × 30 × 48 mm',     psu:'7.4 V, 20 A or more (estimate)'}
 };
 // right hand, palm down, fingers along +z: the thumb sits on the +x side.
 // mc: [x, z] of each metacarpal's base, where it meets the wrist bones. hole: x of the finger's tendons at the wrist.
@@ -244,7 +258,8 @@ const PARTS = {
   retin:    {name:'Wrist ring', qty:'1', size:'≈ 56 × 24 mm', mat:'Printed', fn:'Like the bands across your wrist: the flexors pass through the lower row (your carpal tunnel), the extensors through the upper row.'},
   phal:     {name:'Finger bone (phalanx)', qty:'15', size:'See the Parts tab', mat:'PLA or PETG, 3D-printed', fn:'The rigid links of each finger. The narrow end of each bone sits inside the fork of the bone behind it.'},
   knuckle:  {name:'Knuckle fork', qty:'5', size:'Two 1.3 mm tabs per finger', mat:'Printed with the palm', fn:'Holds the first bone of each finger. The finger swings between the two tabs on an M3 pin.'},
-  pin:      {name:'Joint pin', qty:'15', size:'M3 × 16 mm screw + nylock nut', mat:'Steel', fn:'The axle of every joint. Tighten until the joint swings freely without wobble.'},
+  pin:      {name:'Joint pin', qty:'15', size:'M3 × 20 mm screw + nylock nut', mat:'Steel', fn:'The axle of every joint. Tighten until the joint swings freely without wobble.'},
+  bearing:  {name:'Ball bearing 693ZZ', qty:'30', size:'3 × 8 × 4 mm', mat:'Steel', fn:'One each side of every joint, like the hand in your photo. The M3 pin turns in them, so the joints stay smooth under heavy loads instead of wearing the plastic.'},
   pad:      {name:'Fingertip pad', qty:'5', size:'≈ 8 × 5 mm', mat:'TPU (flexible filament) or rubber', fn:'Adds grip so the hand can hold smooth objects.'},
   palm:     {name:'Palm plates', qty:'2', size:'≈ 72 × 68 × 3 mm each', mat:'PLA or PETG', fn:'Top and bottom plates sandwich the knuckle forks. The four finger servos drop through the cut-outs and screw to the top plate.'},
   standoff: {name:'Palm standoff', qty:'5', size:'M3 × 11 mm', mat:'Steel or brass', fn:'Spaces the two palm plates apart.'},
@@ -359,10 +374,23 @@ function servoDeg(i, c){
   if (drive === 'motor') return i ? lerpT(MT[i].sv, c) - MT[i].sv[0] : FINGERS[0].range[0] * c; // the thumb servo turns its joint directly
   return pullCm(i, c) / TT[i].rf / D2R;
 }
-function tipForceN(mode, S){ // rough fingertip force with the index finger straight
-  const lever = FINGERS[1].L.reduce((a, b) => a + b, 0);
-  return (mode === 'motor' ? S.torque * LEVER_R / HORN_R : S.torque / TT[1].rf * FLEX(FINGERS[1])) / lever * 9.81;
+// rough fingertip force of each finger in newtons: straight finger pressing at its tip
+function gripN(mode, S){
+  return FINGERS.map((f, i) => (mode === 'motor' ? S.torque * (i ? LEVER_R / HORN_R : 1) : S.torque / TT[i].rf * FLEX(f)) / f.L.reduce((a, b) => a + b, 0) * 9.81);
 }
+const tipForceN = (mode, S) => gripN(mode, S)[1];
+const PAD_MU = 0.5;  // rubber or TPU pad on a dry surface, on the cautious side
+// best case for a wrap grip: fingers on one side, thumb and palm on the other, friction on both
+const holdKg = squeeze => 2 * PAD_MU * squeeze / 9.81;
+const maxPullKgf = S => S.torque / Math.min(...TT.map(t => t.rf)); // the smallest spool (the thumb's) pulls hardest
+function lineSpec(S){ // tendon line rated at least twice the hardest pull
+  const need = 2 * maxPullKgf(S);
+  return need <= 55 ? '0.5 mm braided PE (≈ 60 kg rated)' : need <= 125 ? '1 mm Dyneema cord (≈ 130 kg rated)' : 'Dyneema cord thicker than 1 mm (check its rating)';
+}
+const GRIP_TESTS = [
+  ['Hold a drink can', 'kg', 0.35], ['Hold a 1.5 L bottle', 'kg', 1.6], ['Crush an empty can sideways', 'N', 100],
+  ['Hold a 10 kg weight', 'kg', 10], ['Match an adult human grip', 'N', 300]
+];
 function forearmLayout(mode, S){
   const deckTop = -0.45, STEP = 1.0;
   let FW, slots = [], fl = 0, combZ = -0.6;
@@ -415,21 +443,30 @@ function servoSpecText(){
   const S = SERVOS[servoKey], tip = tipForceN(drive, S);
   const head = `<b>${S.name}</b> ${S.kind} · ${S.dims} · ${S.mass} g<br>torque ≈ ${S.torque} kg·cm · speed ${S.speed} s/60°<br>`;
   if (drive === 'motor') return head + `knuckle torque ≈ <b>${S.torque} kg·cm</b> · fingertip force ≈ <b>${fmtN(tip)} N</b> (estimate)<br>motor weight in the hand: <b>${fmt(5 * S.mass)} g</b><br>servo power supply: ${S.psu}<br>DS3218 (40 × 20 × 40 mm) is too big: four won't fit in a palm.`;
-  return head + `max flexor pull ≈ <b>${fmt(S.torque / TT[1].rf, 1)} kgf</b> · fingertip force ≈ <b>${fmtN(tip)} N</b> (estimate)<br>motor weight in the hand: <b>none</b><br>servo power supply: ${S.psu}`;
+  return head + `max flexor pull ≈ <b>${fmt(maxPullKgf(S), 1)} kgf</b> · fingertip force ≈ <b>${fmtN(tip)} N</b> (estimate)<br>motor weight in the hand: <b>none</b><br>servo power supply: ${S.psu}`;
+}
+function renderGrip(){
+  const S = SERVOS[servoKey], g = gripN(drive, S), sq = g.reduce((a, b) => a + b, 0), kg = holdKg(sq);
+  $('#gripSum').innerHTML = `squeeze ≈ <b>${fmt(sq)} N</b> (all five fingertips) · holds up to ≈ <b>${fmt(kg, kg < 10 ? 1 : 0)} kg</b><br>best case: rubber pads, a wrap grip, and bones and an arm strong enough`;
+  $('#grip').innerHTML = GRIP_TESTS.map(([name, unit, v]) => {
+    const ok = unit === 'kg' ? kg >= v : sq >= v;
+    return `<li class="${ok ? 'y' : 'n'}"><b aria-hidden="true">${ok ? '✓' : '✗'}</b><span>${name}<span class="sr"> ${ok ? 'yes' : 'no'}</span></span><span class="v">${unit === 'kg' ? fmt(v, v < 1 ? 2 : v < 10 ? 1 : 0) + ' kg' : '≈ ' + v + ' N'}</span></li>`;
+  }).join('');
+  $('#gripWarn').hidden = sq < 100;
 }
 function selectServo(k){
   if (servoKey === k) return; servoKey = k;
-  ['MG90S','DS3218'].forEach(x => $('#sv-' + x).setAttribute('aria-pressed', x === k));
-  $('#servoSpec').innerHTML = servoSpecText(); renderParts(); renderHow();
+  Object.keys(SERVOS).forEach(x => $('#sv-' + x).setAttribute('aria-pressed', x === k));
+  $('#servoSpec').innerHTML = servoSpecText(); renderGrip(); renderParts(); renderHow();
   if (scene3d) scene3d.rebuildForearm();
   const sel = $('#info').dataset.part; if (sel === 'servo' || sel === 'deck') showInfo(sel);
 }
-['MG90S','DS3218'].forEach(k => $('#sv-' + k).addEventListener('click', () => selectServo(k)));
+Object.keys(SERVOS).forEach(k => $('#sv-' + k).addEventListener('click', () => selectServo(k)));
 function setDrive(d){
   if (drive === d) return;
   stopDemo(); drive = d;
   ['motor','tendon'].forEach(x => $('#dr-' + x).setAttribute('aria-pressed', x === d));
-  if (d === 'motor' && servoKey !== 'MG90S'){ servoKey = 'MG90S'; ['MG90S','DS3218'].forEach(x => $('#sv-' + x).setAttribute('aria-pressed', x === 'MG90S')); }
+  if (d === 'motor' && servoKey !== 'MG90S'){ servoKey = 'MG90S'; Object.keys(SERVOS).forEach(x => $('#sv-' + x).setAttribute('aria-pressed', x === 'MG90S')); }
   renderDrive();
   if (scene3d) scene3d.driveChanged();
   const sel = $('#info').dataset.part; if (sel) showInfo(sel);
@@ -437,14 +474,14 @@ function setDrive(d){
 ['motor','tendon'].forEach(d => $('#dr-' + d).addEventListener('click', () => setDrive(d)));
 function renderDrive(){
   const m = drive === 'motor';
-  $('#sv-DS3218').disabled = m; $('#sv-DS3218').title = m ? 'Too big to fit in the palm' : '';
+  ['DS3218', 'DS5160'].forEach(k => { $('#sv-' + k).disabled = m; $('#sv-' + k).title = m ? 'Too big to fit in the palm' : ''; });
   $('#driveNote').textContent = m ? 'One servo per finger, in the palm. A pushrod turns the knuckle; links inside the finger curl the other two joints.'
                                   : 'Built like your hand: no motors in the fingers. Five servos in the forearm are the muscles; each pulls a flexor to close a finger and an extensor to open it.';
   $('#fingHint').textContent = m ? 'servo angle · knuckle angle' : 'servo angle · flexor pulled';
   $('#lyDrive').textContent = m ? 'Linkages' : 'Tendons';
   $('#hudSub').textContent = (m ? 'One servo per finger, 3D-printable' : '27 bones like yours, tendons as muscles') + '. Drag to orbit, scroll to zoom, click any part.';
   $('#legend').innerHTML = (m ? '' : '<b class="f">amber</b> flexor, closes · <b class="e">blue</b> extensor, opens · ') + 'grid 1 cm';
-  $('#servoSpec').innerHTML = servoSpecText(); renderParts(); renderHow(); updateReadouts();
+  $('#servoSpec').innerHTML = servoSpecText(); renderGrip(); renderParts(); renderHow(); updateReadouts();
 }
 
 /* layers */
@@ -465,6 +502,7 @@ function showInfo(key){
   if (key === 'servo'){ name = `Servo · ${S.name}`; size = `${S.dims}, ${S.mass} g, ≈ ${S.torque} kg·cm`; }
   if (key === 'deck' || key === 'bay') size = `≈ ${fmt(dimsNow.forearmW*10)} × ${fmt(dimsNow.forearmL*10 - 8)} mm`;
   if (key === 'endplate') size = `${fmt(dimsNow.forearmW*10)} × 36 × 4 mm`;
+  if (key === 'flexor' || key === 'extensor') size = lineSpec(S);
   if (key === 'mc') size = `${MC_LEN.slice(1).map(x => mm(x, 0)).join(', ')} mm long (index to little)`;
   const fn = drive === 'motor' && p.fnM ? p.fnM : p.fn;
   const el = $('#info'); el.dataset.part = key;
@@ -498,11 +536,12 @@ function renderParts(){
     ['Wiring', '—', '4 jumper wires, 18 AWG red/black', 'servo leads run back under the wrist']]); }
   else { const fl = d.flexLen.map(x => Math.round(x)), el = d.extLen.map(x => Math.round(x)), sp = Math.max(...TT.map(t => t.spring));
     rows = [['Servo', '5', `${S.name}, ${S.dims}`, 'all in the forearm: these are the muscles']].concat(shared1, [
-    ['Bones', '27', '8 carpals, 5 metacarpals, 14 phalanges', 'the same set as your hand; PLA/PETG'],
-    ['Joint pins', '15', 'M3 × 16 mm + nylock nut', ''],
+    ['Bones', '27', '8 carpals, 5 metacarpals, 14 phalanges', S.torque >= 40 ? 'PETG or nylon, solid round the pins and pulleys' : 'the same set as your hand; PLA/PETG'],
+    ['Joint pins', '15', 'M3 × 20 mm + nylock nut', ''],
+    ['Ball bearings', '30', '693ZZ, 3 × 8 × 4 mm', 'two per joint, pressed into the forks'],
     ['Double spools', '5', `flexor groove r ${mm(Math.min(...TT.map(t => t.rf)))}–${mm(Math.max(...TT.map(t => t.rf)))} mm, extensor r ${mm(Math.min(...TT.map(t => t.re)))}–${mm(Math.max(...TT.map(t => t.re)))} mm`, 'printed, on the servo horn'],
-    ['Flexor tendons', '5', `braided PE 0.8 mm, ${Math.min(...fl)}–${Math.max(...fl)} cm each`, 'includes 8 cm for knots'],
-    ['Extensor tendons', '5', `braided PE 0.8 mm, ${Math.min(...el)}–${Math.max(...el)} cm each`, 'includes 8 cm for knots'],
+    ['Flexor tendons', '5', `${lineSpec(S)}, ${Math.min(...fl)}–${Math.max(...fl)} cm each`, `pulls up to ≈ ${fmt(maxPullKgf(S))} kgf; includes 8 cm for knots`],
+    ['Extensor tendons', '5', `same line, ${Math.min(...el)}–${Math.max(...el)} cm each`, 'includes 8 cm for knots'],
     ['Extensor springs', '5', `≈ 4 × 15 mm, ${mm(sp)} mm of travel needed`, 'small extension springs'],
     ['Transverse bars', '2', '≈ 60 × 6 × 2.5 mm', 'tie the metacarpals together'],
     ['Wrist ring', '1', '≈ 56 × 24 mm, 10 holes', 'the carpal tunnel'],
@@ -550,13 +589,14 @@ $('#wiremap').innerHTML = '<thead><tr><th>From</th><th>To</th></tr></thead><tbod
 function renderHow(){
   $('#idea').innerHTML = IDEA[drive].map(p => `<p>${p}</p>`).join('');
   renderFormula();
-  const M9 = SERVOS.MG90S, DS = SERVOS.DS3218, len = mode => fmt((tipZ() - forearmLayout(mode, M9).back) * 10);
+  const M9 = SERVOS.MG90S, DS = SERVOS.DS5160, len = mode => fmt((tipZ() - forearmLayout(mode, M9).back) * 10);
   const rows = [
     ['Where the motors sit', 'all 5 in the forearm, like your muscles', '4 in the palm, 1 under the thumb'],
     ['Motor weight in the hand', 'none', `${fmt(5 * M9.mass)} g`],
     ['What opens the finger', 'an extensor tendon on the same spool', 'the same servo, through the links'],
-    ['Biggest servo that fits', 'any size (DS3218)', 'micro (MG90S)'],
-    ['Fingertip force, estimate', `≈ ${fmtN(tipForceN('tendon', M9))} N (MG90S) to ${fmtN(tipForceN('tendon', DS))} N (DS3218)`, `≈ ${fmtN(tipForceN('motor', M9))} N`],
+    ['Biggest servo that fits', 'any size (up to DS5160 here)', 'micro (MG90S)'],
+    ['Fingertip force, estimate', `≈ ${fmtN(tipForceN('tendon', M9))} N (MG90S) to ${fmtN(tipForceN('tendon', DS))} N (DS5160)`, `≈ ${fmtN(tipForceN('motor', M9))} N`],
+    ['Can it crush a can?', `with DS5160: squeeze ≈ ${fmt(gripN('tendon', DS).reduce((a, b) => a + b, 0))} N`, `no: squeeze ≈ ${fmt(gripN('motor', M9).reduce((a, b) => a + b, 0))} N`],
     ['Length with MG90S', `≈ ${len('tendon')} mm`, `≈ ${len('motor')} mm`],
     ['Fiddly part', 'tying and tensioning 10 lines', '4 pushrods, 10 small links and their pins']
   ];
@@ -759,9 +799,13 @@ function build3D(){
     const rh = HEAD(f), wh = 0.6 * f.w;
     [-1, 1].forEach(sx => { const c = cylX(rh, wh / 2 - 0.03, M.chrome, part, 24); c.position.set(sx * (wh / 4 + 0.015), 0, z); par.add(c); });
   }
-  function anatPin(par, f, z){
-    const px = 0.3 * f.w + 0.11, p = cylX(0.15, 2 * px + 0.34, M.steel, 'pin'); p.position.z = z; par.add(p);
-    [-1, 1].forEach(sx => { const h = cylX(0.22, 0.1, M.steel, 'pin', 6); h.position.set(sx * (px + 0.13), 0, z); par.add(h); });
+  function anatPin(par, f, z){ // M3 pin turning in a 693ZZ ball bearing on each side, like the hand in the photo
+    const px = 0.3 * f.w + 0.11, p = cylX(0.15, 2 * px + 0.4, M.steel, 'pin'); p.position.z = z; par.add(p);
+    [-1, 1].forEach(sx => {
+      const x = sx * (px + 0.1), outer = cylX(0.4, 0.14, M.steel, 'bearing', 24); outer.position.set(x, 0, z); par.add(outer);
+      const seal = cylX(0.32, 0.15, M.black, 'bearing', 24); seal.position.set(x, 0, z); par.add(seal);
+      const inner = cylX(0.17, 0.16, M.steel, 'bearing', 16); inner.position.set(x, 0, z); par.add(inner);
+    });
   }
   function ring(par, y, z, part, strutTo, r){ // guide ring with a little post back to the bone
     const m = mesh(new THREE.TorusGeometry(r || 0.13, 0.045, 6, 16), M.steel, part); m.position.set(0, y, z); par.add(m);

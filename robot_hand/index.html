@@ -1,0 +1,894 @@
+<title>Endoskeleton Hand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: full-height workbench. 3D stage on the left, control panel on the right; on phones the panel stacks under the stage.
+   One deliberate dark workshop look (graphite bench, chrome model, amber = tendon line). */
+:root{
+  color-scheme: dark;
+  --bg:#12161b; --stage:#161b21; --panel:#1a1f26; --raise:#222932; --line:#2e3640; --fg:#e4e8ec; --mute:#919ba7; --dim:#626c78;
+  --amber:#f0a73c; --amber-ink:#1d1405; --wire:#6fa7d8; --ok:#76c08f;
+  --display:"Saira Semi Condensed","Arial Narrow",sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.5;overflow:hidden}
+button,input{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 372px;height:100%}
+
+/* stage */
+.stage{position:relative;min-width:0;min-height:0;background:var(--stage);overflow:hidden}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;outline:none;touch-action:none}
+.hud{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:14px;pointer-events:none;max-width:min(440px,60%)}
+.hud h1,.hud p{text-shadow:0 1px 3px rgba(0,0,0,.85)}
+.hud h1{font-family:var(--display);font-weight:700;font-size:26px;line-height:1;letter-spacing:.01em;margin:0}
+.hud h1 span{color:var(--amber)}
+.hud p{margin:6px 0 0;color:var(--mute);font-size:13px}
+.views{position:absolute;right:12px;top:12px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px;max-width:50%}
+.views button{appearance:none;border:1px solid var(--line);background:rgba(26,31,38,.85);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--mute)}
+.views button:hover,.views button:focus-visible{color:var(--fg);border-color:var(--mute);outline:none}
+.legend{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:12px;font-family:var(--mono);font-size:11px;color:var(--dim);pointer-events:none}
+.labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+[hidden]{display:none!important}
+.tag{position:absolute;left:0;top:0;display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:11.5px;font-weight:500;color:var(--fg);will-change:transform}
+.tag i{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px rgba(240,167,60,.22);flex:none}
+.tag span{background:rgba(18,22,27,.78);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+.tag.dim span{font-family:var(--mono);color:var(--amber);border-color:rgba(240,167,60,.4)}
+.tag.dim i{display:none}
+.nogl{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--mute)}
+
+/* panel */
+.panel{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;min-height:0;padding-block:14px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.tabs button{appearance:none;background:none;border:0;border-bottom:2px solid transparent;padding:8px 10px 7px;cursor:pointer;color:var(--mute);font-weight:500}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--amber)}
+.tabs button:focus-visible{outline:1px solid var(--amber);outline-offset:-2px}
+h2{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);margin:18px 0 8px}
+h2:first-child{margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--raise);border-radius:99px;padding:5px 12px;font-size:13px;cursor:pointer}
+.chip:hover,.chip:focus-visible{border-color:var(--mute);outline:none}
+.chip.on{border-color:var(--amber);color:var(--amber)}
+.chip.run{background:var(--amber);border-color:var(--amber);color:var(--amber-ink);font-weight:600}
+.fing{display:grid;grid-template-columns:58px minmax(0,1fr) 104px;align-items:center;gap:10px;padding:5px 0}
+.fing label{font-weight:500}
+.fing input[type=range]{width:100%;accent-color:var(--amber)}
+.fing output{font-family:var(--mono);font-size:12px;color:var(--mute);text-align:right;font-variant-numeric:tabular-nums}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{appearance:none;border:0;background:var(--raise);padding:6px 14px;cursor:pointer;color:var(--mute);font-weight:500}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--amber);color:var(--amber-ink)}
+.spec{font-family:var(--mono);font-size:12px;color:var(--mute);margin:8px 0 0;line-height:1.6}
+.spec b{color:var(--fg);font-weight:500}
+.toggles{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
+.toggles label{display:flex;align-items:center;gap:8px;cursor:pointer}
+.toggles input{accent-color:var(--amber);width:16px;height:16px}
+.card{background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.card h3{margin:0 0 4px;font-family:var(--display);font-size:18px;font-weight:600;letter-spacing:.01em}
+.card dl{display:grid;grid-template-columns:62px minmax(0,1fr);gap:3px 10px;margin:8px 0 0;font-size:13px}
+.card dt{color:var(--dim)}
+.card dd{margin:0;min-width:0}
+.card p{margin:0;color:var(--mute);font-size:13px}
+.tablewrap{overflow-x:auto;margin:0 -2px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--dim);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td small{display:block;color:var(--mute);font-size:11.5px}
+.prose p{margin:0 0 10px;color:#c9d0d7;max-width:62ch}
+.formula{font-family:var(--mono);font-size:12.5px;background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--fg);line-height:1.7}
+.formula em{font-style:normal;color:var(--amber)}
+.map td:first-child{color:var(--mute)}
+pre{position:relative;margin:0;background:#0f1216;border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;font-family:var(--mono);font-size:11.5px;line-height:1.55;color:#cfd6dd}
+.copy{position:absolute;right:6px;top:6px;appearance:none;border:1px solid var(--line);background:var(--raise);border-radius:5px;font-size:11px;padding:2px 8px;cursor:pointer;color:var(--mute)}
+.note{font-size:12px;color:var(--dim);margin-top:10px}
+[role=tabpanel]{min-width:0}
+
+@media (max-width: 860px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,56%) minmax(0,44%)}
+  .panel{border-left:0;border-top:1px solid var(--line)}
+  .hud h1{font-size:20px}
+  .hud p{display:none}
+  .views{top:auto;bottom:10px;right:10px;max-width:none}
+  .views button{padding:4px 8px;font-size:11px}
+  .legend{display:none}
+  .tag{font-size:10.5px}
+}
+@media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto!important} }
+</style>
+
+<div class="app">
+  <div class="stage" id="stage">
+    <div class="labels" id="labels"></div>
+    <div class="hud">
+      <h1>Endoskeleton Hand <span>Mk I</span></h1>
+      <p>Tendon-driven, 5 servos, 3D-printable. Drag to orbit, scroll to zoom, click any part.</p>
+    </div>
+    <div class="views" role="group" aria-label="Camera views">
+      <button data-view="three">3/4</button><button data-view="top">Top</button><button data-view="side">Side</button><button data-view="palm">Palm</button><button data-view="inside">Electronics</button>
+    </div>
+    <div class="legend" id="legend">Grid 1 cm · 10 cm major lines</div>
+  </div>
+
+  <aside class="panel" aria-label="Controls and specifications">
+    <div class="tabs" role="tablist">
+      <button role="tab" id="t-ctl" aria-selected="true" aria-controls="p-ctl">Control</button>
+      <button role="tab" id="t-parts" aria-selected="false" aria-controls="p-parts">Parts &amp; sizes</button>
+      <button role="tab" id="t-how" aria-selected="false" aria-controls="p-how">How it works</button>
+    </div>
+
+    <section role="tabpanel" id="p-ctl" aria-labelledby="t-ctl">
+      <h2>Pose</h2>
+      <div class="chips" id="presets"></div>
+      <h2>Fingers <span style="text-transform:none;letter-spacing:0;font-family:var(--body);font-weight:400;color:var(--dim)">servo angle · tendon pulled</span></h2>
+      <div id="fingers"></div>
+      <h2>Servo</h2>
+      <div class="seg" role="group" aria-label="Servo model">
+        <button id="sv-MG90S" aria-pressed="true">MG90S</button><button id="sv-DS3218" aria-pressed="false">DS3218</button>
+      </div>
+      <p class="spec" id="servoSpec"></p>
+      <h2>Show</h2>
+      <div class="toggles">
+        <label><input type="checkbox" id="ly-tendons" checked> Tendons</label>
+        <label><input type="checkbox" id="ly-wiring" checked> Wiring</label>
+        <label><input type="checkbox" id="ly-labels" checked> Labels</label>
+        <label><input type="checkbox" id="ly-dims"> Dimensions</label>
+        <label><input type="checkbox" id="ly-explode"> Exploded view</label>
+      </div>
+      <h2>Selected part</h2>
+      <div class="card" id="info" aria-live="polite"><p>Click any part in the 3D view to see what it is, its size and what it does.</p></div>
+    </section>
+
+    <section role="tabpanel" id="p-parts" aria-labelledby="t-parts" hidden>
+      <h2>Overall size</h2>
+      <p class="spec" id="overall"></p>
+      <h2>Bill of materials</h2>
+      <div class="tablewrap"><table id="bom"></table></div>
+      <h2>Finger bones</h2>
+      <div class="tablewrap"><table id="bones"></table></div>
+      <p class="note">Sizes are pin-to-pin lengths in millimetres, based on average adult proportions. Servo and board sizes are typical datasheet values; check your exact parts before printing.</p>
+    </section>
+
+    <section role="tabpanel" id="p-how" aria-labelledby="t-how" hidden>
+      <div class="prose">
+        <h2>The idea</h2>
+        <p>Each finger is a chain of three printed bones joined by M3 screws. A braided line (the tendon) is tied at the fingertip, runs through eyelets under every bone, through the palm and wrist, and winds onto a spool on a servo in the forearm.</p>
+        <p>When the servo turns, the spool reels the line in. The line sits 7.5 mm below each joint's pin, so the pull makes every joint bend at once and the finger curls. An elastic cord along the back pulls the finger open again when the servo turns back.</p>
+        <h2>The numbers</h2>
+        <div class="formula" id="formula"></div>
+        <h2>Wiring</h2>
+      </div>
+      <div class="tablewrap"><table class="map" id="wiremap"></table></div>
+      <h2>Arduino code</h2>
+      <pre id="code"><button class="copy" id="copy">Copy</button><code id="codetext"></code></pre>
+      <p class="note">Needs the "Adafruit PWM Servo Driver" library (Arduino IDE: Tools → Manage Libraries). Test one finger at a time and adjust MAX_DEG until the finger closes fully without straining.</p>
+    </section>
+  </aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const D2R = Math.PI / 180;
+const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- design data (centimetres unless noted) ---------- */
+const MOMENT = 0.75;   // tendon offset below each joint pin
+const SPOOL_R = 1.05;  // spool hub radius
+const FLANGE = 0.18;  // spool flange lip beyond the hub
+const SERVOS = {
+  MG90S:  {name:'MG90S',  kind:'micro servo',    L:2.28, W:1.22, H:2.27, tabL:3.22, tabY:1.6, tabT:0.25, shaftOff:0.6, top:0.45, mass:13.4, torque:2.2, speed:0.10, dims:'22.8 × 12.2 × 28.5 mm', psu:'5–6 V, 5 A'},
+  DS3218: {name:'DS3218', kind:'standard servo', L:4.0,  W:2.0,  H:3.75, tabL:5.45, tabY:2.8, tabT:0.3,  shaftOff:1.0, top:0.75, mass:60,   torque:20,  speed:0.16, dims:'40 × 20 × 40.5 mm',   psu:'6 V, 10 A'}
+};
+const FINGERS = [
+  // right hand, palm down, fingers along +z: the thumb sits on the +x side
+  {id:'thumb',  name:'Thumb',  base:[3.05,-0.35,1.9],  yaw:32,  pitch:12, roll:-55, L:[3.8,3.0,2.4], w:1.75, t:1.5,  rest:[0,6,4], range:[38,55,70], hole:1.9},
+  {id:'index',  name:'Index',  base:[2.55,0,7.0],      yaw:4,   pitch:0,  roll:0,   L:[4.0,2.4,1.8], w:1.58, t:1.35, rest:[5,5,3], range:[80,95,65], hole:1.0},
+  {id:'middle', name:'Middle', base:[0.83,0,7.35],     yaw:0,   pitch:0,  roll:0,   L:[4.4,2.7,1.9], w:1.64, t:1.4,  rest:[5,5,3], range:[80,95,65], hole:0.25},
+  {id:'ring',   name:'Ring',   base:[-0.88,0,7.0],     yaw:-4,  pitch:0,  roll:0,   L:[4.1,2.6,1.9], w:1.55, t:1.35, rest:[5,5,3], range:[80,95,65], hole:-0.5},
+  {id:'little', name:'Little', base:[-2.52,0,6.2],     yaw:-10, pitch:0,  roll:0,   L:[3.3,1.9,1.7], w:1.35, t:1.2,  rest:[5,5,3], range:[80,95,65], hole:-1.25}
+];
+const PRESETS = [
+  ['Open',  [0,0,0,0,0]],
+  ['Fist',  [1,1,1,1,1]],
+  ['Point', [1,0,1,1,1]],
+  ['Peace', [1,0,0,1,1]],
+  ['Rock',  [0.9,0,1,1,0]],
+  ['Pinch', [0.62,0.6,0,0,0]],
+  ['Grip',  [0.5,0.55,0.55,0.55,0.55]]
+];
+const PARTS = {
+  phal:     {name:'Finger bone (phalanx)', qty:'15', size:'See the Parts tab', mat:'PLA or PETG, 3D-printed', fn:'The rigid links of each finger. The narrow end of each bone sits inside the fork of the bone behind it.'},
+  knuckle:  {name:'Knuckle fork', qty:'5', size:'Two 1.3 mm tabs per finger', mat:'Printed with the palm', fn:'Holds the first bone of each finger. The finger swings between the two tabs on an M3 pin.'},
+  pin:      {name:'Joint pin', qty:'15', size:'M3 × 20 mm screw + nylock nut', mat:'Steel', fn:'The axle of every joint. Tighten until the joint swings freely without wobble.'},
+  eyelet:   {name:'Tendon eyelet', qty:'30', size:'Ø 2.6 mm loop, 7.5 mm below the pin', mat:'Printed with each bone', fn:'Holds the tendon 7.5 mm below each joint, so pulling the line turns the joint.'},
+  pad:      {name:'Fingertip pad', qty:'5', size:'≈ 8 × 5 mm', mat:'TPU (flexible filament) or rubber', fn:'Adds grip so the hand can hold smooth objects.'},
+  palm:     {name:'Palm plates', qty:'2', size:'≈ 72 × 68 × 3 mm each', mat:'PLA or PETG', fn:'Top and bottom plates sandwich the knuckle forks. The tendons run between them.'},
+  standoff: {name:'Palm standoff', qty:'5', size:'M3 × 11 mm', mat:'Steel or brass', fn:'Spaces the two palm plates apart.'},
+  wrist:    {name:'Wrist tendon guide', qty:'1', size:'64 × 16 × 9 mm, 5 holes', mat:'Printed (line PTFE tubes optional)', fn:'Lines the five tendons up as they pass from the forearm into the palm.'},
+  tendon:   {name:'Tendon', qty:'5', size:'Braided PE (Dyneema) 0.8 mm, ≈ 30 kg rated', mat:'Fishing line', fn:'Pulls the finger closed. Tied at the fingertip, wound on the spool.'},
+  elastic:  {name:'Return elastic', qty:'5', size:'1 mm elastic cord', mat:'Elastic', fn:'Runs along the back of each finger and pulls it open when the servo releases.'},
+  servo:    {name:'Servo', qty:'5', size:'', mat:'Metal-geared hobby servo', fn:'Turns to the angle the code asks for and holds it. One servo per finger.'},
+  spool:    {name:'Tendon spool', qty:'5', size:'Hub r 10.5 mm, flanges Ø 25 mm', mat:'Printed, screwed to the servo horn', fn:'Reels the tendon in. Line pulled = hub radius × servo angle.'},
+  comb:     {name:'Tendon comb', qty:'1', size:'5 holes at spool height', mat:'Printed', fn:'Keeps each tendon on its own spool so lines never cross or tangle.'},
+  deck:     {name:'Servo deck', qty:'1', size:'', mat:'Clear acrylic, 3 mm, laser-cut (or print it)', fn:'Servo bodies drop into the cut-outs and the mounting tabs screw onto it. Clear, so you can see the electronics underneath.'},
+  riser:    {name:'Servo riser', qty:'2', size:'Lifts 15 mm', mat:'Printed', fn:'Raises the back-row servos so their tendons pass over the front row.'},
+  rail:     {name:'Forearm rail', qty:'4', size:'5 × 10 mm', mat:'Aluminium bar or printed', fn:'The forearm\'s backbone. Everything bolts to it.'},
+  bay:      {name:'Electronics bay floor', qty:'1', size:'', mat:'Printed, 3 mm', fn:'Holds the Arduino and servo driver on M3 standoffs.'},
+  endplate: {name:'End plate', qty:'1', size:'', mat:'Printed', fn:'Closes the forearm and holds the power jack and switch.'},
+  pca:      {name:'PCA9685 servo driver', qty:'1', size:'62.5 × 25.4 mm', mat:'16-channel PWM board', fn:'Makes the control pulse for each servo from just two I²C wires. Servos plug into channels 0–4; servo power goes into its V+ terminal.'},
+  uno:      {name:'Arduino Uno R3', qty:'1', size:'68.6 × 53.4 mm', mat:'Microcontroller board', fn:'Runs your code and tells the PCA9685 what angle each servo should go to. Powered over USB.'},
+  jack:     {name:'DC jack + switch', qty:'1', size:'5.5 / 2.1 mm barrel', mat:'Panel-mount', fn:'Power for the servos only. Plug in the servo power supply here.'},
+  wire:     {name:'Wiring', qty:'', size:'Servo leads, 4 jumpers, 18 AWG power', mat:'', fn:'Servo leads: brown = ground, red = power, orange = signal. Jumpers: 5V, GND, SDA → A4, SCL → A5.'}
+};
+
+/* ---------- pure maths (works without WebGL too) ---------- */
+function jointAngles(i, c){ const f = FINGERS[i]; return f.range.map((r, j) => f.rest[j] + r * c); }
+function pullCm(i, c){ return MOMENT * FINGERS[i].range.reduce((a, r) => a + r, 0) * c * D2R; }
+function servoDeg(i, c){ return pullCm(i, c) / SPOOL_R / D2R; }
+const fmt = (n, d = 0) => n.toFixed(d);
+
+let servoKey = 'MG90S';
+const state = {curl:[0,0,0,0,0], target:[0,0,0,0,0], explode:0, explodeTarget:0,
+  layers:{tendons:true, wiring:true, labels:innerWidth > 560, dims:false}};
+$('#ly-labels').checked = state.layers.labels;
+
+/* ---------- panel: presets & fingers ---------- */
+const fingersEl = $('#fingers');
+FINGERS.forEach((f, i) => {
+  fingersEl.insertAdjacentHTML('beforeend', `<div class="fing"><label for="f-${f.id}">${f.name}</label><input type="range" id="f-${f.id}" min="0" max="100" value="0" aria-describedby="o-${f.id}"><output id="o-${f.id}">0° · 0.0 mm</output></div>`);
+});
+FINGERS.forEach((f, i) => $('#f-' + f.id).addEventListener('input', e => { stopDemo(); setTarget(i, e.target.value / 100); markPreset(null); }));
+const presetsEl = $('#presets');
+PRESETS.forEach(([name, v]) => presetsEl.insertAdjacentHTML('beforeend', `<button class="chip" data-p="${name}">${name}</button>`));
+presetsEl.insertAdjacentHTML('beforeend', '<button class="chip run" id="demo">Run demo</button>');
+$$('[data-p]').forEach(b => b.addEventListener('click', () => { stopDemo(); applyPreset(b.dataset.p); }));
+function applyPreset(name){ const p = PRESETS.find(x => x[0] === name); p[1].forEach((v, i) => setTarget(i, v)); markPreset(name); }
+function markPreset(name){ $$('[data-p]').forEach(b => b.classList.toggle('on', b.dataset.p === name)); }
+function setTarget(i, v){ state.target[i] = v; $('#f-' + FINGERS[i].id).value = Math.round(v * 100); kick(); }
+
+let demoTimer = null;
+const DEMO = ['Fist','Open','Point','Peace','Rock','Pinch','Open'];
+function stopDemo(){ if (demoTimer){ clearTimeout(demoTimer); demoTimer = null; $('#demo').textContent = 'Run demo'; } }
+$('#demo').addEventListener('click', () => {
+  if (demoTimer){ stopDemo(); return; }
+  let k = 0; $('#demo').textContent = 'Stop demo';
+  (function next(){ applyPreset(DEMO[k]); k++; if (k < DEMO.length) demoTimer = setTimeout(next, 1300); else { demoTimer = null; $('#demo').textContent = 'Run demo'; } })();
+});
+
+/* servo switch */
+function servoSpecText(){
+  const S = SERVOS[servoKey], T = S.torque / SPOOL_R, lever = FINGERS[1].L.reduce((a, b) => a + b, 0);
+  const tip = T * MOMENT / lever * 9.81;
+  return `<b>${S.name}</b> ${S.kind} · ${S.dims} · ${S.mass} g<br>torque ≈ ${S.torque} kg·cm · speed ${S.speed} s/60°<br>max tendon pull ≈ <b>${fmt(T,1)} kgf</b> · fingertip force ≈ <b>${fmt(tip,0)} N</b> (estimate)<br>servo power supply: ${S.psu}`;
+}
+['MG90S','DS3218'].forEach(k => $('#sv-' + k).addEventListener('click', () => {
+  if (servoKey === k) return; servoKey = k;
+  ['MG90S','DS3218'].forEach(x => $('#sv-' + x).setAttribute('aria-pressed', x === k));
+  $('#servoSpec').innerHTML = servoSpecText(); renderParts();
+  if (scene3d) scene3d.rebuildForearm();
+  const sel = $('#info').dataset.part; if (sel === 'servo' || sel === 'deck') showInfo(sel);
+}));
+$('#servoSpec').innerHTML = servoSpecText();
+
+/* layers */
+[['tendons','tendons'],['wiring','wiring'],['labels','labels'],['dims','dims']].forEach(([id, k]) =>
+  $('#ly-' + id).addEventListener('change', e => { state.layers[k] = e.target.checked; if (scene3d) scene3d.layersChanged(); }));
+$('#ly-explode').addEventListener('change', e => { state.explodeTarget = e.target.checked ? 1 : 0; kick(); });
+
+/* tabs */
+$$('[role=tab]').forEach(t => t.addEventListener('click', () => {
+  $$('[role=tab]').forEach(x => { const on = x === t; x.setAttribute('aria-selected', on); $('#' + x.getAttribute('aria-controls')).hidden = !on; });
+}));
+
+/* info card */
+function showInfo(key){
+  const p = PARTS[key]; if (!p) return;
+  const S = SERVOS[servoKey];
+  let size = p.size, name = p.name;
+  if (key === 'servo'){ name = `Servo · ${S.name}`; size = `${S.dims}, ${S.mass} g, ≈ ${S.torque} kg·cm`; }
+  if (key === 'deck' || key === 'bay') size = `≈ ${fmt(dimsNow.forearmW*10)} × ${fmt(dimsNow.forearmL*10 - 8)} mm`;
+  if (key === 'endplate') size = `${fmt(dimsNow.forearmW*10)} × 36 × 4 mm`;
+  const el = $('#info'); el.dataset.part = key;
+  el.innerHTML = `<h3>${name}</h3><p>${p.fn}</p><dl>${p.qty ? `<dt>Qty</dt><dd>${p.qty}</dd>` : ''}<dt>Size</dt><dd>${size}</dd>${p.mat ? `<dt>Material</dt><dd>${p.mat}</dd>` : ''}</dl>`;
+}
+
+/* ---------- parts tab ---------- */
+let dimsNow = {overallL:38, handW:8.8, forearmW:8.6, forearmL:21, height:5.5, tendon:[30,30,30,30,30]};
+function renderParts(){
+  const S = SERVOS[servoKey], d = dimsNow;
+  $('#overall').innerHTML = `<b>${fmt(d.overallL*10)} mm</b> long (forearm end to middle fingertip) · hand <b>${fmt(d.handW*10)} mm</b> wide at the knuckles · forearm <b>${fmt(d.forearmW*10)} × ${fmt(d.height*10)} mm</b>`;
+  const tl = d.tendon.map(x => Math.round(x));
+  const rows = [
+    ['Servo', '5', `${S.name}, ${S.dims}`, `≈ ${S.torque} kg·cm, metal gears`],
+    ['PCA9685 servo driver', '1', '62.5 × 25.4 mm', 'I²C address 0x40'],
+    ['Arduino Uno R3', '1', '68.6 × 53.4 mm', 'or a Nano to save space'],
+    ['Servo power supply', '1', S.psu, 'into the DC jack'],
+    ['DC jack + switch', '1', '5.5 / 2.1 mm', 'panel mount'],
+    ['Finger bones', '15', 'see table below', 'PLA/PETG, 30% infill'],
+    ['Palm plates', '2', '≈ 72 × 68 × 3 mm', 'with lightening slots'],
+    ['Joint pins', '15', 'M3 × 20 mm + nylock nut', ''],
+    ['Palm standoffs', '5', 'M3 × 11 mm', ''],
+    ['Spools', '5', 'hub r 10.5 mm, Ø 25 mm flanges', 'printed, on servo horn'],
+    ['Tendon line', '5', `braided PE 0.8 mm, ${Math.min(...tl)}–${Math.max(...tl)} cm each`, 'includes 8 cm for knots'],
+    ['Return elastic', '5', '1 mm cord, ≈ 25 cm each', ''],
+    ['Fingertip pads', '5', '≈ 8 × 5 mm', 'TPU'],
+    ['Forearm rails', '4', `2 × (5 × 10 mm), 2 × (5 × 4.5 mm), ${fmt(d.forearmL*10)} mm long`, 'aluminium bar or printed'],
+    ['Servo deck', '1', '3 mm clear acrylic', 'laser-cut, or print it'],
+    ['Bay floor, end plate, comb, wrist guide', '4', '3–4 mm plates', 'printed'],
+    ['Wiring', '—', '4 jumper wires, 18 AWG red/black', 'servo leads plug straight in']
+  ];
+  $('#bom').innerHTML = '<thead><tr><th>Part</th><th>Qty</th><th>Size / spec</th></tr></thead><tbody>' +
+    rows.map(r => `<tr><td>${r[0]}${r[3] ? `<small>${r[3]}</small>` : ''}</td><td class="n">${r[1]}</td><td>${r[2]}</td></tr>`).join('') + '</tbody>';
+  $('#bones').innerHTML = '<thead><tr><th>Finger</th><th>Bone 1</th><th>Bone 2</th><th>Bone 3</th><th>Width</th></tr></thead><tbody>' +
+    FINGERS.map(f => `<tr><td>${f.name}</td>${f.L.map(l => `<td class="n">${fmt(l*10)}</td>`).join('')}<td class="n">${fmt(f.w*10)}</td></tr>`).join('') + '</tbody>';
+}
+
+/* ---------- how-it-works tab ---------- */
+function renderFormula(){
+  const i = 1, c = state.curl[i], a = jointAngles(i, c).map((x, j) => x - FINGERS[i].rest[j]);
+  $('#formula').innerHTML = `pull = m × (θ₁ + θ₂ + θ₃) = r × φ<br>m = 7.5 mm (eyelet below pin) · r = 10.5 mm (spool)<br>Index now: θ = ${a.map(x => fmt(x) + '°').join(' + ')}<br>→ pull = <em>${fmt(pullCm(i,c)*10,1)} mm</em> → servo φ = <em>${fmt(servoDeg(i,c))}°</em><br>Fully closed: ${fmt(pullCm(i,1)*10,1)} mm of line, ${fmt(servoDeg(i,1))}° of servo travel.`;
+}
+$('#wiremap').innerHTML = '<thead><tr><th>From</th><th>To</th></tr></thead><tbody>' + [
+  ['Thumb servo', 'PCA9685 channel 0'], ['Index servo', 'channel 1'], ['Middle servo', 'channel 2'], ['Ring servo', 'channel 3'], ['Little servo', 'channel 4'],
+  ['PCA9685 VCC', 'Arduino 5V'], ['PCA9685 GND', 'Arduino GND'], ['PCA9685 SDA', 'Arduino A4'], ['PCA9685 SCL', 'Arduino A5'],
+  ['Power supply +', 'PCA9685 V+ terminal'], ['Power supply −', 'PCA9685 GND terminal'], ['Arduino', 'USB to your computer']
+].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('') + '</tbody>';
+const MAXDEG = FINGERS.map((f, i) => Math.round(servoDeg(i, 1)));
+$('#codetext').textContent =
+`#include <Adafruit_PWMServoDriver.h>
+Adafruit_PWMServoDriver pwm;              // address 0x40
+
+// channel: 0 thumb, 1 index, 2 middle, 3 ring, 4 little
+const int MAX_DEG[5] = {${MAXDEG.join(', ')}};   // servo travel to close each finger
+
+void setFinger(int ch, float curl) {      // curl: 0 = open, 1 = closed
+  float deg = curl * MAX_DEG[ch];
+  int us = 500 + deg / 180.0 * 2000;      // 500–2500 µs covers 0–180°
+  pwm.writeMicroseconds(ch, us);
+}
+
+void setup() {
+  pwm.begin();
+  pwm.setPWMFreq(50);                     // servos expect 50 Hz
+  for (int ch = 0; ch < 5; ch++) setFinger(ch, 0);
+}
+
+void loop() {
+  for (int ch = 0; ch < 5; ch++) setFinger(ch, 1);  // fist
+  delay(1000);
+  for (int ch = 0; ch < 5; ch++) setFinger(ch, 0);  // open
+  delay(1000);
+}`;
+$('#copy').addEventListener('click', () => {
+  const txt = $('#codetext').textContent, b = $('#copy');
+  const done = () => { b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1400); };
+  try { navigator.clipboard.writeText(txt).then(done, sel); } catch (e) { sel(); }
+  function sel(){ const r = document.createRange(); r.selectNodeContents($('#codetext')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected, press Ctrl+C'; }
+});
+
+function updateReadouts(){
+  FINGERS.forEach((f, i) => { $('#o-' + f.id).textContent = `${fmt(servoDeg(i, state.curl[i]))}° · ${fmt(pullCm(i, state.curl[i])*10, 1)} mm`; });
+  renderFormula();
+}
+
+/* ---------- 3D ---------- */
+let scene3d = null, kick = () => { if (!scene3d){ state.curl = state.target.slice(); state.explode = state.explodeTarget; updateReadouts(); } };
+function webglOK(){ try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))); } catch (e) { return false; } }
+
+if (window.THREE && THREE.OrbitControls && webglOK()) scene3d = build3D();
+else $('#stage').insertAdjacentHTML('beforeend', '<div class="nogl"><p>3D view needs WebGL, which this browser has turned off.<br>The controls, sizes and parts list still work.</p></div>');
+renderParts(); updateReadouts();
+
+function build3D(){
+  const stage = $('#stage'), labelsEl = $('#labels');
+  const renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  stage.prepend(renderer.domElement);
+  renderer.domElement.setAttribute('aria-label', '3D model of the robotic hand. Drag to orbit, scroll to zoom, click a part for details.');
+  renderer.domElement.tabIndex = 0;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--stage').trim() || '#161b21');
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.5, 600);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = 0.09; controls.minDistance = 14; controls.maxDistance = 160;
+  const VIEWS = {
+    three:  {p:[38,27,37],   t:[0,-2,-3]},
+    top:    {p:[0.01,84,-3], t:[0,-1,-3]},
+    side:   {p:[-80,8,-3],   t:[0,-1.5,-3]},
+    palm:   {p:[14,-36,34],  t:[0,-1.5,2]},
+    inside: {p:[20,24,-36],  t:[0,-2.6,-13]}
+  };
+  // pull the camera back on tall, narrow stages so the whole build stays in frame
+  function viewPos(v){
+    const a = stage.clientWidth / Math.max(1, stage.clientHeight), k = Math.min(1.8, Math.max(1, 1.15 / a));
+    const t = new THREE.Vector3(...v.t); return new THREE.Vector3(...v.p).sub(t).multiplyScalar(k).add(t);
+  }
+  camera.position.copy(viewPos(VIEWS.three)); controls.target.set(...VIEWS.three.t);
+
+  /* environment for chrome reflections: small gradient cube (works without PMREM) */
+  function face(top, bot, band, alpha){
+    const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, top); g.addColorStop(1, bot); x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+    if (band){ x.fillStyle = band; x.globalAlpha = alpha; x.fillRect(0, 38, 128, 22); x.globalAlpha = 1; }
+    return c;
+  }
+  const sideA = face('#6f7a87','#0c0e11','#ffffff',0.95), sideB = face('#4a535e','#0b0d10','#dfe6ee',0.5);
+  const env = new THREE.CubeTexture([sideA, sideB, face('#9aa5b2','#5d6773'), face('#07080a','#07080a'), sideB, sideA]);
+  env.needsUpdate = true;
+
+  const ph = (o) => new THREE.MeshPhongMaterial(o);
+  const M = {
+    chrome:  ph({color:0x5d646d, specular:0xffffff, shininess:120, envMap:env, reflectivity:0.62, combine:THREE.MixOperation}),
+    steel:   ph({color:0x3d434b, specular:0xd4dae1, shininess:80,  envMap:env, reflectivity:0.4, combine:THREE.MixOperation}),
+    print:   ph({color:0x343b44, specular:0x2c3138, shininess:14}),
+    acrylic: ph({color:0x8fb3c6, specular:0xffffff, shininess:90, transparent:true, opacity:0.13, depthWrite:false}),
+    spool:   ph({color:0xe4dfd3, specular:0x3a3a3a, shininess:22}),
+    servo:   ph({color:0x1b2028, specular:0x4a5058, shininess:40}),
+    sticker: ph({color:0x2b5ea8, specular:0x222222, shininess:20}),
+    rubber:  ph({color:0x25282c, shininess:6}),
+    tendon:  ph({color:0xf0a73c, emissive:0x3d2400, shininess:40}),
+    elastic: ph({color:0x6a737e, shininess:10}),
+    pcbBlue: ph({color:0x1f4c8f, specular:0x333a44, shininess:40}),
+    pcbTeal: ph({color:0x0f7380, specular:0x333a44, shininess:40}),
+    black:   ph({color:0x101215, shininess:25}),
+    gold:    ph({color:0xc9a24a, specular:0xffe7a8, shininess:80}),
+    term:    ph({color:0x2f8a4a, shininess:30}),
+    wire: {}
+  };
+  const WIRE = {brown:0x6b3b1f, red:0xc62828, orange:0xef8a17, black:0x1b1d20, blue:0x2f6fd6, yellow:0xe8c02a};
+  Object.keys(WIRE).forEach(k => M.wire[k] = ph({color:WIRE[k], shininess:30}));
+
+  /* lights + bench */
+  scene.add(new THREE.HemisphereLight(0xc2ccda, 0x1d2228, 0.5));
+  const key = new THREE.DirectionalLight(0xffffff, 0.8); key.position.set(-22, 42, 26); key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0006;
+  Object.assign(key.shadow.camera, {left:-34, right:34, top:34, bottom:-34, near:1, far:120}); scene.add(key);
+  const rim = new THREE.DirectionalLight(0x9fb6d6, 0.45); rim.position.set(26, 12, -32); scene.add(rim);
+  const fill = new THREE.DirectionalLight(0xffe7cc, 0.22); fill.position.set(20, -12, 22); scene.add(fill);
+  const FLOOR_Y = -9;
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), new THREE.ShadowMaterial({opacity:0.32}));
+  floor.rotation.x = -Math.PI / 2; floor.position.y = FLOOR_Y; floor.receiveShadow = true; scene.add(floor);
+  const g1 = new THREE.GridHelper(80, 80, 0x232a32, 0x232a32); g1.position.y = FLOOR_Y + 0.01; scene.add(g1);
+  const g2 = new THREE.GridHelper(80, 8, 0x323b46, 0x323b46); g2.position.y = FLOOR_Y + 0.02; scene.add(g2);
+  g1.position.z = g2.position.z = -6;
+
+  /* geometry helpers */
+  function mesh(geo, mat, part){ const m = new THREE.Mesh(geo, mat); m.castShadow = true; if (part) m.userData.part = part; return m; }
+  function box(w, h, d, mat, part){ return mesh(new THREE.BoxGeometry(w, h, d), mat, part); }
+  function cylX(r, len, mat, part, seg){ const g = new THREE.CylinderGeometry(r, r, len, seg || 18); g.rotateZ(Math.PI / 2); return mesh(g, mat, part); }
+  function cylY(r, h, mat, part, seg){ return mesh(new THREE.CylinderGeometry(r, r, h, seg || 24), mat, part); }
+  function cylZ(r, len, mat, part, seg){ const g = new THREE.CylinderGeometry(r, r, len, seg || 18); g.rotateX(Math.PI / 2); return mesh(g, mat, part); }
+  function marker(parent, x, y, z){ const o = new THREE.Object3D(); o.position.set(x, y, z); parent.add(o); return o; }
+  function circlePath(x, y, r){ const p = new THREE.Path(); p.absarc(x, y, r, 0, Math.PI * 2, true); return p; }
+  function slotPath(x0, x1, y, r){ const p = new THREE.Path(); p.moveTo(x0, y - r); p.lineTo(x1, y - r); p.absarc(x1, y, r, -Math.PI/2, Math.PI/2, false); p.lineTo(x0, y + r); p.absarc(x0, y, r, Math.PI/2, Math.PI*1.5, false); return p; }
+  function vslot(x, y0, y1, r){ const p = new THREE.Path(); p.moveTo(x + r, y0); p.lineTo(x + r, y1); p.absarc(x, y1, r, 0, Math.PI, false); p.lineTo(x - r, y0); p.absarc(x, y0, r, Math.PI, Math.PI * 2, false); return p; }
+  function rectPath(x0, z0, x1, z1){ const p = new THREE.Path(); p.moveTo(x0, z0); p.lineTo(x0, z1); p.lineTo(x1, z1); p.lineTo(x1, z0); p.lineTo(x0, z0); return p; }
+  /* side profile: length along z, height along y; pins at z=0 and z=len */
+  function stadium(len, h, o){
+    o = o || {}; const r = h / 2, s = new THREE.Shape();
+    s.moveTo(0, -r); s.lineTo(len, -r);
+    if (o.end !== false) s.absarc(len, 0, r, -Math.PI/2, Math.PI/2, false); else s.lineTo(len, r);
+    s.lineTo(0, r);
+    if (o.start !== false) s.absarc(0, 0, r, Math.PI/2, Math.PI*1.5, false); else s.lineTo(0, -r);
+    (o.holes || []).forEach(p => s.holes.push(p)); return s;
+  }
+  function extrudeX(shape, thick, bevel){
+    const b = bevel == null ? 0.05 : bevel;
+    const g = new THREE.ExtrudeGeometry(shape, {depth:thick, bevelEnabled:b > 0, bevelThickness:b, bevelSize:b, bevelSegments:2, curveSegments:18});
+    g.rotateY(-Math.PI / 2); g.translate(thick / 2, 0, 0); return g;
+  }
+  function plateY(shape, thick){ // shape in (x, z) → horizontal plate occupying y ∈ [-thick, 0]
+    const g = new THREE.ExtrudeGeometry(shape, {depth:thick, bevelEnabled:true, bevelThickness:0.04, bevelSize:0.04, bevelSegments:1, curveSegments:16});
+    g.rotateX(Math.PI / 2); return g;
+  }
+
+  /* explode registry */
+  const exploders = [];
+  function explodable(obj, vec){ exploders.push({obj, base:obj.position.clone(), vec:new THREE.Vector3(...vec)}); return obj; }
+
+  /* ---- hand ---- */
+  const hand = new THREE.Group(); scene.add(hand);
+  const TAB = 1.05;
+  function forkInto(parent, w, t, len, part){ // two tabs from z=-len to 0 with rounded end around the pin at z=0, plus bridge and pin
+    [-1, 1].forEach(sx => {
+      const tab = mesh(extrudeX(stadium(len, t * 0.98, {start:false, holes:[circlePath(len, 0, 0.17)]}), 0.13, 0.03), M.chrome, part);
+      tab.position.set(sx * (w / 2 - 0.08), 0, -len); parent.add(tab);
+    });
+    const bridge = box(w - 0.16, t * 0.62, 0.32, M.chrome, part); bridge.position.set(0, 0, -len - 0.02); parent.add(bridge);
+    const pin = cylX(0.15, w + 0.1, M.steel, 'pin'); parent.add(pin);
+    [-1, 1].forEach(sx => { const hd = cylX(0.27, 0.11, M.steel, 'pin', 6); hd.position.set(sx * (w / 2 + 0.03), 0, 0); parent.add(hd); });
+  }
+  function bone(L, w, t, tip){
+    const g = new THREE.Group(), bw = w * 0.56, len = tip ? L : L - TAB;
+    const holes = [circlePath(0, 0, 0.17)];
+    if (len - 0.45 - 0.85 > 0.35) holes.push(slotPath(0.85, len - 0.45, 0, t * 0.16));
+    g.add(mesh(extrudeX(stadium(len, t, {end:tip, holes}), bw, 0.05), M.chrome, 'phal'));
+    [0.42, L - 0.42].forEach(z => { const e = mesh(new THREE.TorusGeometry(0.13, 0.04, 6, 14), M.steel, 'eyelet'); e.position.set(0, -MOMENT, z); g.add(e); });
+    if (tip){
+      const pad = mesh(new THREE.SphereGeometry(1, 16, 10), M.rubber, 'pad'); pad.scale.set(w * 0.34, 0.24, L * 0.36); pad.position.set(0, -t * 0.4, L * 0.62); g.add(pad);
+    }
+    return g;
+  }
+  const fingers = FINGERS.map((f, fi) => {
+    const base = new THREE.Group(); base.position.set(...f.base);
+    base.rotation.set(f.pitch * D2R, f.yaw * D2R, f.roll * D2R, 'YXZ');
+    hand.add(base);
+    forkInto(base, f.w, f.t + 0.05, TAB, 'knuckle');
+    const joints = [], under = [], over = [];
+    under.push(marker(base, 0, -MOMENT, -0.62));
+    over.push(marker(base, 0, f.t / 2 + 0.12, -0.75));
+    let parent = base;
+    f.L.forEach((L, j) => {
+      const jg = new THREE.Group(); parent.add(jg); joints.push(jg);
+      const tip = j === 2;
+      jg.add(bone(L, f.w, f.t, tip));
+      under.push(marker(jg, 0, -MOMENT, 0.42), marker(jg, 0, -MOMENT, L - 0.42));
+      over.push(marker(jg, 0, f.t / 2 + 0.06, 0.35), marker(jg, 0, f.t / 2 + 0.06, L - 0.35));
+      if (!tip){
+        const fork = new THREE.Group(); fork.position.z = L; jg.add(fork); forkInto(fork, f.w, f.t, TAB, 'phal');
+        const next = new THREE.Group(); next.position.z = L; jg.add(next); parent = next;
+      } else {
+        under.push(marker(jg, 0, -MOMENT * 0.82, L - 0.2));
+        over.push(marker(jg, 0, f.t / 2 - 0.05, L - 0.25));
+      }
+    });
+    const tipM = marker(joints[2], 0, 0, f.L[2] + f.t / 2);
+    explodable(base, fi === 0 ? [1.5, 0, 1.2] : [0, 0, 1.6]);
+    return {base, joints, under, over, tipM, pinM: marker(joints[1], 0, 0, 0)};
+  });
+
+  /* palm plates */
+  const outline = [[3.2,-0.4],[-3.2,-0.4],[-3.6,2.4],[-3.45,4.9],[-2.6,5.25],[-1.7,6.05],[0,6.45],[1.7,6.15],[3.3,5.95],[3.65,3.6],[3.45,1.0]];
+  function palmShape(withSlots){
+    const s = new THREE.Shape(); outline.forEach((p, i) => i ? s.lineTo(p[0], p[1]) : s.moveTo(p[0], p[1])); s.lineTo(outline[0][0], outline[0][1]);
+    if (withSlots){ s.holes.push(vslot(1.7, 1.4, 4.4, 0.42), vslot(0, 1.4, 4.7, 0.42), vslot(-1.7, 1.4, 4.2, 0.42)); }
+    return s;
+  }
+  const dorsal = mesh(plateY(palmShape(true), 0.3), M.chrome, 'palm'); dorsal.position.y = 0.85; hand.add(dorsal); explodable(dorsal, [0, 1.8, 0]);
+  const palmar = mesh(plateY(palmShape(true), 0.3), M.chrome, 'palm'); palmar.position.y = -0.55; hand.add(palmar); explodable(palmar, [0, -1.6, 0]);
+  [[2.7,0.4],[-2.7,0.4],[2.85,4.9],[-2.95,4.2],[-0.85,5.5]].forEach(([x, z]) => { const s = cylY(0.2, 1.1, M.steel, 'standoff', 12); s.position.set(x, 0, z); hand.add(s); });
+  FINGERS.slice(1).forEach(f => {
+    const a = new THREE.Vector3(f.base[0] * 0.42, 1.0, 0.7), b = new THREE.Vector3(f.base[0], 1.0, f.base[2] - 1.35);
+    const len = a.distanceTo(b), r = mesh(new THREE.CylinderGeometry(0.26, 0.26, len, 14), M.chrome, 'palm');
+    r.position.copy(a).lerp(b, 0.5); r.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
+    hand.add(r); explodable(r, [0, 1.8, 0]);
+    [a, b].forEach(p => { const c = mesh(new THREE.SphereGeometry(0.26, 12, 8), M.chrome, 'palm'); c.position.copy(p); hand.add(c); explodable(c, [0, 1.8, 0]); });
+  });
+  /* wrist guide */
+  const wrist = box(6.4, 1.6, 0.9, M.steel, 'wrist'); wrist.position.set(0, -0.15, -0.2); hand.add(wrist);
+  const wristHoles = FINGERS.map(f => {
+    const ring = mesh(new THREE.TorusGeometry(0.16, 0.05, 6, 14), M.black, 'wrist'); ring.position.set(f.hole, -0.2, 0.27); hand.add(ring);
+    return {a: marker(hand, f.hole, -0.2, -0.65), b: marker(hand, f.hole, -0.2, 0.25)};
+  });
+  const palmMid = FINGERS.map((f, i) => i === 0 ? marker(hand, 2.1, -0.15, 1.15) : marker(hand, f.base[0] * 0.92, -0.15, 3.6));
+  const palmLabel = marker(hand, 0.2, 0.95, 3.0), wristLabel = marker(hand, -2.4, 0.6, -0.2);
+  explodable(hand, [0, 0, 4.5]);
+
+  /* ---- forearm (rebuilt when the servo changes) ---- */
+  let fore = null;
+  function buildForearm(){
+    const S = SERVOS[servoKey], g = new THREE.Group(); scene.add(g);
+    const startCount = exploders.length;
+    // spools need clearance too: flange diameter 2 × (SPOOL_R + FLANGE) sets the minimum servo pitch
+    const gap = 0.45, flD = 2 * (SPOOL_R + FLANGE), p = Math.max(S.W + gap, flD + 0.15);
+    const single = 4 * p + Math.max(S.W, flD) + 1.2 <= 8.6;
+    const FW = single ? 8.6 : 2 * p + Math.max(S.W, flD) + 1.2;
+    const deckTop = -0.45, LIFT = 1.5;
+    let slots;
+    if (single){ const z = -2.7 - S.tabL / 2; slots = [2,1,0,-1,-2].map(k => ({x:k * p - 0.5, z, lift:0})); }
+    else { const z1 = -2.7 - S.tabL / 2, z2 = z1 - S.tabL - 0.9;
+      slots = [{x:p/2 - 0.5, z:z2, lift:LIFT}, {x:p - 0.5, z:z1, lift:0}, {x:-0.5, z:z1, lift:0}, {x:-p - 0.5, z:z1, lift:0}, {x:-p/2 - 0.5, z:z2, lift:LIFT}]; }
+    const servoBack = Math.min(...slots.map(s => s.z - S.tabL / 2));
+    const pcaZ = servoBack - 1.9, unoFront = pcaZ - 2.1, unoBack = unoFront - 6.86, back = unoBack - 0.9;
+    const len = -0.6 - back, midZ = (-0.6 + back) / 2;
+    /* frame */
+    const deckShape = new THREE.Shape(); const hx = FW / 2 - 0.3;
+    deckShape.moveTo(-hx, -0.6); deckShape.lineTo(hx, -0.6); deckShape.lineTo(hx, back + 0.4); deckShape.lineTo(-hx, back + 0.4); deckShape.lineTo(-hx, -0.6);
+    slots.forEach(s => { const hw = S.W / 2 + 0.03, hl = S.L / 2 + 0.03; deckShape.holes.push(rectPath(s.x - hw, s.z - hl, s.x + hw, s.z + hl)); });
+    const deck = mesh(plateY(deckShape, 0.3), M.acrylic, 'deck'); deck.castShadow = false; deck.position.y = deckTop; g.add(deck);
+    const rails = [];
+    [-1, 1].forEach(sx => [[deckTop - 0.35, 1.0], [-3.375, 0.45]].forEach(([y, h]) => { const r = box(0.5, h, len, M.chrome, 'rail'); r.position.set(sx * (FW / 2 - 0.25), y, midZ); g.add(r); rails.push(r); }));
+    for (let z = -1.2; z > back + 0.5; z -= 4.2) [-1, 1].forEach(sx => { const p = cylY(0.18, 2.3, M.steel, 'rail', 10); p.position.set(sx * (FW / 2 - 0.25), -1.95, z); g.add(p); });
+    const bay = box(FW - 0.2, 0.3, len - 0.4, M.print, 'bay'); bay.position.set(0, -3.75, midZ - 0.2); g.add(bay); explodable(bay, [0, -7.5, 0]);
+    const endp = box(FW, 3.8, 0.4, M.print, 'endplate'); endp.position.set(0, -1.85, back - 0.2); g.add(endp); explodable(endp, [0, 0, -3]);
+    const jack = cylZ(0.42, 0.9, M.black, 'jack', 16); jack.position.set(-FW / 2 + 1.5, -2.2, back - 0.25); g.add(jack);
+    const sw = box(0.6, 1.0, 0.5, M.black, 'jack'); sw.position.set(-FW / 2 + 2.8, -2.2, back - 0.35); g.add(sw);
+    explodable(jack, [0, 0, -3]); explodable(sw, [0, 0, -3]);
+    const jackIn = marker(jack, 0, 0, 0.5);
+    /* servos */
+    const servos = slots.map((s, i) => {
+      const sg = new THREE.Group(); sg.position.set(s.x, 0, s.z); g.add(sg);
+      const bottom = deckTop + s.lift - S.tabY;
+      const body = box(S.W, S.H, S.L, M.servo, 'servo'); body.position.y = bottom + S.H / 2; sg.add(body);
+      const st = box(S.W + 0.02, S.H * 0.45, S.L * 0.62, M.sticker, 'servo'); st.position.set(0, bottom + S.H * 0.42, -S.L * 0.08); sg.add(st);
+      const tabs = box(S.W, S.tabT, S.tabL, M.servo, 'servo'); tabs.position.y = deckTop + s.lift + S.tabT / 2; sg.add(tabs);
+      if (s.lift) [-1, 1].forEach(sz => { const r = box(S.W + 0.1, s.lift, 0.7, M.print, 'riser'); r.position.set(0, deckTop + s.lift / 2, sz * (S.tabL / 2 - 0.35)); sg.add(r); });
+      const shaftZ = S.L / 2 - S.shaftOff, topY = bottom + S.H;
+      const bump = cylY(S.W * 0.42, S.top * 0.55, M.servo, 'servo'); bump.position.set(0, topY + S.top * 0.27, shaftZ); sg.add(bump);
+      const lead = box(0.34, 0.14, 0.4, M.wire.brown, 'wire'); lead.position.set(0, bottom + 0.4, -S.L / 2 - 0.15); sg.add(lead);
+      const spool = new THREE.Group(); const spoolY = topY + S.top + 0.3; spool.position.set(0, spoolY, shaftZ); sg.add(spool);
+      spool.add(cylY(SPOOL_R, 0.44, M.spool, 'spool', 28));
+      [-0.25, 0.25].forEach(y => { const fl = cylY(SPOOL_R + FLANGE, 0.07, M.spool, 'spool', 28); fl.position.y = y; spool.add(fl); });
+      const band = cylY(SPOOL_R + 0.04, 0.2, M.tendon, 'tendon', 28); spool.add(band);
+      const horn = box(2.3, 0.1, 0.42, M.spool, 'spool'); horn.position.y = 0.33; spool.add(horn);
+      const scr = cylY(0.12, 0.06, M.steel, 'spool', 8); scr.position.y = 0.4; spool.add(scr);
+      explodable(sg, [0, 4.2, 0]); explodable(spool, [0, 2.0, 0]);
+      return {g:sg, spool, spoolY, tangent:marker(sg, SPOOL_R + 0.05, spoolY, shaftZ), lead:marker(sg, 0, bottom + 0.4, -S.L / 2 - 0.35), top:marker(sg, 0, topY, 0), lift:s.lift};
+    });
+    /* tendon comb */
+    const frontSpool = Math.max(...servos.map(s => s.g.position.z + S.L / 2 - S.shaftOff)) + SPOOL_R + 0.75;
+    const combH = Math.max(...servos.map(s => s.spoolY)) - deckTop + 0.7;
+    const comb = box(FW - 1.0, combH, 0.3, M.print, 'comb'); comb.position.set(0, deckTop + combH / 2, frontSpool); g.add(comb); explodable(comb, [0, 3.0, 0]);
+    const combHoles = servos.map(sv => {
+      const x = sv.g.position.x + SPOOL_R + 0.05;
+      const ring = mesh(new THREE.TorusGeometry(0.16, 0.05, 6, 14), M.black, 'comb'); ring.position.set(x, sv.spoolY, frontSpool + 0.16); comb.parent.add(ring);
+      ring.userData.combRing = true; explodable(ring, [0, 3.0, 0]);
+      return marker(g, x, sv.spoolY, frontSpool);
+    });
+    // comb markers must move with the comb when exploded: re-parent them to the comb
+    combHoles.forEach(m => { m.position.sub(comb.position); comb.add(m); });
+    /* PCA9685 */
+    const pca = new THREE.Group(); pca.position.set(0.3, -2.75, pcaZ); g.add(pca); explodable(pca, [0, -4.2, 0]);
+    pca.add(box(6.25, 0.16, 2.54, M.pcbBlue, 'pca'));
+    const chip = box(1.0, 0.12, 0.62, M.black, 'pca'); chip.position.set(-0.6, 0.14, -0.35); pca.add(chip);
+    const hdr = box(4.06, 0.26, 0.76, M.black, 'pca'); hdr.position.set(0.25, 0.21, 0.82); pca.add(hdr);
+    [-0.25, 0, 0.25].forEach(dz => { const gp = box(4.0, 0.04, 0.05, M.gold, 'pca'); gp.position.set(0.25, 0.36, 0.82 + dz); pca.add(gp); });
+    const term = box(0.85, 0.75, 0.75, M.term, 'pca'); term.position.set(0.25, 0.45, -0.85); pca.add(term);
+    const i2c = box(0.3, 0.26, 1.52, M.black, 'pca'); i2c.position.set(-2.9, 0.21, 0); pca.add(i2c);
+    const ch = [0,1,2,3,4].map(k => { const x = -1.78 + k * 0.254 + 0.25; return {g:marker(pca, x, 0.42, 0.57), v:marker(pca, x, 0.42, 0.82), s:marker(pca, x, 0.42, 1.07)}; });
+    const pI2C = {vcc:marker(pca, -2.9, 0.4, -0.38), gnd:marker(pca, -2.9, 0.4, 0.62), sda:marker(pca, -2.9, 0.4, 0.12), scl:marker(pca, -2.9, 0.4, 0.37)};
+    const pPow = {p:marker(pca, 0.05, 0.85, -0.85), n:marker(pca, 0.45, 0.85, -0.85)};
+    /* Arduino Uno */
+    const uno = new THREE.Group(); uno.position.set(0, -3.15, (unoFront + unoBack) / 2); g.add(uno); explodable(uno, [0, -5.6, 0]);
+    uno.add(box(5.34, 0.16, 6.86, M.pcbTeal, 'uno'));
+    const mcu = box(0.75, 0.38, 3.5, M.black, 'uno'); mcu.position.set(0.6, 0.27, 0.4); uno.add(mcu);
+    const usb = box(1.2, 1.1, 1.6, M.steel, 'uno'); usb.position.set(1.45, 0.63, -3.0); uno.add(usb);
+    const bj = box(0.9, 1.1, 1.4, M.black, 'uno'); bj.position.set(-1.6, 0.63, -2.95); uno.add(bj);
+    [[-2.45, 1.9, 1.6], [-2.45, -0.4, 2.0], [2.45, 1.4, 2.0], [2.45, -1.0, 2.0]].forEach(([x, z, l]) => { const h = box(0.26, 0.85, l, M.black, 'uno'); h.position.set(x, 0.5, z); uno.add(h); });
+    const pUno = {a4:marker(uno, -2.45, 0.95, 2.45), a5:marker(uno, -2.45, 0.95, 2.7), v5:marker(uno, -2.45, 0.95, -0.6), gnd:marker(uno, -2.45, 0.95, -0.85)};
+    const out = {g, S, FW, back, len, deckTop, servos, combHoles, ch, pI2C, pPow, pUno, jackIn,
+      pcaM:marker(pca, 1.8, 0.2, -0.2), unoM:marker(uno, 1.5, 0.2, 1.8), jackM:marker(jack, 0, 0, -0.45), wires:new THREE.Group(), explodeStart:startCount};
+    scene.add(out.wires);
+    return out;
+  }
+
+  /* tendons / elastics drawn as cylinder segments between guide points */
+  const unitCyl = new THREE.CylinderGeometry(1, 1, 1, 6, 1, true);
+  const tendonGroup = new THREE.Group(), elasticGroup = new THREE.Group(); scene.add(tendonGroup, elasticGroup);
+  const segPool = (group, mat, r) => { const list = []; return function(points, k){
+    for (let i = 0; i < points.length - 1; i++){
+      let m = list[k + i]; if (!m){ m = new THREE.Mesh(unitCyl, mat); m.userData.part = mat === M.tendon ? 'tendon' : 'elastic'; m.castShadow = false; list.push(m); group.add(m); }
+      const a = points[i], b = points[i + 1], d = _d.subVectors(b, a), L = d.length();
+      m.position.copy(a).addScaledVector(d, 0.5); m.scale.set(r, L, r); m.quaternion.setFromUnitVectors(_up, d.normalize()); m.visible = true;
+    }
+    return k + points.length - 1; }; };
+  const _d = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
+  const drawTendon = segPool(tendonGroup, M.tendon, 0.045), drawElastic = segPool(elasticGroup, M.elastic, 0.028);
+  const W = o => o.getWorldPosition(new THREE.Vector3());
+  function updateTendons(){
+    let k = 0, e = 0;
+    fingers.forEach((f, i) => {
+      const pts = [W(fore.servos[i].tangent), W(fore.combHoles[i]), W(wristHoles[i].a), W(wristHoles[i].b), W(palmMid[i])].concat(f.under.map(W));
+      k = drawTendon(pts, k);
+      const ov = [W(palmMid[i]).add(new THREE.Vector3(0, 1.2, 0))].concat(f.over.map(W));
+      e = drawElastic(ov, e);
+    });
+  }
+
+  /* wiring tubes */
+  function tube(points, mat, r){ const c = new THREE.CatmullRomCurve3(points, false, 'centripetal'); const m = new THREE.Mesh(new THREE.TubeGeometry(c, 36, r, 5), mat); m.userData.part = 'wire'; return m; }
+  function rebuildWires(){
+    const w = fore.wires; while (w.children.length){ const c = w.children.pop(); c.geometry.dispose(); }
+    if (!state.layers.wiring) return;
+    const V = (x, y, z) => new THREE.Vector3(x, y, z);
+    fore.servos.forEach((sv, i) => {
+      const a = W(sv.lead), pins = fore.ch[i];
+      [['brown', pins.g, -0.08], ['red', pins.v, 0], ['orange', pins.s, 0.08]].forEach(([col, pin, dx]) => {
+        const b = W(pin);
+        w.add(tube([a.clone().add(V(dx, 0, 0)), a.clone().add(V(dx, -0.2, -0.6)), V(a.x + dx, (a.y + b.y) / 2 - 0.3, (a.z + b.z) / 2 + 0.6), b.clone().add(V(0, 0.9, 0.5)), b], M.wire[col], 0.045));
+      });
+    });
+    const P = fore.pI2C, U = fore.pUno;
+    [[P.vcc, U.v5, 'red'], [P.gnd, U.gnd, 'black'], [P.sda, U.a4, 'blue'], [P.scl, U.a5, 'yellow']].forEach(([p, u, col], j) => {
+      const a = W(p), b = W(u); w.add(tube([a, a.clone().add(V(-0.3 - j * 0.12, 0.6, 0)), V(Math.min(a.x, b.x) - 0.4 - j * 0.12, Math.max(a.y, b.y) + 0.5, (a.z + b.z) / 2), b.clone().add(V(-0.2, 0.6, 0)), b], M.wire[col], 0.04));
+    });
+    const j = W(fore.jackIn);
+    [[fore.pPow.p, 'red', 0], [fore.pPow.n, 'black', 0.18]].forEach(([pin, col, dx]) => {
+      const b = W(pin); w.add(tube([j.clone().add(V(dx, 0, 0)), j.clone().add(V(dx + 0.3, 0.2, 1.2)), V(j.x + 1.2 + dx, -1.6, (j.z + b.z) / 2), b.clone().add(V(0, 0.8, -0.8)), b], M.wire[col], 0.07));
+    });
+  }
+
+  /* labels + dimensions */
+  const LABELS = [
+    {text:'Fingertip · TPU pad', at:() => W(fingers[1].tipM)},
+    {text:'Clevis joint · M3 pin', at:() => W(fingers[2].pinM)},
+    {text:'Tendon · braided PE 0.8 mm', layer:'tendons', at:() => W(fore.combHoles[3]).lerp(W(wristHoles[3].a), 0.3)},
+    {text:'Palm frame · 2 plates', at:() => W(palmLabel)},
+    {text:'Wrist tendon guide', at:() => W(wristLabel)},
+    {text:() => `Servo ×5 · ${SERVOS[servoKey].name}`, at:() => W(fore.servos[2].top)},
+    {text:'Spool · r 10.5 mm', at:() => W(fore.servos[4].spool).add(new THREE.Vector3(0, 0.5, 0))},
+    {text:'PCA9685 servo driver', at:() => W(fore.pcaM)},
+    {text:'Arduino Uno', at:() => W(fore.unoM)},
+    {text:'DC in · servo power', at:() => W(fore.jackM)}
+  ];
+  LABELS.forEach(l => { const d = document.createElement('div'); d.className = 'tag'; d.innerHTML = '<i></i><span></span>'; labelsEl.appendChild(d); l.el = d; });
+  const dimGroup = new THREE.Group(); scene.add(dimGroup);
+  const dimMat = new THREE.LineBasicMaterial({color:0xf0a73c, transparent:true, opacity:0.9});
+  let dimLabels = [];
+  function buildDims(){
+    while (dimGroup.children.length) dimGroup.children.pop().geometry.dispose();
+    dimLabels.forEach(d => d.el.remove()); dimLabels = [];
+    const saved = state.curl.slice(), savedE = state.explode; state.curl = [0,0,0,0,0]; state.explode = 0; applyPose(); applyExplode(); scene.updateMatrixWorld(true);
+    const box3 = new THREE.Box3();
+    const handBox = new THREE.Box3(); fingers.slice(1).forEach(f => handBox.expandByObject(f.base));
+    const tipZ = W(fingers[2].tipM).z, back = fore.back, FW = fore.FW;
+    box3.setFromObject(fore.g);
+    const yLow = FLOOR_Y + 0.05, xs = -FW / 2 - 2.2;
+    const add = (a, b, text, off) => {
+      const n = off || new THREE.Vector3(0, 0, 0);
+      const pts = [a, b, a.clone().add(n), a.clone().sub(n), b.clone().add(n), b.clone().sub(n)];
+      const g = new THREE.BufferGeometry().setFromPoints([pts[0], pts[1], pts[2], pts[3], pts[4], pts[5]]);
+      g.setIndex([0, 1, 2, 3, 4, 5]); dimGroup.add(new THREE.LineSegments(g, dimMat));
+      const el = document.createElement('div'); el.className = 'tag dim'; el.innerHTML = '<i></i><span>' + text + '</span>'; labelsEl.appendChild(el);
+      dimLabels.push({el, p:a.clone().lerp(b, 0.5)});
+    };
+    const overall = tipZ - back;
+    const hw = handBox.max.x - handBox.min.x;
+    add(new THREE.Vector3(xs, yLow, back), new THREE.Vector3(xs, yLow, tipZ), `${fmt(overall * 10)} mm overall`, new THREE.Vector3(0.5, 0, 0));
+    add(new THREE.Vector3(handBox.min.x, 2.6, 8.4), new THREE.Vector3(handBox.max.x, 2.6, 8.4), `${fmt(hw * 10)} mm`, new THREE.Vector3(0, 0, 0.5));
+    add(new THREE.Vector3(-FW / 2, yLow, back - 2), new THREE.Vector3(FW / 2, yLow, back - 2), `${fmt(FW * 10)} mm`, new THREE.Vector3(0, 0, 0.5));
+    add(new THREE.Vector3(FW / 2 + 1.6, box3.min.y, back), new THREE.Vector3(FW / 2 + 1.6, box3.max.y, back), `${fmt((box3.max.y - box3.min.y) * 10)} mm`, new THREE.Vector3(0.5, 0, 0));
+    add(new THREE.Vector3(1.6, 1.4, FINGERS[2].base[2]), new THREE.Vector3(1.6, 1.4, tipZ), `${fmt((tipZ - FINGERS[2].base[2]) * 10)} mm`, new THREE.Vector3(0.4, 0, 0));
+    // tendon lengths (open pose) for the parts list
+    const tl = fingers.map((f, i) => {
+      const pts = [W(fore.servos[i].tangent), W(fore.combHoles[i]), W(wristHoles[i].a), W(wristHoles[i].b), W(palmMid[i])].concat(f.under.map(W));
+      let s = 0; for (let k = 0; k < pts.length - 1; k++) s += pts[k].distanceTo(pts[k + 1]); return s + 8;
+    });
+    dimsNow = {overallL:overall, handW:hw, forearmW:FW, forearmL:fore.len, height:box3.max.y - box3.min.y, tendon:tl};
+    state.curl = saved; state.explode = savedE; applyPose(); applyExplode();
+    renderParts();
+  }
+
+  /* pose + explode */
+  function applyPose(){
+    fingers.forEach((f, i) => {
+      const a = jointAngles(i, state.curl[i]);
+      f.joints.forEach((j, k) => j.rotation.x = a[k] * D2R);
+      if (fore) fore.servos[i].spool.rotation.y = servoDeg(i, state.curl[i]) * D2R;
+    });
+  }
+  function applyExplode(){
+    const e = state.explode * state.explode * (3 - 2 * state.explode);
+    exploders.forEach(x => x.obj.position.copy(x.base).addScaledVector(x.vec, e));
+  }
+
+  function rebuildForearm(){
+    if (fore){
+      exploders.splice(fore.explodeStart, exploders.length - fore.explodeStart);
+      fore.g.traverse(o => { if (o.geometry) o.geometry.dispose(); }); scene.remove(fore.g);
+      fore.wires.children.forEach(c => c.geometry.dispose()); scene.remove(fore.wires);
+    }
+    fore = buildForearm(); applyPose(); applyExplode(); scene.updateMatrixWorld(true);
+    buildDims(); wiresDirty = true; layersChanged(); kickRender();
+  }
+
+  function layersChanged(){
+    tendonGroup.visible = elasticGroup.visible = state.layers.tendons;
+    fore.wires.visible = state.layers.wiring; wiresDirty = true;
+    dimGroup.visible = state.layers.dims;
+    kickRender();
+  }
+
+  /* picking */
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); let downAt = null;
+  renderer.domElement.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; });
+  renderer.domElement.addEventListener('pointerup', e => {
+    if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
+    const r = renderer.domElement.getBoundingClientRect();
+    ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const hit = ray.intersectObjects(scene.children, true).find(h => shown(h.object) && partOf(h.object));
+    if (hit){ const k = partOf(hit.object); showInfo(k); highlight(hit.object); }
+  });
+  function partOf(o){ while (o){ if (o.userData && o.userData.part) return o.userData.part; o = o.parent; } return null; }
+  function shown(o){ while (o){ if (!o.visible) return false; o = o.parent; } return true; }
+  const sel = new THREE.BoxHelper(undefined, 0xf0a73c); sel.visible = false; scene.add(sel);
+  let selObj = null;
+  const GROUPED = {servo:1, pca:1, uno:1, spool:1};
+  function highlight(o){ selObj = GROUPED[partOf(o)] && o.parent ? o.parent : o; sel.setFromObject(selObj); sel.visible = true; kickRender(); }
+
+  /* camera presets */
+  let camAnim = null;
+  $$('[data-view]').forEach(b => b.addEventListener('click', () => {
+    const v = VIEWS[b.dataset.view];
+    camAnim = {t0:performance.now(), p0:camera.position.clone(), t0v:controls.target.clone(), p1:viewPos(v), t1:new THREE.Vector3(...v.t)};
+    kickRender();
+  }));
+
+  /* resize */
+  function resize(){ const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); kickRender(); }
+  new ResizeObserver(resize).observe(stage);
+
+  /* main loop */
+  let dirty = true, wiresDirty = true, last = performance.now(), frames = 0;
+  controls.addEventListener('change', () => { dirty = true; });
+  const _p = new THREE.Vector3();
+  // place a tag at a 3D point; tags that would cover one already placed this frame are hidden
+  let placed = [];
+  function placeLabel(el, p, w, h){
+    _p.copy(p).project(camera);
+    const x = (_p.x + 1) / 2 * w - 3.5, y = (1 - _p.y) / 2 * h - 9;
+    const r = {x, y, w:el.offsetWidth || 120, h:el.offsetHeight || 20};
+    const clash = placed.some(q => r.x < q.x + q.w + 4 && q.x < r.x + r.w + 4 && r.y < q.y + q.h + 2 && q.y < r.y + r.h + 2);
+    if (_p.z > 1 || _p.z < -1 || clash){ el.style.visibility = 'hidden'; return; }
+    placed.push(r);
+    el.style.visibility = 'visible';
+    el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+  }
+  function updateLabels(){
+    const w = stage.clientWidth, h = stage.clientHeight;
+    placed = [];
+    const showD = state.layers.dims && state.explode < 0.01;
+    dimLabels.forEach(d => { d.el.hidden = !showD; if (showD) placeLabel(d.el, d.p, w, h); });
+    dimGroup.visible = showD;
+    LABELS.forEach(l => {
+      const show = state.layers.labels && (!l.layer || state.layers[l.layer]);
+      l.el.hidden = !show; if (!show) return;
+      l.el.lastChild.textContent = typeof l.text === 'function' ? l.text() : l.text;
+      placeLabel(l.el, l.at(), w, h);
+    });
+  }
+  function tick(now){
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    let moving = false;
+    const rate = 60 / SERVOS[servoKey].speed; // degrees per second, the servo's rated speed
+    for (let i = 0; i < 5; i++){
+      const full = servoDeg(i, 1), cur = state.curl[i] * full, tgt = state.target[i] * full;
+      if (Math.abs(tgt - cur) > 0.01){
+        const step = reduced ? tgt - cur : Math.sign(tgt - cur) * Math.min(Math.abs(tgt - cur), rate * dt);
+        state.curl[i] = (cur + step) / full; moving = true;
+      }
+    }
+    if (Math.abs(state.explodeTarget - state.explode) > 0.0005){
+      const step = reduced ? 1 : dt / 0.75;
+      state.explode += Math.sign(state.explodeTarget - state.explode) * Math.min(Math.abs(state.explodeTarget - state.explode), step);
+      moving = true; wiresDirty = true;
+    }
+    if (camAnim){
+      const k = reduced ? 1 : Math.min(1, (now - camAnim.t0) / 800), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      camera.position.lerpVectors(camAnim.p0, camAnim.p1, e); controls.target.lerpVectors(camAnim.t0v, camAnim.t1, e);
+      if (k >= 1) camAnim = null; moving = true;
+    }
+    controls.update();
+    if (moving || dirty || wiresDirty){
+      applyPose(); applyExplode(); scene.updateMatrixWorld();
+      updateTendons();
+      if (wiresDirty){ rebuildWires(); wiresDirty = false; }
+      if (sel.visible && selObj) sel.setFromObject(selObj);
+      renderer.render(scene, camera); updateLabels();
+      if (moving) updateReadouts();
+      dirty = false; frames++;
+    }
+    requestAnimationFrame(tick);
+  }
+  function kickRender(){ dirty = true; }
+  kick = kickRender;
+
+  fore = buildForearm(); applyPose(); applyExplode(); scene.updateMatrixWorld(true);
+  buildDims(); layersChanged(); resize();
+  requestAnimationFrame(tick);
+  window.__hand = {state, applyPreset, camera, controls, kick:kickRender, get frames(){ return frames; }};
+  return {rebuildForearm, layersChanged};
+}
+})();
+</script>

@@ -48,6 +48,7 @@ button,input{font:inherit;color:inherit}
 .tabs button:focus-visible{outline:1px solid var(--amber);outline-offset:-2px}
 h2{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);margin:18px 0 8px}
 h2:first-child{margin-top:4px}
+h2 small{text-transform:none;letter-spacing:0;font-family:var(--body);font-weight:400;font-size:13px;color:var(--dim)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{appearance:none;border:1px solid var(--line);background:var(--raise);border-radius:99px;padding:5px 12px;font-size:13px;cursor:pointer}
 .chip:hover,.chip:focus-visible{border-color:var(--mute);outline:none}
@@ -61,8 +62,10 @@ h2:first-child{margin-top:4px}
 .seg button{appearance:none;border:0;background:var(--raise);padding:6px 14px;cursor:pointer;color:var(--mute);font-weight:500}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--amber);color:var(--amber-ink)}
+.seg button:disabled{opacity:.4;cursor:not-allowed}
 .spec{font-family:var(--mono);font-size:12px;color:var(--mute);margin:8px 0 0;line-height:1.6}
 .spec b{color:var(--fg);font-weight:500}
+.lead{font-size:13px;color:var(--mute);margin:8px 0 0}
 .toggles{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
 .toggles label{display:flex;align-items:center;gap:8px;cursor:pointer}
 .toggles input{accent-color:var(--amber);width:16px;height:16px}
@@ -78,6 +81,8 @@ th,td{text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);vertic
 th{font-weight:500;color:var(--dim);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
 td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 td small{display:block;color:var(--mute);font-size:11.5px}
+.cmp td:first-child{color:var(--mute)}
+.cmp th.on{color:var(--amber)}
 .prose p{margin:0 0 10px;color:#c9d0d7;max-width:62ch}
 .formula{font-family:var(--mono);font-size:12.5px;background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--fg);line-height:1.7}
 .formula em{font-style:normal;color:var(--amber)}
@@ -105,7 +110,7 @@ pre{position:relative;margin:0;background:#0f1216;border:1px solid var(--line);b
     <div class="labels" id="labels"></div>
     <div class="hud">
       <h1>Endoskeleton Hand <span>Mk I</span></h1>
-      <p>Tendon-driven, 5 servos, 3D-printable. Drag to orbit, scroll to zoom, click any part.</p>
+      <p id="hudSub">One servo per finger, 3D-printable. Drag to orbit, scroll to zoom, click any part.</p>
     </div>
     <div class="views" role="group" aria-label="Camera views">
       <button data-view="three">3/4</button><button data-view="top">Top</button><button data-view="side">Side</button><button data-view="palm">Palm</button><button data-view="inside">Electronics</button>
@@ -121,9 +126,14 @@ pre{position:relative;margin:0;background:#0f1216;border:1px solid var(--line);b
     </div>
 
     <section role="tabpanel" id="p-ctl" aria-labelledby="t-ctl">
+      <h2>Drive</h2>
+      <div class="seg" role="group" aria-label="How the fingers are driven">
+        <button id="dr-motor" aria-pressed="true">Motor per finger</button><button id="dr-tendon" aria-pressed="false">Tendons</button>
+      </div>
+      <p class="lead" id="driveNote"></p>
       <h2>Pose</h2>
       <div class="chips" id="presets"></div>
-      <h2>Fingers <span style="text-transform:none;letter-spacing:0;font-family:var(--body);font-weight:400;color:var(--dim)">servo angle · tendon pulled</span></h2>
+      <h2>Fingers <small id="fingHint">servo angle · knuckle angle</small></h2>
       <div id="fingers"></div>
       <h2>Servo</h2>
       <div class="seg" role="group" aria-label="Servo model">
@@ -132,7 +142,7 @@ pre{position:relative;margin:0;background:#0f1216;border:1px solid var(--line);b
       <p class="spec" id="servoSpec"></p>
       <h2>Show</h2>
       <div class="toggles">
-        <label><input type="checkbox" id="ly-tendons" checked> Tendons</label>
+        <label><input type="checkbox" id="ly-tendons" checked> <span id="lyDrive">Linkages</span></label>
         <label><input type="checkbox" id="ly-wiring" checked> Wiring</label>
         <label><input type="checkbox" id="ly-labels" checked> Labels</label>
         <label><input type="checkbox" id="ly-dims"> Dimensions</label>
@@ -149,22 +159,27 @@ pre{position:relative;margin:0;background:#0f1216;border:1px solid var(--line);b
       <div class="tablewrap"><table id="bom"></table></div>
       <h2>Finger bones</h2>
       <div class="tablewrap"><table id="bones"></table></div>
+      <div id="linksBox">
+        <h2>Pushrods &amp; links <small>centre to centre, mm</small></h2>
+        <div class="tablewrap"><table id="links"></table></div>
+      </div>
       <p class="note">Sizes are pin-to-pin lengths in millimetres, based on average adult proportions. Servo and board sizes are typical datasheet values; check your exact parts before printing.</p>
     </section>
 
     <section role="tabpanel" id="p-how" aria-labelledby="t-how" hidden>
       <div class="prose">
         <h2>The idea</h2>
-        <p>Each finger is a chain of three printed bones joined by M3 screws. A braided line (the tendon) is tied at the fingertip, runs through eyelets under every bone, through the palm and wrist, and winds onto a spool on a servo in the forearm.</p>
-        <p>When the servo turns, the spool reels the line in. The line sits 7.5 mm below each joint's pin, so the pull makes every joint bend at once and the finger curls. An elastic cord along the back pulls the finger open again when the servo turns back.</p>
+        <div id="idea"></div>
         <h2>The numbers</h2>
         <div class="formula" id="formula"></div>
-        <h2>Wiring</h2>
+        <h2>Motor per finger or tendons?</h2>
       </div>
+      <div class="tablewrap"><table class="cmp" id="compare"></table></div>
+      <h2>Wiring</h2>
       <div class="tablewrap"><table class="map" id="wiremap"></table></div>
       <h2>Arduino code</h2>
       <pre id="code"><button class="copy" id="copy">Copy</button><code id="codetext"></code></pre>
-      <p class="note">Needs the "Adafruit PWM Servo Driver" library (Arduino IDE: Tools → Manage Libraries). Test one finger at a time and adjust MAX_DEG until the finger closes fully without straining.</p>
+      <p class="note" id="codeNote"></p>
     </section>
   </aside>
 </div>
@@ -186,13 +201,20 @@ const SERVOS = {
   MG90S:  {name:'MG90S',  kind:'micro servo',    L:2.28, W:1.22, H:2.27, tabL:3.22, tabY:1.6, tabT:0.25, shaftOff:0.6, top:0.45, mass:13.4, torque:2.2, speed:0.10, dims:'22.8 × 12.2 × 28.5 mm', psu:'5–6 V, 5 A'},
   DS3218: {name:'DS3218', kind:'standard servo', L:4.0,  W:2.0,  H:3.75, tabL:5.45, tabY:2.8, tabT:0.3,  shaftOff:1.0, top:0.75, mass:60,   torque:20,  speed:0.16, dims:'40 × 20 × 40.5 mm',   psu:'6 V, 10 A'}
 };
+// right hand, palm down, fingers along +z: the thumb sits on the +x side.
+// link: coupler-link anchors as [along the bone, up] — A on the knuckle fork (from the knuckle pin), b on bone 2 (from its pin),
+// C on bone 1 (from the middle pin), d on bone 3 (from its pin). slot: palm servo [x, z] for motor-per-finger.
 const FINGERS = [
-  // right hand, palm down, fingers along +z: the thumb sits on the +x side
-  {id:'thumb',  name:'Thumb',  base:[3.05,-0.35,1.9],  yaw:32,  pitch:12, roll:-55, L:[3.8,3.0,2.4], w:1.75, t:1.5,  rest:[0,6,4], range:[38,55,70], hole:1.9},
-  {id:'index',  name:'Index',  base:[2.55,0,7.0],      yaw:4,   pitch:0,  roll:0,   L:[4.0,2.4,1.8], w:1.58, t:1.35, rest:[5,5,3], range:[80,95,65], hole:1.0},
-  {id:'middle', name:'Middle', base:[0.83,0,7.35],     yaw:0,   pitch:0,  roll:0,   L:[4.4,2.7,1.9], w:1.64, t:1.4,  rest:[5,5,3], range:[80,95,65], hole:0.25},
-  {id:'ring',   name:'Ring',   base:[-0.88,0,7.0],     yaw:-4,  pitch:0,  roll:0,   L:[4.1,2.6,1.9], w:1.55, t:1.35, rest:[5,5,3], range:[80,95,65], hole:-0.5},
-  {id:'little', name:'Little', base:[-2.52,0,6.2],     yaw:-10, pitch:0,  roll:0,   L:[3.3,1.9,1.7], w:1.35, t:1.2,  rest:[5,5,3], range:[80,95,65], hole:-1.25}
+  {id:'thumb',  name:'Thumb',  base:[3.3,-0.4,1.7],    yaw:32,  pitch:12, roll:-55, L:[3.8,3.0,2.4], w:1.75, t:1.5,  rest:[0,6,4], range:[38,55,70], hole:1.9,
+   link:{A:[-0.15,0.65], b:[0.05,-0.35], C:[-0.15,-0.65], d:[-0.45,0.25]}},
+  {id:'index',  name:'Index',  base:[2.55,0,7.0],      yaw:4,   pitch:0,  roll:0,   L:[4.0,2.4,1.8], w:1.58, t:1.35, rest:[5,5,3], range:[80,95,65], hole:1.0,
+   link:{A:[-0.35,-0.475], b:[-0.45,0.225], C:[-0.15,-0.375], d:[-0.45,0.325]}, slot:[2.28,3.75]},
+  {id:'middle', name:'Middle', base:[0.83,0,7.35],     yaw:0,   pitch:0,  roll:0,   L:[4.4,2.7,1.9], w:1.64, t:1.4,  rest:[5,5,3], range:[80,95,65], hole:0.25,
+   link:{A:[-0.25,-0.4], b:[-0.35,0.2], C:[-0.15,-0.3], d:[-0.25,0.4]}, slot:[0.6,3.25]},
+  {id:'ring',   name:'Ring',   base:[-0.88,0,7.0],     yaw:-4,  pitch:0,  roll:0,   L:[4.1,2.6,1.9], w:1.55, t:1.35, rest:[5,5,3], range:[80,95,65], hole:-0.5,
+   link:{A:[-0.35,-0.475], b:[-0.45,0.225], C:[-0.15,-0.375], d:[-0.35,0.425]}, slot:[-1.06,3.0]},
+  {id:'little', name:'Little', base:[-2.52,0,6.2],     yaw:-10, pitch:0,  roll:0,   L:[3.3,1.9,1.7], w:1.35, t:1.2,  rest:[5,5,3], range:[80,95,65], hole:-1.25,
+   link:{A:[-0.25,-0.5], b:[-0.45,0.2], C:[-0.15,-0.32], d:[-0.4,0.28]}, slot:[-2.62,2.6]}
 ];
 const PRESETS = [
   ['Open',  [0,0,0,0,0]],
@@ -203,21 +225,31 @@ const PRESETS = [
   ['Pinch', [0.62,0.6,0,0,0]],
   ['Grip',  [0.5,0.55,0.55,0.55,0.55]]
 ];
+// fnM: the description to use when the hand is driven by a motor per finger
 const PARTS = {
   phal:     {name:'Finger bone (phalanx)', qty:'15', size:'See the Parts tab', mat:'PLA or PETG, 3D-printed', fn:'The rigid links of each finger. The narrow end of each bone sits inside the fork of the bone behind it.'},
   knuckle:  {name:'Knuckle fork', qty:'5', size:'Two 1.3 mm tabs per finger', mat:'Printed with the palm', fn:'Holds the first bone of each finger. The finger swings between the two tabs on an M3 pin.'},
   pin:      {name:'Joint pin', qty:'15', size:'M3 × 20 mm screw + nylock nut', mat:'Steel', fn:'The axle of every joint. Tighten until the joint swings freely without wobble.'},
   eyelet:   {name:'Tendon eyelet', qty:'30', size:'Ø 2.6 mm loop, 7.5 mm below the pin', mat:'Printed with each bone', fn:'Holds the tendon 7.5 mm below each joint, so pulling the line turns the joint.'},
   pad:      {name:'Fingertip pad', qty:'5', size:'≈ 8 × 5 mm', mat:'TPU (flexible filament) or rubber', fn:'Adds grip so the hand can hold smooth objects.'},
-  palm:     {name:'Palm plates', qty:'2', size:'≈ 72 × 68 × 3 mm each', mat:'PLA or PETG', fn:'Top and bottom plates sandwich the knuckle forks. The tendons run between them.'},
+  palm:     {name:'Palm plates', qty:'2', size:'≈ 72 × 68 × 3 mm each', mat:'PLA or PETG', fn:'Top and bottom plates sandwich the knuckle forks. The tendons run between them.',
+             fnM:'Top and bottom plates sandwich the knuckle forks. The four finger servos drop through the cut-outs and screw to the top plate.'},
   standoff: {name:'Palm standoff', qty:'5', size:'M3 × 11 mm', mat:'Steel or brass', fn:'Spaces the two palm plates apart.'},
   wrist:    {name:'Wrist tendon guide', qty:'1', size:'64 × 16 × 9 mm, 5 holes', mat:'Printed (line PTFE tubes optional)', fn:'Lines the five tendons up as they pass from the forearm into the palm.'},
+  wristM:   {name:'Wrist block', qty:'1', size:'64 × 16 × 9 mm', mat:'Printed', fn:'Joins the palm to the electronics box. The five servo cables pass underneath it.'},
   tendon:   {name:'Tendon', qty:'5', size:'Braided PE (Dyneema) 0.8 mm, ≈ 30 kg rated', mat:'Fishing line', fn:'Pulls the finger closed. Tied at the fingertip, wound on the spool.'},
   elastic:  {name:'Return elastic', qty:'5', size:'1 mm elastic cord', mat:'Elastic', fn:'Runs along the back of each finger and pulls it open when the servo releases.'},
-  servo:    {name:'Servo', qty:'5', size:'', mat:'Metal-geared hobby servo', fn:'Turns to the angle the code asks for and holds it. One servo per finger.'},
+  servo:    {name:'Servo', qty:'5', size:'', mat:'Metal-geared hobby servo', fn:'Turns to the angle the code asks for and holds it. One servo per finger.',
+             fnM:'Turns to the angle the code asks for and holds it. Four sit in the palm behind the knuckles; the thumb\'s sits under the palm.'},
+  horn:     {name:'Servo arm (horn)', qty:'5', size:'Single arm, 12 mm from the shaft to the ball link', mat:'Comes with the servo', fn:'Turns with the servo shaft. On the fingers it pushes the pushrod; on the thumb it is screwed straight to the thumb\'s first bone.'},
+  rod:      {name:'Pushrod', qty:'4', size:'M2 threaded rod with a ball link at each end', mat:'Steel (RC-plane parts)', fn:'Carries the servo arm\'s push to the lever on the finger. Screw the ball links in or out to set the length.'},
+  lever:    {name:'Knuckle lever', qty:'4', size:'12 mm from the knuckle pin to the ball link', mat:'Printed as part of the first finger bone', fn:'When the pushrod pushes it forward, the finger turns about its knuckle pin.'},
+  link:     {name:'Coupler link', qty:'10', size:'1.5 mm strip; lengths in the Parts tab', mat:'Aluminium or steel strip, or printed', fn:'Ties the middle and tip joints to the knuckle, so one motor curls the whole finger. Runs in the 2 mm gap beside each bone.'},
+  thumbmount: {name:'Thumb servo mount', qty:'1', size:'≈ 40 × 20 × 15 mm', mat:'Printed', fn:'Holds the thumb servo in line with the thumb\'s base joint, under the palm.'},
   spool:    {name:'Tendon spool', qty:'5', size:'Hub r 10.5 mm, flanges Ø 25 mm', mat:'Printed, screwed to the servo horn', fn:'Reels the tendon in. Line pulled = hub radius × servo angle.'},
   comb:     {name:'Tendon comb', qty:'1', size:'5 holes at spool height', mat:'Printed', fn:'Keeps each tendon on its own spool so lines never cross or tangle.'},
-  deck:     {name:'Servo deck', qty:'1', size:'', mat:'Clear acrylic, 3 mm, laser-cut (or print it)', fn:'Servo bodies drop into the cut-outs and the mounting tabs screw onto it. Clear, so you can see the electronics underneath.'},
+  deck:     {name:'Servo deck', qty:'1', size:'', mat:'Clear acrylic, 3 mm, laser-cut (or print it)', fn:'Servo bodies drop into the cut-outs and the mounting tabs screw onto it. Clear, so you can see the electronics underneath.',
+             fnM:'The lid of the electronics box. Clear, so you can see the boards underneath.'},
   riser:    {name:'Servo riser', qty:'2', size:'Lifts 15 mm', mat:'Printed', fn:'Raises the back-row servos so their tendons pass over the front row.'},
   rail:     {name:'Forearm rail', qty:'4', size:'5 × 10 mm', mat:'Aluminium bar or printed', fn:'The forearm\'s backbone. Everything bolts to it.'},
   bay:      {name:'Electronics bay floor', qty:'1', size:'', mat:'Printed, 3 mm', fn:'Holds the Arduino and servo driver on M3 standoffs.'},
@@ -228,13 +260,91 @@ const PARTS = {
   wire:     {name:'Wiring', qty:'', size:'Servo leads, 4 jumpers, 18 AWG power', mat:'', fn:'Servo leads: brown = ground, red = power, orange = signal. Jumpers: 5V, GND, SDA → A4, SCL → A5.'}
 };
 
-/* ---------- pure maths (works without WebGL too) ---------- */
-function jointAngles(i, c){ const f = FINGERS[i]; return f.range.map((r, j) => f.rest[j] + r * c); }
-function pullCm(i, c){ return MOMENT * FINGERS[i].range.reduce((a, r) => a + r, 0) * c * D2R; }
-function servoDeg(i, c){ return pullCm(i, c) / SPOOL_R / D2R; }
-const fmt = (n, d = 0) => n.toFixed(d);
+/* ---------- motor per finger: linkage geometry (pure maths, works without WebGL) ---------- */
+const PS = SERVOS.MG90S;            // palm servos are always micro servos: nothing bigger fits
+const PALM_TOP = 0.85;              // top face of the back-of-hand plate; palm servo tabs sit on it
+const HORN_R = 1.2, LEVER_R = 1.2;  // servo arm and knuckle lever, equal so servo angle ≈ knuckle angle
+const LEVER_G = -45;                // lever angle from straight up (towards the wrist) with the finger straight
+const PALM_SERVO = {bottom:PALM_TOP - PS.tabY};
+PALM_SERVO.top = PALM_SERVO.bottom + PS.H; PALM_SERVO.hornY = PALM_SERVO.top + PS.top + 0.05; PALM_SERVO.rodY = PALM_SERVO.hornY + 0.12;
 
-let servoKey = 'MG90S';
+// 2D in a finger's own bending plane: [along the finger, up]; a bone at angle a points along [cos a, -sin a]
+const rot2 = (a, p) => [p[0] * Math.cos(a) + p[1] * Math.sin(a), -p[0] * Math.sin(a) + p[1] * Math.cos(a)];
+const dist2 = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]);
+const dist3 = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
+function follow(f, x0){ // root of f nearest x0 (keeps a linkage on the same branch as it moves)
+  if (Math.abs(f(x0)) < 1e-9) return x0;
+  const st = 0.5 * D2R;
+  for (let k = 1; k <= 180; k++) for (const s of [1, -1]){
+    let a = x0 + s * (k - 1) * st, b = x0 + s * k * st;
+    if (f(a) * f(b) <= 0){ for (let n = 0; n < 40; n++){ const m = (a + b) / 2; if (f(a) * f(m) <= 0) b = m; else a = m; } return (a + b) / 2; }
+  }
+  return x0;
+}
+// four-bar: link of length len from P (fixed to the bone behind) to q (on the next bone); returns the next joint's angle
+function coupled(Lin, P, q, aIn, aPrev, len){
+  const O = [Lin * Math.cos(aIn), -Lin * Math.sin(aIn)];
+  return follow(t => { const r = rot2(aIn + t, q); return dist2([O[0] + r[0], O[1] + r[1]], P) - len; }, aPrev);
+}
+function linkLen(Lin, P, q, aIn, aOut){ const O = [Lin * Math.cos(aIn), -Lin * Math.sin(aIn)], r = rot2(aIn + aOut, q); return dist2([O[0] + r[0], O[1] + r[1]], P); }
+function leverTip(f, a1){ // knuckle lever ball, hand coordinates
+  const ph = a1 + LEVER_G * D2R, y = LEVER_R * Math.cos(ph), z = LEVER_R * Math.sin(ph), yw = f.yaw * D2R;
+  return [f.base[0] + z * Math.sin(yw), f.base[1] + y, f.base[2] + z * Math.cos(yw)];
+}
+function hornTip(f, s){ const zs = f.slot[1] + PS.L / 2 - PS.shaftOff; return [f.slot[0] + HORN_R * Math.cos(s), PALM_SERVO.rodY, zs + HORN_R * Math.sin(s)]; }
+// lookup tables over curl 0..1: joint angles set by the links, and the servo angle that holds them
+const MT = FINGERS.map((f, i) => {
+  const N = 60, k = f.link, r = f.rest.map(x => x * D2R), out = {a1:[], a2:[], a3:[], sv:[]};
+  out.l1 = linkLen(f.L[0], k.A, k.b, r[0], r[1]);
+  out.l2 = linkLen(f.L[1], k.C, k.d, r[1], r[2]);
+  out.rod = i ? dist3(hornTip(f, 0), leverTip(f, (f.rest[0] + f.range[0] / 2) * D2R)) : 0; // arm square to the rod at half travel
+  let t2 = r[1], t3 = r[2], s = -f.range[0] / 2 * D2R;
+  for (let n = 0; n <= N; n++){
+    const t1 = r[0] + f.range[0] * D2R * n / N;
+    t2 = coupled(f.L[0], k.A, k.b, t1, t2, out.l1);
+    t3 = coupled(f.L[1], k.C, k.d, t2, t3, out.l2);
+    if (i){ const L = leverTip(f, t1); s = follow(x => dist3(hornTip(f, x), L) - out.rod, s); }
+    out.a1.push(t1 / D2R); out.a2.push(t2 / D2R); out.a3.push(t3 / D2R); out.sv.push(s / D2R);
+  }
+  return out;
+});
+function lerpT(arr, c){ const x = Math.max(0, Math.min(1, c)) * (arr.length - 1), i = Math.min(arr.length - 2, Math.floor(x)); return arr[i] + (arr[i + 1] - arr[i]) * (x - i); }
+
+/* ---------- pure maths (works without WebGL too) ---------- */
+let drive = 'motor', servoKey = 'MG90S';
+function jointAngles(i, c){
+  if (drive === 'motor'){ const m = MT[i]; return [lerpT(m.a1, c), lerpT(m.a2, c), lerpT(m.a3, c)]; }
+  const f = FINGERS[i]; return f.range.map((r, j) => f.rest[j] + r * c);
+}
+function pullCm(i, c){ return MOMENT * FINGERS[i].range.reduce((a, r) => a + r, 0) * c * D2R; }
+function servoDeg(i, c){
+  if (drive === 'motor') return i ? lerpT(MT[i].sv, c) - MT[i].sv[0] : FINGERS[0].range[0] * c; // the thumb servo turns its joint directly
+  return pullCm(i, c) / SPOOL_R / D2R;
+}
+function tipForceN(mode, S){ // rough fingertip force with the index finger straight
+  const lever = FINGERS[1].L.reduce((a, b) => a + b, 0);
+  return (mode === 'motor' ? S.torque * LEVER_R / HORN_R : S.torque / SPOOL_R * MOMENT) / lever * 9.81;
+}
+function forearmLayout(mode, S){
+  const deckTop = -0.45, LIFT = 1.5;
+  let FW, slots = [];
+  if (mode === 'tendon'){
+    // spools need clearance too: flange diameter 2 × (SPOOL_R + FLANGE) sets the minimum servo pitch
+    const gap = 0.45, flD = 2 * (SPOOL_R + FLANGE), p = Math.max(S.W + gap, flD + 0.15);
+    const single = 4 * p + Math.max(S.W, flD) + 1.2 <= 8.6;
+    FW = single ? 8.6 : 2 * p + Math.max(S.W, flD) + 1.2;
+    if (single){ const z = -2.7 - S.tabL / 2; slots = [2,1,0,-1,-2].map(k => ({x:k * p - 0.5, z, lift:0})); }
+    else { const z1 = -2.7 - S.tabL / 2, z2 = z1 - S.tabL - 0.9;
+      slots = [{x:p/2 - 0.5, z:z2, lift:LIFT}, {x:p - 0.5, z:z1, lift:0}, {x:-0.5, z:z1, lift:0}, {x:-p - 0.5, z:z1, lift:0}, {x:-p/2 - 0.5, z:z2, lift:LIFT}]; }
+  } else FW = 7.6; // electronics only: the servo driver is 62.5 mm long
+  const pcaZ = slots.length ? Math.min(...slots.map(s => s.z - S.tabL / 2)) - 1.9 : -2.4;
+  const unoFront = pcaZ - 2.1, unoBack = unoFront - 6.86, back = unoBack - 0.9;
+  return {FW, slots, deckTop, pcaZ, unoFront, unoBack, back, len:-0.6 - back, midZ:(-0.6 + back) / 2};
+}
+function tipZ(){ const f = FINGERS[2], r = f.rest.map(x => x * D2R); return f.base[2] + f.L[0] * Math.cos(r[0]) + f.L[1] * Math.cos(r[0] + r[1]) + (f.L[2] + f.t / 2) * Math.cos(r[0] + r[1] + r[2]); }
+const fmt = (n, d = 0) => n.toFixed(d);
+const fmtN = n => fmt(n, n < 10 ? 1 : 0);
+
 const state = {curl:[0,0,0,0,0], target:[0,0,0,0,0], explode:0, explodeTarget:0,
   layers:{tendons:true, wiring:true, labels:innerWidth > 560, dims:false}};
 $('#ly-labels').checked = state.layers.labels;
@@ -242,7 +352,7 @@ $('#ly-labels').checked = state.layers.labels;
 /* ---------- panel: presets & fingers ---------- */
 const fingersEl = $('#fingers');
 FINGERS.forEach((f, i) => {
-  fingersEl.insertAdjacentHTML('beforeend', `<div class="fing"><label for="f-${f.id}">${f.name}</label><input type="range" id="f-${f.id}" min="0" max="100" value="0" aria-describedby="o-${f.id}"><output id="o-${f.id}">0° · 0.0 mm</output></div>`);
+  fingersEl.insertAdjacentHTML('beforeend', `<div class="fing"><label for="f-${f.id}">${f.name}</label><input type="range" id="f-${f.id}" min="0" max="100" value="0" aria-describedby="o-${f.id}"><output id="o-${f.id}">0° · 0°</output></div>`);
 });
 FINGERS.forEach((f, i) => $('#f-' + f.id).addEventListener('input', e => { stopDemo(); setTarget(i, e.target.value / 100); markPreset(null); }));
 const presetsEl = $('#presets');
@@ -262,20 +372,41 @@ $('#demo').addEventListener('click', () => {
   (function next(){ applyPreset(DEMO[k]); k++; if (k < DEMO.length) demoTimer = setTimeout(next, 1300); else { demoTimer = null; $('#demo').textContent = 'Run demo'; } })();
 });
 
-/* servo switch */
+/* drive + servo switches */
 function servoSpecText(){
-  const S = SERVOS[servoKey], T = S.torque / SPOOL_R, lever = FINGERS[1].L.reduce((a, b) => a + b, 0);
-  const tip = T * MOMENT / lever * 9.81;
-  return `<b>${S.name}</b> ${S.kind} · ${S.dims} · ${S.mass} g<br>torque ≈ ${S.torque} kg·cm · speed ${S.speed} s/60°<br>max tendon pull ≈ <b>${fmt(T,1)} kgf</b> · fingertip force ≈ <b>${fmt(tip,0)} N</b> (estimate)<br>servo power supply: ${S.psu}`;
+  const S = SERVOS[servoKey], tip = tipForceN(drive, S);
+  const head = `<b>${S.name}</b> ${S.kind} · ${S.dims} · ${S.mass} g<br>torque ≈ ${S.torque} kg·cm · speed ${S.speed} s/60°<br>`;
+  if (drive === 'motor') return head + `knuckle torque ≈ <b>${S.torque} kg·cm</b> · fingertip force ≈ <b>${fmtN(tip)} N</b> (estimate)<br>motor weight in the hand: <b>${fmt(5 * S.mass)} g</b><br>servo power supply: ${S.psu}<br>DS3218 (40 × 20 × 40 mm) is too big: four won't fit in a palm.`;
+  return head + `max tendon pull ≈ <b>${fmt(S.torque / SPOOL_R, 1)} kgf</b> · fingertip force ≈ <b>${fmtN(tip)} N</b> (estimate)<br>servo power supply: ${S.psu}`;
 }
-['MG90S','DS3218'].forEach(k => $('#sv-' + k).addEventListener('click', () => {
+function selectServo(k){
   if (servoKey === k) return; servoKey = k;
   ['MG90S','DS3218'].forEach(x => $('#sv-' + x).setAttribute('aria-pressed', x === k));
-  $('#servoSpec').innerHTML = servoSpecText(); renderParts();
+  $('#servoSpec').innerHTML = servoSpecText(); renderParts(); renderHow();
   if (scene3d) scene3d.rebuildForearm();
   const sel = $('#info').dataset.part; if (sel === 'servo' || sel === 'deck') showInfo(sel);
-}));
-$('#servoSpec').innerHTML = servoSpecText();
+}
+['MG90S','DS3218'].forEach(k => $('#sv-' + k).addEventListener('click', () => selectServo(k)));
+function setDrive(d){
+  if (drive === d) return;
+  stopDemo(); drive = d;
+  ['motor','tendon'].forEach(x => $('#dr-' + x).setAttribute('aria-pressed', x === d));
+  if (d === 'motor' && servoKey !== 'MG90S'){ servoKey = 'MG90S'; ['MG90S','DS3218'].forEach(x => $('#sv-' + x).setAttribute('aria-pressed', x === 'MG90S')); }
+  renderDrive();
+  if (scene3d) scene3d.driveChanged();
+  const sel = $('#info').dataset.part; if (sel) showInfo(sel);
+}
+['motor','tendon'].forEach(d => $('#dr-' + d).addEventListener('click', () => setDrive(d)));
+function renderDrive(){
+  const m = drive === 'motor';
+  $('#sv-DS3218').disabled = m; $('#sv-DS3218').title = m ? 'Too big to fit in the palm' : '';
+  $('#driveNote').textContent = m ? 'One servo per finger, in the palm. A pushrod turns the knuckle; links inside the finger curl the other two joints.'
+                                  : 'All five servos sit in the forearm and pull each finger closed with a line, like the muscles in your arm.';
+  $('#fingHint').textContent = m ? 'servo angle · knuckle angle' : 'servo angle · tendon pulled';
+  $('#lyDrive').textContent = m ? 'Linkages' : 'Tendons';
+  $('#hudSub').textContent = (m ? 'One servo per finger' : 'Tendon-driven, 5 servos in the forearm') + ', 3D-printable. Drag to orbit, scroll to zoom, click any part.';
+  $('#servoSpec').innerHTML = servoSpecText(); renderParts(); renderHow(); updateReadouts();
+}
 
 /* layers */
 [['tendons','tendons'],['wiring','wiring'],['labels','labels'],['dims','dims']].forEach(([id, k]) =>
@@ -295,53 +426,95 @@ function showInfo(key){
   if (key === 'servo'){ name = `Servo · ${S.name}`; size = `${S.dims}, ${S.mass} g, ≈ ${S.torque} kg·cm`; }
   if (key === 'deck' || key === 'bay') size = `≈ ${fmt(dimsNow.forearmW*10)} × ${fmt(dimsNow.forearmL*10 - 8)} mm`;
   if (key === 'endplate') size = `${fmt(dimsNow.forearmW*10)} × 36 × 4 mm`;
+  const fn = drive === 'motor' && p.fnM ? p.fnM : p.fn;
   const el = $('#info'); el.dataset.part = key;
-  el.innerHTML = `<h3>${name}</h3><p>${p.fn}</p><dl>${p.qty ? `<dt>Qty</dt><dd>${p.qty}</dd>` : ''}<dt>Size</dt><dd>${size}</dd>${p.mat ? `<dt>Material</dt><dd>${p.mat}</dd>` : ''}</dl>`;
+  el.innerHTML = `<h3>${name}</h3><p>${fn}</p><dl>${p.qty ? `<dt>Qty</dt><dd>${p.qty}</dd>` : ''}<dt>Size</dt><dd>${size}</dd>${p.mat ? `<dt>Material</dt><dd>${p.mat}</dd>` : ''}</dl>`;
 }
 
 /* ---------- parts tab ---------- */
-let dimsNow = {overallL:38, handW:8.8, forearmW:8.6, forearmL:21, height:5.5, tendon:[30,30,30,30,30]};
+let dimsNow = {overallL:30, handW:8.8, forearmW:7.6, forearmL:12, height:5.5, tendon:[30,30,30,30,30]};
 function renderParts(){
-  const S = SERVOS[servoKey], d = dimsNow;
-  $('#overall').innerHTML = `<b>${fmt(d.overallL*10)} mm</b> long (forearm end to middle fingertip) · hand <b>${fmt(d.handW*10)} mm</b> wide at the knuckles · forearm <b>${fmt(d.forearmW*10)} × ${fmt(d.height*10)} mm</b>`;
-  const tl = d.tendon.map(x => Math.round(x));
-  const rows = [
-    ['Servo', '5', `${S.name}, ${S.dims}`, `≈ ${S.torque} kg·cm, metal gears`],
+  const S = SERVOS[servoKey], d = dimsNow, m = drive === 'motor', mm = x => Math.round(x * 10);
+  $('#overall').innerHTML = `<b>${fmt(d.overallL*10)} mm</b> long (forearm end to middle fingertip) · hand <b>${fmt(d.handW*10)} mm</b> wide at the knuckles · ${m ? 'electronics box' : 'forearm'} <b>${fmt(d.forearmW*10)} × ${fmt(d.height*10)} mm</b>`;
+  const rods = MT.slice(1).map(x => mm(x.rod));
+  const shared1 = [
     ['PCA9685 servo driver', '1', '62.5 × 25.4 mm', 'I²C address 0x40'],
     ['Arduino Uno R3', '1', '68.6 × 53.4 mm', 'or a Nano to save space'],
     ['Servo power supply', '1', S.psu, 'into the DC jack'],
-    ['DC jack + switch', '1', '5.5 / 2.1 mm', 'panel mount'],
-    ['Finger bones', '15', 'see table below', 'PLA/PETG, 30% infill'],
-    ['Palm plates', '2', '≈ 72 × 68 × 3 mm', 'with lightening slots'],
+    ['DC jack + switch', '1', '5.5 / 2.1 mm', 'panel mount']];
+  const shared2 = [
     ['Joint pins', '15', 'M3 × 20 mm + nylock nut', ''],
     ['Palm standoffs', '5', 'M3 × 11 mm', ''],
+    ['Fingertip pads', '5', '≈ 8 × 5 mm', 'TPU'],
+    ['Forearm rails', '4', `2 × (5 × 10 mm), 2 × (5 × 4.5 mm), ${fmt(d.forearmL*10)} mm long`, 'aluminium bar or printed']];
+  let rows;
+  if (m) rows = [['Servo', '5', `${S.name}, ${S.dims}`, '4 in the palm, 1 under the thumb']].concat(shared1, [
+    ['Finger bones', '15', 'see table below', 'PLA/PETG; each first bone carries a 12 mm lever'],
+    ['Palm plates', '2', '≈ 72 × 68 × 3 mm', 'with 4 servo cut-outs']], shared2, [
+    ['Pushrods', '4', `M2 threaded rod, ${Math.min(...rods)}–${Math.max(...rods)} mm ball to ball`, '+ 8 M2 ball links'],
+    ['Coupler links', '10', '1.5 mm strip, lengths in the table below', '+ 20 pins: 1.5 mm steel or M1.6 screws'],
+    ['Thumb servo mount', '1', '≈ 40 × 20 × 15 mm', 'printed'],
+    ['Lid', '1', '3 mm clear acrylic', 'laser-cut, or print it'],
+    ['Bay floor, end plate, wrist block', '3', '3–4 mm plates', 'printed'],
+    ['Wiring', '—', '4 jumper wires, 18 AWG red/black', 'servo leads run back under the wrist']]);
+  else { const tl = d.tendon.map(x => Math.round(x));
+    rows = [['Servo', '5', `${S.name}, ${S.dims}`, `≈ ${S.torque} kg·cm, metal gears`]].concat(shared1, [
+    ['Finger bones', '15', 'see table below', 'PLA/PETG, 30% infill'],
+    ['Palm plates', '2', '≈ 72 × 68 × 3 mm', 'with lightening slots']], shared2, [
     ['Spools', '5', 'hub r 10.5 mm, Ø 25 mm flanges', 'printed, on servo horn'],
     ['Tendon line', '5', `braided PE 0.8 mm, ${Math.min(...tl)}–${Math.max(...tl)} cm each`, 'includes 8 cm for knots'],
     ['Return elastic', '5', '1 mm cord, ≈ 25 cm each', ''],
-    ['Fingertip pads', '5', '≈ 8 × 5 mm', 'TPU'],
-    ['Forearm rails', '4', `2 × (5 × 10 mm), 2 × (5 × 4.5 mm), ${fmt(d.forearmL*10)} mm long`, 'aluminium bar or printed'],
     ['Servo deck', '1', '3 mm clear acrylic', 'laser-cut, or print it'],
     ['Bay floor, end plate, comb, wrist guide', '4', '3–4 mm plates', 'printed'],
-    ['Wiring', '—', '4 jumper wires, 18 AWG red/black', 'servo leads plug straight in']
-  ];
+    ['Wiring', '—', '4 jumper wires, 18 AWG red/black', 'servo leads plug straight in']]); }
   $('#bom').innerHTML = '<thead><tr><th>Part</th><th>Qty</th><th>Size / spec</th></tr></thead><tbody>' +
     rows.map(r => `<tr><td>${r[0]}${r[3] ? `<small>${r[3]}</small>` : ''}</td><td class="n">${r[1]}</td><td>${r[2]}</td></tr>`).join('') + '</tbody>';
   $('#bones').innerHTML = '<thead><tr><th>Finger</th><th>Bone 1</th><th>Bone 2</th><th>Bone 3</th><th>Width</th></tr></thead><tbody>' +
     FINGERS.map(f => `<tr><td>${f.name}</td>${f.L.map(l => `<td class="n">${fmt(l*10)}</td>`).join('')}<td class="n">${fmt(f.w*10)}</td></tr>`).join('') + '</tbody>';
+  $('#linksBox').hidden = !m;
+  $('#links').innerHTML = '<thead><tr><th>Finger</th><th>Pushrod</th><th>Link 1</th><th>Link 2</th></tr></thead><tbody>' +
+    FINGERS.map((f, i) => `<tr><td>${f.name}</td><td class="n">${i ? fmt(MT[i].rod*10, 1) : 'direct'}</td><td class="n">${fmt(MT[i].l1*10, 1)}</td><td class="n">${fmt(MT[i].l2*10, 1)}</td></tr>`).join('') + '</tbody>';
 }
 
 /* ---------- how-it-works tab ---------- */
+const IDEA = {
+  motor:['Each finger has its own servo, sitting in the palm just behind the knuckle. A short pushrod (the kind used on RC planes) joins the servo\'s arm to a lever on the finger\'s first bone, so when the servo turns, the finger swings about its knuckle pin.',
+         'Two thin rigid links run inside each finger, beside the bones. They tie the middle and tip joints to the knuckle, so the whole finger curls from one motor, the way yours does. The thumb\'s servo sits under the palm and turns the thumb\'s base joint directly.',
+         'No strings and no springs: the servo pushes the finger closed and pulls it open again.'],
+  tendon:['Each finger is a chain of three printed bones joined by M3 screws. A braided line (the tendon) is tied at the fingertip, runs through eyelets under every bone, through the palm and wrist, and winds onto a spool on a servo in the forearm.',
+          'When the servo turns, the spool reels the line in. The line sits 7.5 mm below each joint\'s pin, so the pull makes every joint bend at once and the finger curls. An elastic cord along the back pulls the finger open again when the servo turns back.']
+};
 function renderFormula(){
-  const i = 1, c = state.curl[i], a = jointAngles(i, c).map((x, j) => x - FINGERS[i].rest[j]);
-  $('#formula').innerHTML = `pull = m × (θ₁ + θ₂ + θ₃) = r × φ<br>m = 7.5 mm (eyelet below pin) · r = 10.5 mm (spool)<br>Index now: θ = ${a.map(x => fmt(x) + '°').join(' + ')}<br>→ pull = <em>${fmt(pullCm(i,c)*10,1)} mm</em> → servo φ = <em>${fmt(servoDeg(i,c))}°</em><br>Fully closed: ${fmt(pullCm(i,1)*10,1)} mm of line, ${fmt(servoDeg(i,1))}° of servo travel.`;
+  const i = 1, c = state.curl[i], a = jointAngles(i, c);
+  if (drive === 'motor'){
+    $('#formula').innerHTML = `servo arm 12 mm → pushrod → knuckle lever 12 mm<br>equal arms, so servo angle ≈ knuckle angle<br>Index now: knuckle θ₁ = ${fmt(a[0])}°<br>the links set θ₂ = ${fmt(a[1])}° and θ₃ = ${fmt(a[2])}°<br>→ servo φ = <em>${fmt(servoDeg(i, c))}°</em><br>Fully closed: <em>${fmt(servoDeg(i, 1))}°</em> of servo travel (thumb: ${fmt(servoDeg(0, 1))}°, turned directly).`;
+    return;
+  }
+  const r = a.map((x, j) => x - FINGERS[i].rest[j]);
+  $('#formula').innerHTML = `pull = m × (θ₁ + θ₂ + θ₃) = r × φ<br>m = 7.5 mm (eyelet below pin) · r = 10.5 mm (spool)<br>Index now: θ = ${r.map(x => fmt(x) + '°').join(' + ')}<br>→ pull = <em>${fmt(pullCm(i,c)*10,1)} mm</em> → servo φ = <em>${fmt(servoDeg(i,c))}°</em><br>Fully closed: ${fmt(pullCm(i,1)*10,1)} mm of line, ${fmt(servoDeg(i,1))}° of servo travel.`;
 }
 $('#wiremap').innerHTML = '<thead><tr><th>From</th><th>To</th></tr></thead><tbody>' + [
   ['Thumb servo', 'PCA9685 channel 0'], ['Index servo', 'channel 1'], ['Middle servo', 'channel 2'], ['Ring servo', 'channel 3'], ['Little servo', 'channel 4'],
   ['PCA9685 VCC', 'Arduino 5V'], ['PCA9685 GND', 'Arduino GND'], ['PCA9685 SDA', 'Arduino A4'], ['PCA9685 SCL', 'Arduino A5'],
   ['Power supply +', 'PCA9685 V+ terminal'], ['Power supply −', 'PCA9685 GND terminal'], ['Arduino', 'USB to your computer']
 ].map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('') + '</tbody>';
-const MAXDEG = FINGERS.map((f, i) => Math.round(servoDeg(i, 1)));
-$('#codetext').textContent =
+function renderHow(){
+  $('#idea').innerHTML = IDEA[drive].map(p => `<p>${p}</p>`).join('');
+  renderFormula();
+  const M9 = SERVOS.MG90S, DS = SERVOS.DS3218, len = mode => fmt((tipZ() - forearmLayout(mode, M9).back) * 10);
+  const rows = [
+    ['Where the motors sit', '4 in the palm, 1 under the thumb', 'All 5 in the forearm'],
+    ['Motor weight in the hand', `${fmt(5 * M9.mass)} g`, 'none'],
+    ['Biggest servo that fits', 'micro (MG90S)', 'any size (DS3218)'],
+    ['Fingertip force, estimate', `≈ ${fmtN(tipForceN('motor', M9))} N`, `≈ ${fmtN(tipForceN('tendon', M9))} N (MG90S) to ${fmtN(tipForceN('tendon', DS))} N (DS3218)`],
+    ['Length with MG90S', `≈ ${len('motor')} mm`, `≈ ${len('tendon')} mm`],
+    ['Fiddly part', '4 pushrods, 10 small links and their pins', 'tying and tensioning 5 lines, which stretch over time']
+  ];
+  const on = c => drive === c ? ' class="on"' : '';
+  $('#compare').innerHTML = `<thead><tr><th></th><th${on('motor')}>Motor per finger</th><th${on('tendon')}>Tendons</th></tr></thead><tbody>` +
+    rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('') + '</tbody>';
+  const MAXDEG = FINGERS.map((f, i) => Math.round(servoDeg(i, 1)));
+  $('#codetext').textContent =
 `#include <Adafruit_PWMServoDriver.h>
 Adafruit_PWMServoDriver pwm;              // address 0x40
 
@@ -366,6 +539,9 @@ void loop() {
   for (int ch = 0; ch < 5; ch++) setFinger(ch, 0);  // open
   delay(1000);
 }`;
+  $('#codeNote').textContent = 'Needs the "Adafruit PWM Servo Driver" library (Arduino IDE: Tools → Manage Libraries). Test one finger at a time and adjust MAX_DEG until the finger closes fully without straining.' +
+    (drive === 'motor' ? ' Fit each servo arm with the finger open and the servo at 0°. If a finger moves the wrong way, use 180 − deg for that channel.' : '');
+}
 $('#copy').addEventListener('click', () => {
   const txt = $('#codetext').textContent, b = $('#copy');
   const done = () => { b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy', 1400); };
@@ -374,7 +550,8 @@ $('#copy').addEventListener('click', () => {
 });
 
 function updateReadouts(){
-  FINGERS.forEach((f, i) => { $('#o-' + f.id).textContent = `${fmt(servoDeg(i, state.curl[i]))}° · ${fmt(pullCm(i, state.curl[i])*10, 1)} mm`; });
+  FINGERS.forEach((f, i) => { const c = state.curl[i];
+    $('#o-' + f.id).textContent = drive === 'motor' ? `${fmt(servoDeg(i, c))}° · ${fmt(jointAngles(i, c)[0])}°` : `${fmt(servoDeg(i, c))}° · ${fmt(pullCm(i, c)*10, 1)} mm`; });
   renderFormula();
 }
 
@@ -382,6 +559,7 @@ function updateReadouts(){
 let scene3d = null, kick = () => { if (!scene3d){ state.curl = state.target.slice(); state.explode = state.explodeTarget; updateReadouts(); } };
 function webglOK(){ try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))); } catch (e) { return false; } }
 
+renderDrive();
 if (window.THREE && THREE.OrbitControls && webglOK()) scene3d = build3D();
 else $('#stage').insertAdjacentHTML('beforeend', '<div class="nogl"><p>3D view needs WebGL, which this browser has turned off.<br>The controls, sizes and parts list still work.</p></div>');
 renderParts(); updateReadouts();
@@ -401,19 +579,23 @@ function build3D(){
   const camera = new THREE.PerspectiveCamera(32, 1, 0.5, 600);
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true; controls.dampingFactor = 0.09; controls.minDistance = 14; controls.maxDistance = 160;
+  // camera presets, relative to the middle of the whole build (fore: relative to the middle of the forearm)
   const VIEWS = {
-    three:  {p:[38,27,37],   t:[0,-2,-3]},
-    top:    {p:[0.01,84,-3], t:[0,-1,-3]},
-    side:   {p:[-80,8,-3],   t:[0,-1.5,-3]},
-    palm:   {p:[14,-36,34],  t:[0,-1.5,2]},
-    inside: {p:[20,24,-36],  t:[0,-2.6,-13]}
+    three:  {p:[38,27,40],    t:[0,-2,-0.5]},
+    top:    {p:[0.01,84,-0.5], t:[0,-1,-0.5]},
+    side:   {p:[-80,8,-0.5],  t:[0,-1.5,-0.5]},
+    palm:   {p:[14,-36,36],   t:[0,-1.5,4.4]},
+    inside: {p:[20,24,-24.8], t:[0,-2.6,-1.8], fore:true}
   };
+  let modelCZ = -2.4, foreMidZ = -11, lastView = 'three';
+  const viewShift = v => new THREE.Vector3(0, 0, v.fore ? foreMidZ : modelCZ);
+  const viewTarget = v => new THREE.Vector3(...v.t).add(viewShift(v));
   // pull the camera back on tall, narrow stages so the whole build stays in frame
   function viewPos(v){
-    const a = stage.clientWidth / Math.max(1, stage.clientHeight), k = Math.min(1.8, Math.max(1, 1.15 / a));
-    const t = new THREE.Vector3(...v.t); return new THREE.Vector3(...v.p).sub(t).multiplyScalar(k).add(t);
+    const a = stage.clientWidth / Math.max(1, stage.clientHeight), fit = v.fore ? 1 : Math.min(1.1, Math.max(0.8, dimsNow.overallL / 38.7));
+    const k = Math.min(1.8, Math.max(1, 1.15 / a)) * fit; // the motor build is shorter, so come in closer
+    const t = viewTarget(v); return new THREE.Vector3(...v.p).add(viewShift(v)).sub(t).multiplyScalar(k).add(t);
   }
-  camera.position.copy(viewPos(VIEWS.three)); controls.target.set(...VIEWS.three.t);
 
   /* environment for chrome reflections: small gradient cube (works without PMREM) */
   function face(top, bot, band, alpha){
@@ -468,6 +650,7 @@ function build3D(){
   function cylX(r, len, mat, part, seg){ const g = new THREE.CylinderGeometry(r, r, len, seg || 18); g.rotateZ(Math.PI / 2); return mesh(g, mat, part); }
   function cylY(r, h, mat, part, seg){ return mesh(new THREE.CylinderGeometry(r, r, h, seg || 24), mat, part); }
   function cylZ(r, len, mat, part, seg){ const g = new THREE.CylinderGeometry(r, r, len, seg || 18); g.rotateX(Math.PI / 2); return mesh(g, mat, part); }
+  function ball(r, mat, part){ return mesh(new THREE.SphereGeometry(r, 12, 8), mat, part); }
   function marker(parent, x, y, z){ const o = new THREE.Object3D(); o.position.set(x, y, z); parent.add(o); return o; }
   function circlePath(x, y, r){ const p = new THREE.Path(); p.absarc(x, y, r, 0, Math.PI * 2, true); return p; }
   function slotPath(x0, x1, y, r){ const p = new THREE.Path(); p.moveTo(x0, y - r); p.lineTo(x1, y - r); p.absarc(x1, y, r, -Math.PI/2, Math.PI/2, false); p.lineTo(x0, y + r); p.absarc(x0, y, r, Math.PI/2, Math.PI*1.5, false); return p; }
@@ -492,9 +675,11 @@ function build3D(){
     g.rotateX(Math.PI / 2); return g;
   }
 
-  /* explode registry */
+  /* explode registry + parts that belong to one drive only */
   const exploders = [];
   function explodable(obj, vec){ exploders.push({obj, base:obj.position.clone(), vec:new THREE.Vector3(...vec)}); return obj; }
+  const byDrive = {motor:[], tendon:[]};
+  function only(mode, obj){ byDrive[mode].push(obj); return obj; }
 
   /* ---- hand ---- */
   const hand = new THREE.Group(); scene.add(hand);
@@ -513,12 +698,13 @@ function build3D(){
     const holes = [circlePath(0, 0, 0.17)];
     if (len - 0.45 - 0.85 > 0.35) holes.push(slotPath(0.85, len - 0.45, 0, t * 0.16));
     g.add(mesh(extrudeX(stadium(len, t, {end:tip, holes}), bw, 0.05), M.chrome, 'phal'));
-    [0.42, L - 0.42].forEach(z => { const e = mesh(new THREE.TorusGeometry(0.13, 0.04, 6, 14), M.steel, 'eyelet'); e.position.set(0, -MOMENT, z); g.add(e); });
+    [0.42, L - 0.42].forEach(z => { const e = only('tendon', mesh(new THREE.TorusGeometry(0.13, 0.04, 6, 14), M.steel, 'eyelet')); e.position.set(0, -MOMENT, z); g.add(e); });
     if (tip){
       const pad = mesh(new THREE.SphereGeometry(1, 16, 10), M.rubber, 'pad'); pad.scale.set(w * 0.34, 0.24, L * 0.36); pad.position.set(0, -t * 0.4, L * 0.62); g.add(pad);
     }
     return g;
   }
+  const motorServos = []; // per finger: palm servo (or thumb servo) markers for wiring and labels
   const fingers = FINGERS.map((f, fi) => {
     const base = new THREE.Group(); base.position.set(...f.base);
     base.rotation.set(f.pitch * D2R, f.yaw * D2R, f.roll * D2R, 'YXZ');
@@ -542,62 +728,99 @@ function build3D(){
         over.push(marker(jg, 0, f.t / 2 - 0.05, L - 0.25));
       }
     });
-    const tipM = marker(joints[2], 0, 0, f.L[2] + f.t / 2);
+    const out = {base, joints, under, over, tipM:marker(joints[2], 0, 0, f.L[2] + f.t / 2), pinM:marker(joints[1], 0, 0, 0)};
+
+    /* motor drive: coupler links run in the gap between each bone and the fork tabs around it */
+    const k = f.link, gx = (f.w * 0.28 + f.w / 2 - 0.145) / 2;
+    const anchor = (par, x, y, z) => { const b = only('motor', cylX(0.1, 0.2, M.steel, 'link', 10)); b.position.set(x, y, z); par.add(b); return marker(par, x, y, z); };
+    out.lk = {A:anchor(base, gx, k.A[1], k.A[0]), B:anchor(joints[1], gx, k.b[1], k.b[0]),
+              C:anchor(joints[0], -gx, k.C[1], f.L[0] + k.C[0]), D:anchor(joints[2], -gx, k.d[1], k.d[0])};
+    if (fi){
+      // knuckle lever on top of the first bone; the pushrod's ball link clips onto its end
+      const lv = only('motor', mesh(extrudeX(stadium(LEVER_R, 0.36, {holes:[circlePath(LEVER_R, 0, 0.07)]}), 0.26, 0.03), M.chrome, 'lever'));
+      lv.rotation.x = -135 * D2R; joints[0].add(lv); // points up and back at 45° (LEVER_G)
+      const g = LEVER_G * D2R; out.leverTip = marker(joints[0], 0.2, LEVER_R * Math.cos(g), LEVER_R * Math.sin(g));
+      const bl = only('motor', ball(0.13, M.steel, 'rod')); bl.position.copy(out.leverTip.position); joints[0].add(bl);
+    } else {
+      // thumb: servo under the palm, shaft in line with the thumb's base pin; the horn is screwed to the first bone
+      const S = PS, hornX = f.w / 2 + 0.17, x0 = hornX + 0.4, zc = -(S.L / 2 - S.shaftOff), tabX = x0 + S.H - S.tabY;
+      const ts = only('motor', new THREE.Group()); base.add(ts);
+      const body = box(S.H, S.W, S.L, M.servo, 'servo'); body.position.set(x0 + S.H / 2, 0, zc); ts.add(body);
+      const st = box(S.H * 0.45, S.W + 0.02, S.L * 0.62, M.sticker, 'servo'); st.position.set(x0 + S.H * 0.58, 0, zc - S.L * 0.08); ts.add(st);
+      const tabs = box(S.tabT, S.W, S.tabL, M.servo, 'servo'); tabs.position.set(tabX, 0, zc); ts.add(tabs);
+      const bump = cylX(S.W * 0.42, S.top * 0.55, M.servo, 'servo'); bump.position.set(x0 - S.top * 0.27, 0, 0); ts.add(bump);
+      [zc - S.tabL / 2 + 0.25, zc + S.tabL / 2 - 0.25].forEach(z => { const pad = box(0.3, S.W + 0.5, 0.5, M.print, 'thumbmount'); pad.position.set(tabX + S.tabT / 2 + 0.15, 0, z); base.add(only('motor', pad)); });
+      const spineL = tabX + S.tabT / 2 + 0.3, spine = box(spineL, 0.5, 0.4, M.print, 'thumbmount'); spine.position.set(spineL / 2, 0, zc - S.tabL / 2 + 0.25); base.add(only('motor', spine));
+      const strut = box(0.5, 0.5, 0.75, M.print, 'thumbmount'); strut.position.set(0.25, 0, -1.55); base.add(only('motor', strut));
+      const hd = only('motor', cylX(0.5, 0.1, M.spool, 'horn', 20)); hd.position.set(hornX, 0, 0); joints[0].add(hd);
+      const ha = only('motor', box(0.1, 0.34, 1.5, M.spool, 'horn')); ha.position.set(hornX, 0, 0.55); joints[0].add(ha);
+      motorServos[0] = {g:ts, lead:marker(ts, x0 + S.H - 0.4, 0, zc - S.L / 2 - 0.3), top:marker(ts, x0 + S.H * 0.5, S.W / 2, zc)};
+    }
     explodable(base, fi === 0 ? [1.5, 0, 1.2] : [0, 0, 1.6]);
-    return {base, joints, under, over, tipM, pinM: marker(joints[1], 0, 0, 0)};
+    return out;
   });
 
-  /* palm plates */
-  const outline = [[3.2,-0.4],[-3.2,-0.4],[-3.6,2.4],[-3.45,4.9],[-2.6,5.25],[-1.7,6.05],[0,6.45],[1.7,6.15],[3.3,5.95],[3.65,3.6],[3.45,1.0]];
-  function palmShape(withSlots){
+  /* palm servos for the four fingers: tabs on the top plate, single-arm horn pushing a rod to the knuckle lever */
+  FINGERS.forEach((f, i) => {
+    if (!i) return;
+    const S = PS, [x, zc] = f.slot, sg = only('motor', new THREE.Group()); sg.position.set(x, 0, zc); hand.add(sg);
+    const bottom = PALM_SERVO.bottom, topY = PALM_SERVO.top, shaftZ = S.L / 2 - S.shaftOff;
+    const body = box(S.W, S.H, S.L, M.servo, 'servo'); body.position.y = bottom + S.H / 2; sg.add(body);
+    const st = box(S.W + 0.02, S.H * 0.45, S.L * 0.62, M.sticker, 'servo'); st.position.set(0, bottom + S.H * 0.42, -S.L * 0.08); sg.add(st);
+    const tabs = box(S.W, S.tabT, S.tabL, M.servo, 'servo'); tabs.position.y = PALM_TOP + S.tabT / 2; sg.add(tabs);
+    const bump = cylY(S.W * 0.42, S.top * 0.55, M.servo, 'servo'); bump.position.set(0, topY + S.top * 0.27, shaftZ); sg.add(bump);
+    const horn = new THREE.Group(); horn.position.set(0, PALM_SERVO.hornY, shaftZ); sg.add(horn);
+    horn.add(cylY(0.3, 0.12, M.spool, 'horn', 16));
+    const arm = box(HORN_R + 0.2, 0.1, 0.36, M.spool, 'horn'); arm.position.x = HORN_R / 2; horn.add(arm);
+    const bl = ball(0.13, M.steel, 'rod'); bl.position.set(HORN_R, 0.12, 0); horn.add(bl);
+    explodable(sg, [0, 2.8, 0]);
+    motorServos[i] = {g:sg, horn, tip:marker(horn, HORN_R, 0.12, 0), lead:marker(sg, 0, bottom + 0.4, -S.L / 2 - 0.35), top:marker(sg, 0, topY, 0)};
+  });
+
+  /* palm plates: slotted for tendons, servo cut-outs for motor per finger */
+  const outline = [[3.2,-0.4],[-3.2,-0.4],[-3.6,2.4],[-3.45,4.9],[-2.6,5.25],[-1.7,6.05],[0,6.45],[1.7,6.15],[3.3,5.95],[3.65,3.6],[3.55,1.0]];
+  function palmShape(holes){
     const s = new THREE.Shape(); outline.forEach((p, i) => i ? s.lineTo(p[0], p[1]) : s.moveTo(p[0], p[1])); s.lineTo(outline[0][0], outline[0][1]);
-    if (withSlots){ s.holes.push(vslot(1.7, 1.4, 4.4, 0.42), vslot(0, 1.4, 4.7, 0.42), vslot(-1.7, 1.4, 4.2, 0.42)); }
-    return s;
+    holes.forEach(h => s.holes.push(h)); return s;
   }
-  const dorsal = mesh(plateY(palmShape(true), 0.3), M.chrome, 'palm'); dorsal.position.y = 0.85; hand.add(dorsal); explodable(dorsal, [0, 1.8, 0]);
-  const palmar = mesh(plateY(palmShape(true), 0.3), M.chrome, 'palm'); palmar.position.y = -0.55; hand.add(palmar); explodable(palmar, [0, -1.6, 0]);
-  [[2.7,0.4],[-2.7,0.4],[2.85,4.9],[-2.95,4.2],[-0.85,5.5]].forEach(([x, z]) => { const s = cylY(0.2, 1.1, M.steel, 'standoff', 12); s.position.set(x, 0, z); hand.add(s); });
+  const PLATE_HOLES = {
+    tendon:() => [vslot(1.7, 1.4, 4.4, 0.42), vslot(0, 1.4, 4.7, 0.42), vslot(-1.7, 1.4, 4.2, 0.42)],
+    motor:() => FINGERS.slice(1).map(f => rectPath(f.slot[0] - PS.W / 2 - 0.03, f.slot[1] - PS.L / 2 - 0.03, f.slot[0] + PS.W / 2 + 0.03, f.slot[1] + PS.L / 2 + 0.03))
+  };
+  ['tendon', 'motor'].forEach(mode => {
+    const dorsal = only(mode, mesh(plateY(palmShape(PLATE_HOLES[mode]()), 0.3), M.chrome, 'palm')); dorsal.position.y = PALM_TOP; hand.add(dorsal); explodable(dorsal, [0, 1.8, 0]);
+    const palmar = only(mode, mesh(plateY(palmShape(PLATE_HOLES[mode]()), 0.3), M.chrome, 'palm')); palmar.position.y = -0.55; hand.add(palmar); explodable(palmar, [0, -1.6, 0]);
+  });
+  [[2.7,0.4],[-2.7,0.4],[3.12,5.35],[-2.95,4.2],[-0.85,5.5]].forEach(([x, z]) => { const s = cylY(0.2, 1.1, M.steel, 'standoff', 12); s.position.set(x, 0, z); hand.add(s); });
   FINGERS.slice(1).forEach(f => {
     const a = new THREE.Vector3(f.base[0] * 0.42, 1.0, 0.7), b = new THREE.Vector3(f.base[0], 1.0, f.base[2] - 1.35);
-    const len = a.distanceTo(b), r = mesh(new THREE.CylinderGeometry(0.26, 0.26, len, 14), M.chrome, 'palm');
+    const len = a.distanceTo(b), r = only('tendon', mesh(new THREE.CylinderGeometry(0.26, 0.26, len, 14), M.chrome, 'palm'));
     r.position.copy(a).lerp(b, 0.5); r.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().sub(a).normalize());
     hand.add(r); explodable(r, [0, 1.8, 0]);
-    [a, b].forEach(p => { const c = mesh(new THREE.SphereGeometry(0.26, 12, 8), M.chrome, 'palm'); c.position.copy(p); hand.add(c); explodable(c, [0, 1.8, 0]); });
+    [a, b].forEach(p => { const c = only('tendon', mesh(new THREE.SphereGeometry(0.26, 12, 8), M.chrome, 'palm')); c.position.copy(p); hand.add(c); explodable(c, [0, 1.8, 0]); });
   });
-  /* wrist guide */
+  /* wrist: tendon guide, or a plain block the servo cables pass under */
   const wrist = box(6.4, 1.6, 0.9, M.steel, 'wrist'); wrist.position.set(0, -0.15, -0.2); hand.add(wrist);
   const wristHoles = FINGERS.map(f => {
-    const ring = mesh(new THREE.TorusGeometry(0.16, 0.05, 6, 14), M.black, 'wrist'); ring.position.set(f.hole, -0.2, 0.27); hand.add(ring);
+    const ring = only('tendon', mesh(new THREE.TorusGeometry(0.16, 0.05, 6, 14), M.black, 'wrist')); ring.position.set(f.hole, -0.2, 0.27); hand.add(ring);
     return {a: marker(hand, f.hole, -0.2, -0.65), b: marker(hand, f.hole, -0.2, 0.25)};
   });
   const palmMid = FINGERS.map((f, i) => i === 0 ? marker(hand, 2.1, -0.15, 1.15) : marker(hand, f.base[0] * 0.92, -0.15, 3.6));
   const palmLabel = marker(hand, 0.2, 0.95, 3.0), wristLabel = marker(hand, -2.4, 0.6, -0.2);
   explodable(hand, [0, 0, 4.5]);
 
-  /* ---- forearm (rebuilt when the servo changes) ---- */
+  /* ---- forearm (rebuilt when the servo or the drive changes) ---- */
   let fore = null;
   function buildForearm(){
     const S = SERVOS[servoKey], g = new THREE.Group(); scene.add(g);
     const startCount = exploders.length;
-    // spools need clearance too: flange diameter 2 × (SPOOL_R + FLANGE) sets the minimum servo pitch
-    const gap = 0.45, flD = 2 * (SPOOL_R + FLANGE), p = Math.max(S.W + gap, flD + 0.15);
-    const single = 4 * p + Math.max(S.W, flD) + 1.2 <= 8.6;
-    const FW = single ? 8.6 : 2 * p + Math.max(S.W, flD) + 1.2;
-    const deckTop = -0.45, LIFT = 1.5;
-    let slots;
-    if (single){ const z = -2.7 - S.tabL / 2; slots = [2,1,0,-1,-2].map(k => ({x:k * p - 0.5, z, lift:0})); }
-    else { const z1 = -2.7 - S.tabL / 2, z2 = z1 - S.tabL - 0.9;
-      slots = [{x:p/2 - 0.5, z:z2, lift:LIFT}, {x:p - 0.5, z:z1, lift:0}, {x:-0.5, z:z1, lift:0}, {x:-p - 0.5, z:z1, lift:0}, {x:-p/2 - 0.5, z:z2, lift:LIFT}]; }
-    const servoBack = Math.min(...slots.map(s => s.z - S.tabL / 2));
-    const pcaZ = servoBack - 1.9, unoFront = pcaZ - 2.1, unoBack = unoFront - 6.86, back = unoBack - 0.9;
-    const len = -0.6 - back, midZ = (-0.6 + back) / 2;
+    const {FW, slots, deckTop, pcaZ, unoFront, unoBack, back, len, midZ} = forearmLayout(drive, S);
     /* frame */
     const deckShape = new THREE.Shape(); const hx = FW / 2 - 0.3;
     deckShape.moveTo(-hx, -0.6); deckShape.lineTo(hx, -0.6); deckShape.lineTo(hx, back + 0.4); deckShape.lineTo(-hx, back + 0.4); deckShape.lineTo(-hx, -0.6);
     slots.forEach(s => { const hw = S.W / 2 + 0.03, hl = S.L / 2 + 0.03; deckShape.holes.push(rectPath(s.x - hw, s.z - hl, s.x + hw, s.z + hl)); });
     const deck = mesh(plateY(deckShape, 0.3), M.acrylic, 'deck'); deck.castShadow = false; deck.position.y = deckTop; g.add(deck);
-    const rails = [];
-    [-1, 1].forEach(sx => [[deckTop - 0.35, 1.0], [-3.375, 0.45]].forEach(([y, h]) => { const r = box(0.5, h, len, M.chrome, 'rail'); r.position.set(sx * (FW / 2 - 0.25), y, midZ); g.add(r); rails.push(r); }));
+    [-1, 1].forEach(sx => [[deckTop - 0.35, 1.0], [-3.375, 0.45]].forEach(([y, h]) => { const r = box(0.5, h, len, M.chrome, 'rail'); r.position.set(sx * (FW / 2 - 0.25), y, midZ); g.add(r); }));
     for (let z = -1.2; z > back + 0.5; z -= 4.2) [-1, 1].forEach(sx => { const p = cylY(0.18, 2.3, M.steel, 'rail', 10); p.position.set(sx * (FW / 2 - 0.25), -1.95, z); g.add(p); });
     const bay = box(FW - 0.2, 0.3, len - 0.4, M.print, 'bay'); bay.position.set(0, -3.75, midZ - 0.2); g.add(bay); explodable(bay, [0, -7.5, 0]);
     const endp = box(FW, 3.8, 0.4, M.print, 'endplate'); endp.position.set(0, -1.85, back - 0.2); g.add(endp); explodable(endp, [0, 0, -3]);
@@ -605,7 +828,7 @@ function build3D(){
     const sw = box(0.6, 1.0, 0.5, M.black, 'jack'); sw.position.set(-FW / 2 + 2.8, -2.2, back - 0.35); g.add(sw);
     explodable(jack, [0, 0, -3]); explodable(sw, [0, 0, -3]);
     const jackIn = marker(jack, 0, 0, 0.5);
-    /* servos */
+    /* servos (tendon drive only) */
     const servos = slots.map((s, i) => {
       const sg = new THREE.Group(); sg.position.set(s.x, 0, s.z); g.add(sg);
       const bottom = deckTop + s.lift - S.tabY;
@@ -626,19 +849,22 @@ function build3D(){
       return {g:sg, spool, spoolY, tangent:marker(sg, SPOOL_R + 0.05, spoolY, shaftZ), lead:marker(sg, 0, bottom + 0.4, -S.L / 2 - 0.35), top:marker(sg, 0, topY, 0), lift:s.lift};
     });
     /* tendon comb */
-    const frontSpool = Math.max(...servos.map(s => s.g.position.z + S.L / 2 - S.shaftOff)) + SPOOL_R + 0.75;
-    const combH = Math.max(...servos.map(s => s.spoolY)) - deckTop + 0.7;
-    const comb = box(FW - 1.0, combH, 0.3, M.print, 'comb'); comb.position.set(0, deckTop + combH / 2, frontSpool); g.add(comb); explodable(comb, [0, 3.0, 0]);
-    const combHoles = servos.map(sv => {
-      const x = sv.g.position.x + SPOOL_R + 0.05;
-      const ring = mesh(new THREE.TorusGeometry(0.16, 0.05, 6, 14), M.black, 'comb'); ring.position.set(x, sv.spoolY, frontSpool + 0.16); comb.parent.add(ring);
-      ring.userData.combRing = true; explodable(ring, [0, 3.0, 0]);
-      return marker(g, x, sv.spoolY, frontSpool);
-    });
-    // comb markers must move with the comb when exploded: re-parent them to the comb
-    combHoles.forEach(m => { m.position.sub(comb.position); comb.add(m); });
+    let combHoles = [];
+    if (servos.length){
+      const frontSpool = Math.max(...servos.map(s => s.g.position.z + S.L / 2 - S.shaftOff)) + SPOOL_R + 0.75;
+      const combH = Math.max(...servos.map(s => s.spoolY)) - deckTop + 0.7;
+      const comb = box(FW - 1.0, combH, 0.3, M.print, 'comb'); comb.position.set(0, deckTop + combH / 2, frontSpool); g.add(comb); explodable(comb, [0, 3.0, 0]);
+      combHoles = servos.map(sv => {
+        const x = sv.g.position.x + SPOOL_R + 0.05;
+        const ring = mesh(new THREE.TorusGeometry(0.16, 0.05, 6, 14), M.black, 'comb'); ring.position.set(x, sv.spoolY, frontSpool + 0.16); g.add(ring);
+        explodable(ring, [0, 3.0, 0]);
+        return marker(g, x, sv.spoolY, frontSpool);
+      });
+      // comb markers must move with the comb when exploded: re-parent them to the comb
+      combHoles.forEach(m => { m.position.sub(comb.position); comb.add(m); });
+    }
     /* PCA9685 */
-    const pca = new THREE.Group(); pca.position.set(0.3, -2.75, pcaZ); g.add(pca); explodable(pca, [0, -4.2, 0]);
+    const pca = new THREE.Group(); pca.position.set(slots.length ? 0.3 : 0, -2.75, pcaZ); g.add(pca); explodable(pca, [0, -4.2, 0]);
     pca.add(box(6.25, 0.16, 2.54, M.pcbBlue, 'pca'));
     const chip = box(1.0, 0.12, 0.62, M.black, 'pca'); chip.position.set(-0.6, 0.14, -0.35); pca.add(chip);
     const hdr = box(4.06, 0.26, 0.76, M.black, 'pca'); hdr.position.set(0.25, 0.21, 0.82); pca.add(hdr);
@@ -656,15 +882,16 @@ function build3D(){
     const bj = box(0.9, 1.1, 1.4, M.black, 'uno'); bj.position.set(-1.6, 0.63, -2.95); uno.add(bj);
     [[-2.45, 1.9, 1.6], [-2.45, -0.4, 2.0], [2.45, 1.4, 2.0], [2.45, -1.0, 2.0]].forEach(([x, z, l]) => { const h = box(0.26, 0.85, l, M.black, 'uno'); h.position.set(x, 0.5, z); uno.add(h); });
     const pUno = {a4:marker(uno, -2.45, 0.95, 2.45), a5:marker(uno, -2.45, 0.95, 2.7), v5:marker(uno, -2.45, 0.95, -0.6), gnd:marker(uno, -2.45, 0.95, -0.85)};
-    const out = {g, S, FW, back, len, deckTop, servos, combHoles, ch, pI2C, pPow, pUno, jackIn,
+    const out = {g, S, FW, back, len, midZ, deckTop, servos, combHoles, ch, pI2C, pPow, pUno, jackIn,
       pcaM:marker(pca, 1.8, 0.2, -0.2), unoM:marker(uno, 1.5, 0.2, 1.8), jackM:marker(jack, 0, 0, -0.45), wires:new THREE.Group(), explodeStart:startCount};
     scene.add(out.wires);
     return out;
   }
 
   /* tendons / elastics drawn as cylinder segments between guide points */
-  const unitCyl = new THREE.CylinderGeometry(1, 1, 1, 6, 1, true);
-  const tendonGroup = new THREE.Group(), elasticGroup = new THREE.Group(); scene.add(tendonGroup, elasticGroup);
+  const unitCyl = new THREE.CylinderGeometry(1, 1, 1, 6, 1, true), unitCylC = new THREE.CylinderGeometry(1, 1, 1, 8);
+  const tendonGroup = new THREE.Group(), elasticGroup = new THREE.Group(), linkGroup = new THREE.Group(), rodGroup = new THREE.Group();
+  scene.add(tendonGroup, elasticGroup, linkGroup, rodGroup);
   const segPool = (group, mat, r) => { const list = []; return function(points, k){
     for (let i = 0; i < points.length - 1; i++){
       let m = list[k + i]; if (!m){ m = new THREE.Mesh(unitCyl, mat); m.userData.part = mat === M.tendon ? 'tendon' : 'elastic'; m.castShadow = false; list.push(m); group.add(m); }
@@ -672,16 +899,31 @@ function build3D(){
       m.position.copy(a).addScaledVector(d, 0.5); m.scale.set(r, L, r); m.quaternion.setFromUnitVectors(_up, d.normalize()); m.visible = true;
     }
     return k + points.length - 1; }; };
+  // rigid bars (pushrods, coupler links) between two points
+  const barPool = (group, mat, r, part) => { const list = []; return function(a, b, k){
+    let m = list[k]; if (!m){ m = new THREE.Mesh(unitCylC, mat); m.userData.part = part; m.castShadow = true; list.push(m); group.add(m); }
+    const d = _d.subVectors(b, a), L = d.length();
+    m.position.copy(a).addScaledVector(d, 0.5); m.scale.set(r, L, r); m.quaternion.setFromUnitVectors(_up, d.normalize());
+    return k + 1; }; };
   const _d = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
   const drawTendon = segPool(tendonGroup, M.tendon, 0.045), drawElastic = segPool(elasticGroup, M.elastic, 0.028);
+  const drawLink = barPool(linkGroup, M.chrome, 0.07, 'link'), drawRod = barPool(rodGroup, M.steel, 0.06, 'rod');
   const W = o => o.getWorldPosition(new THREE.Vector3());
-  function updateTendons(){
-    let k = 0, e = 0;
+  function updateDriveParts(){
+    if (drive === 'tendon'){
+      let k = 0, e = 0;
+      fingers.forEach((f, i) => {
+        const pts = [W(fore.servos[i].tangent), W(fore.combHoles[i]), W(wristHoles[i].a), W(wristHoles[i].b), W(palmMid[i])].concat(f.under.map(W));
+        k = drawTendon(pts, k);
+        const ov = [W(palmMid[i]).add(new THREE.Vector3(0, 1.2, 0))].concat(f.over.map(W));
+        e = drawElastic(ov, e);
+      });
+      return;
+    }
+    let k = 0, r = 0;
     fingers.forEach((f, i) => {
-      const pts = [W(fore.servos[i].tangent), W(fore.combHoles[i]), W(wristHoles[i].a), W(wristHoles[i].b), W(palmMid[i])].concat(f.under.map(W));
-      k = drawTendon(pts, k);
-      const ov = [W(palmMid[i]).add(new THREE.Vector3(0, 1.2, 0))].concat(f.over.map(W));
-      e = drawElastic(ov, e);
+      k = drawLink(W(f.lk.A), W(f.lk.B), k); k = drawLink(W(f.lk.C), W(f.lk.D), k);
+      if (i) r = drawRod(W(motorServos[i].tip), W(f.leverTip), r);
     });
   }
 
@@ -691,11 +933,17 @@ function build3D(){
     const w = fore.wires; while (w.children.length){ const c = w.children.pop(); c.geometry.dispose(); }
     if (!state.layers.wiring) return;
     const V = (x, y, z) => new THREE.Vector3(x, y, z);
-    fore.servos.forEach((sv, i) => {
-      const a = W(sv.lead), pins = fore.ch[i];
+    const leads = drive === 'motor' ? motorServos.map(s => s.lead) : fore.servos.map(s => s.lead);
+    leads.forEach((lead, i) => {
+      const a = W(lead), pins = fore.ch[i];
       [['brown', pins.g, -0.08], ['red', pins.v, 0], ['orange', pins.s, 0.08]].forEach(([col, pin, dx]) => {
         const b = W(pin);
-        w.add(tube([a.clone().add(V(dx, 0, 0)), a.clone().add(V(dx, -0.2, -0.6)), V(a.x + dx, (a.y + b.y) / 2 - 0.3, (a.z + b.z) / 2 + 0.6), b.clone().add(V(0, 0.9, 0.5)), b], M.wire[col], 0.045));
+        const pts = drive === 'motor'
+          // palm servo leads drop below the palm, run back under the wrist block and into the electronics box
+          ? (i ? [a.clone().add(V(dx, 0, 0)), a.clone().add(V(dx, -0.35, -0.5)), V(a.x * 0.6 + dx, -1.35, 0.2), V(b.x + dx, b.y + 0.9, b.z + 1.4), b]
+               : [a.clone().add(V(0, 0, dx)), a.clone().add(V(-0.4, 0.2, -0.8 + dx)), V(2.4 + dx, -1.6, 0.4), V(b.x + dx, b.y + 0.9, b.z + 1.4), b])
+          : [a.clone().add(V(dx, 0, 0)), a.clone().add(V(dx, -0.2, -0.6)), V(a.x + dx, (a.y + b.y) / 2 - 0.3, (a.z + b.z) / 2 + 0.6), b.clone().add(V(0, 0.9, 0.5)), b];
+        w.add(tube(pts, M.wire[col], 0.045));
       });
     });
     const P = fore.pI2C, U = fore.pUno;
@@ -708,15 +956,19 @@ function build3D(){
     });
   }
 
-  /* labels + dimensions */
+  /* labels + dimensions (listed in priority order: a tag that would cover an earlier one is hidden) */
   const LABELS = [
     {text:'Fingertip · TPU pad', at:() => W(fingers[1].tipM)},
+    {text:'Thumb servo · turns the base joint', drive:'motor', at:() => W(motorServos[0].top)},
+    {text:'Servo in the palm ×4', drive:'motor', at:() => W(motorServos[2].top)},
+    {text:'Pushrod · M2 + ball links', drive:'motor', layer:'tendons', at:() => W(motorServos[4].tip).lerp(W(fingers[4].leverTip), 0.55)},
+    {text:'Coupler links', drive:'motor', layer:'tendons', at:() => W(fingers[3].lk.A).lerp(W(fingers[3].lk.B), 0.55)},
     {text:'Clevis joint · M3 pin', at:() => W(fingers[2].pinM)},
-    {text:'Tendon · braided PE 0.8 mm', layer:'tendons', at:() => W(fore.combHoles[3]).lerp(W(wristHoles[3].a), 0.3)},
+    {text:'Tendon · braided PE 0.8 mm', drive:'tendon', layer:'tendons', at:() => W(fore.combHoles[3]).lerp(W(wristHoles[3].a), 0.3)},
     {text:'Palm frame · 2 plates', at:() => W(palmLabel)},
-    {text:'Wrist tendon guide', at:() => W(wristLabel)},
-    {text:() => `Servo ×5 · ${SERVOS[servoKey].name}`, at:() => W(fore.servos[2].top)},
-    {text:'Spool · r 10.5 mm', at:() => W(fore.servos[4].spool).add(new THREE.Vector3(0, 0.5, 0))},
+    {text:'Wrist tendon guide', drive:'tendon', at:() => W(wristLabel)},
+    {text:() => `Servo ×5 · ${SERVOS[servoKey].name}`, drive:'tendon', at:() => W(fore.servos[2].top)},
+    {text:'Spool · r 10.5 mm', drive:'tendon', at:() => W(fore.servos[4].spool).add(new THREE.Vector3(0, 0.5, 0))},
     {text:'PCA9685 servo driver', at:() => W(fore.pcaM)},
     {text:'Arduino Uno', at:() => W(fore.unoM)},
     {text:'DC in · servo power', at:() => W(fore.jackM)}
@@ -731,7 +983,7 @@ function build3D(){
     const saved = state.curl.slice(), savedE = state.explode; state.curl = [0,0,0,0,0]; state.explode = 0; applyPose(); applyExplode(); scene.updateMatrixWorld(true);
     const box3 = new THREE.Box3();
     const handBox = new THREE.Box3(); fingers.slice(1).forEach(f => handBox.expandByObject(f.base));
-    const tipZ = W(fingers[2].tipM).z, back = fore.back, FW = fore.FW;
+    const tz = W(fingers[2].tipM).z, back = fore.back, FW = fore.FW;
     box3.setFromObject(fore.g);
     const yLow = FLOOR_Y + 0.05, xs = -FW / 2 - 2.2;
     const add = (a, b, text, off) => {
@@ -742,19 +994,20 @@ function build3D(){
       const el = document.createElement('div'); el.className = 'tag dim'; el.innerHTML = '<i></i><span>' + text + '</span>'; labelsEl.appendChild(el);
       dimLabels.push({el, p:a.clone().lerp(b, 0.5)});
     };
-    const overall = tipZ - back;
+    const overall = tz - back;
     const hw = handBox.max.x - handBox.min.x;
-    add(new THREE.Vector3(xs, yLow, back), new THREE.Vector3(xs, yLow, tipZ), `${fmt(overall * 10)} mm overall`, new THREE.Vector3(0.5, 0, 0));
-    add(new THREE.Vector3(handBox.min.x, 2.6, 8.4), new THREE.Vector3(handBox.max.x, 2.6, 8.4), `${fmt(hw * 10)} mm`, new THREE.Vector3(0, 0, 0.5));
+    add(new THREE.Vector3(xs, yLow, back), new THREE.Vector3(xs, yLow, tz), `${fmt(overall * 10)} mm overall`, new THREE.Vector3(0.5, 0, 0));
+    add(new THREE.Vector3(handBox.min.x, 2.9, 8.4), new THREE.Vector3(handBox.max.x, 2.9, 8.4), `${fmt(hw * 10)} mm`, new THREE.Vector3(0, 0, 0.5));
     add(new THREE.Vector3(-FW / 2, yLow, back - 2), new THREE.Vector3(FW / 2, yLow, back - 2), `${fmt(FW * 10)} mm`, new THREE.Vector3(0, 0, 0.5));
     add(new THREE.Vector3(FW / 2 + 1.6, box3.min.y, back), new THREE.Vector3(FW / 2 + 1.6, box3.max.y, back), `${fmt((box3.max.y - box3.min.y) * 10)} mm`, new THREE.Vector3(0.5, 0, 0));
-    add(new THREE.Vector3(1.6, 1.4, FINGERS[2].base[2]), new THREE.Vector3(1.6, 1.4, tipZ), `${fmt((tipZ - FINGERS[2].base[2]) * 10)} mm`, new THREE.Vector3(0.4, 0, 0));
+    add(new THREE.Vector3(1.6, 1.4, FINGERS[2].base[2]), new THREE.Vector3(1.6, 1.4, tz), `${fmt((tz - FINGERS[2].base[2]) * 10)} mm`, new THREE.Vector3(0.4, 0, 0));
     // tendon lengths (open pose) for the parts list
-    const tl = fingers.map((f, i) => {
+    const tl = drive === 'tendon' ? fingers.map((f, i) => {
       const pts = [W(fore.servos[i].tangent), W(fore.combHoles[i]), W(wristHoles[i].a), W(wristHoles[i].b), W(palmMid[i])].concat(f.under.map(W));
       let s = 0; for (let k = 0; k < pts.length - 1; k++) s += pts[k].distanceTo(pts[k + 1]); return s + 8;
-    });
+    }) : dimsNow.tendon;
     dimsNow = {overallL:overall, handW:hw, forearmW:FW, forearmL:fore.len, height:box3.max.y - box3.min.y, tendon:tl};
+    modelCZ = (tz + back) / 2; foreMidZ = fore.midZ;
     state.curl = saved; state.explode = savedE; applyPose(); applyExplode();
     renderParts();
   }
@@ -764,7 +1017,8 @@ function build3D(){
     fingers.forEach((f, i) => {
       const a = jointAngles(i, state.curl[i]);
       f.joints.forEach((j, k) => j.rotation.x = a[k] * D2R);
-      if (fore) fore.servos[i].spool.rotation.y = servoDeg(i, state.curl[i]) * D2R;
+      if (drive === 'tendon') fore.servos[i].spool.rotation.y = servoDeg(i, state.curl[i]) * D2R;
+      else if (i) motorServos[i].horn.rotation.y = -lerpT(MT[i].sv, state.curl[i]) * D2R; // arm swings forward to push the rod
     });
   }
   function applyExplode(){
@@ -781,9 +1035,16 @@ function build3D(){
     fore = buildForearm(); applyPose(); applyExplode(); scene.updateMatrixWorld(true);
     buildDims(); wiresDirty = true; layersChanged(); kickRender();
   }
+  function showDriveParts(){ ['motor', 'tendon'].forEach(m => byDrive[m].forEach(o => o.visible = drive === m)); wrist.userData.part = drive === 'motor' ? 'wristM' : 'wrist'; }
+  function driveChanged(){
+    showDriveParts(); sel.visible = false; selObj = null;
+    rebuildForearm(); goView(lastView || 'three');
+  }
 
   function layersChanged(){
-    tendonGroup.visible = elasticGroup.visible = state.layers.tendons;
+    const m = drive === 'motor', L = state.layers.tendons;
+    tendonGroup.visible = elasticGroup.visible = !m && L;
+    linkGroup.visible = m && L; rodGroup.visible = m && L && state.explode < 0.01;
     fore.wires.visible = state.layers.wiring; wiresDirty = true;
     dimGroup.visible = state.layers.dims;
     kickRender();
@@ -804,16 +1065,18 @@ function build3D(){
   function shown(o){ while (o){ if (!o.visible) return false; o = o.parent; } return true; }
   const sel = new THREE.BoxHelper(undefined, 0xf0a73c); sel.visible = false; scene.add(sel);
   let selObj = null;
-  const GROUPED = {servo:1, pca:1, uno:1, spool:1};
+  const GROUPED = {servo:1, pca:1, uno:1, spool:1, horn:1};
   function highlight(o){ selObj = GROUPED[partOf(o)] && o.parent ? o.parent : o; sel.setFromObject(selObj); sel.visible = true; kickRender(); }
 
   /* camera presets */
   let camAnim = null;
-  $$('[data-view]').forEach(b => b.addEventListener('click', () => {
-    const v = VIEWS[b.dataset.view];
-    camAnim = {t0:performance.now(), p0:camera.position.clone(), t0v:controls.target.clone(), p1:viewPos(v), t1:new THREE.Vector3(...v.t)};
+  function goView(name){
+    const v = VIEWS[name]; lastView = name;
+    camAnim = {t0:performance.now(), p0:camera.position.clone(), t0v:controls.target.clone(), p1:viewPos(v), t1:viewTarget(v)};
     kickRender();
-  }));
+  }
+  $$('[data-view]').forEach(b => b.addEventListener('click', () => goView(b.dataset.view)));
+  controls.addEventListener('start', () => { lastView = null; });
 
   /* resize */
   function resize(){ const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); kickRender(); }
@@ -842,7 +1105,7 @@ function build3D(){
     dimLabels.forEach(d => { d.el.hidden = !showD; if (showD) placeLabel(d.el, d.p, w, h); });
     dimGroup.visible = showD;
     LABELS.forEach(l => {
-      const show = state.layers.labels && (!l.layer || state.layers[l.layer]);
+      const show = state.layers.labels && (!l.layer || state.layers[l.layer]) && (!l.drive || l.drive === drive);
       l.el.hidden = !show; if (!show) return;
       l.el.lastChild.textContent = typeof l.text === 'function' ? l.text() : l.text;
       placeLabel(l.el, l.at(), w, h);
@@ -872,7 +1135,8 @@ function build3D(){
     controls.update();
     if (moving || dirty || wiresDirty){
       applyPose(); applyExplode(); scene.updateMatrixWorld();
-      updateTendons();
+      rodGroup.visible = drive === 'motor' && state.layers.tendons && state.explode < 0.01; // rods would stretch between parts flying apart
+      updateDriveParts();
       if (wiresDirty){ rebuildWires(); wiresDirty = false; }
       if (sel.visible && selObj) sel.setFromObject(selObj);
       renderer.render(scene, camera); updateLabels();
@@ -884,11 +1148,13 @@ function build3D(){
   function kickRender(){ dirty = true; }
   kick = kickRender;
 
+  showDriveParts();
   fore = buildForearm(); applyPose(); applyExplode(); scene.updateMatrixWorld(true);
   buildDims(); layersChanged(); resize();
+  camera.position.copy(viewPos(VIEWS.three)); controls.target.copy(viewTarget(VIEWS.three));
   requestAnimationFrame(tick);
-  window.__hand = {state, applyPreset, camera, controls, kick:kickRender, get frames(){ return frames; }};
-  return {rebuildForearm, layersChanged};
+  window.__hand = {state, applyPreset, setDrive, camera, controls, scene, fingers, motorServos, kick:kickRender, get frames(){ return frames; }};
+  return {rebuildForearm, layersChanged, driveChanged};
 }
 })();
 </script>

@@ -1,0 +1,1015 @@
+<title>Piston Wrist</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: full-height workbench like the hand page. 3D stage left, control panel right; on phones the panel stacks under the stage.
+   One deliberate dark workshop look. Printed parts are drawn white like the reference render, rods are chrome. */
+:root{
+  color-scheme: dark;
+  --bg:#12161b; --stage:#161b21; --panel:#1a1f26; --raise:#222932; --line:#2e3640; --fg:#e4e8ec; --mute:#919ba7; --dim:#626c78;
+  --amber:#f0a73c; --amber-ink:#1d1405; --ok:#76c08f;
+  --chart:#171c22; --reach:#3987e5; --pose:#c98500; --ref:#c9d0d7;
+  --display:"Saira Semi Condensed","Arial Narrow",sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.5;overflow:hidden}
+button,input{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 380px;height:100%}
+
+/* stage */
+.stage{position:relative;min-width:0;min-height:0;background:var(--stage);overflow:hidden}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;outline:none;touch-action:none}
+.hud{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:14px;pointer-events:none;max-width:min(440px,60%)}
+.hud h1,.hud p{text-shadow:0 1px 3px rgba(0,0,0,.85)}
+.hud h1{font-family:var(--display);font-weight:700;font-size:26px;line-height:1;letter-spacing:.01em;margin:0}
+.hud h1 span{color:var(--amber)}
+.hud p{margin:6px 0 0;color:var(--mute);font-size:13px}
+.views{position:absolute;right:12px;top:12px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px;max-width:50%}
+.views button{appearance:none;border:1px solid var(--line);background:rgba(26,31,38,.85);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--mute)}
+.views button:hover,.views button:focus-visible{color:var(--fg);border-color:var(--mute);outline:none}
+.pose{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:12px;font-family:var(--mono);font-size:12px;color:var(--mute);pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.85)}
+.pose b{color:var(--fg);font-weight:500}
+.labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+[hidden]{display:none!important}
+.tag{position:absolute;left:0;top:0;display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:11.5px;font-weight:500;color:var(--fg);will-change:transform}
+.tag i{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px rgba(240,167,60,.22);flex:none}
+.tag span{background:rgba(18,22,27,.8);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+.nogl{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--mute)}
+
+/* panel */
+.panel{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;min-height:0;padding-block:14px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.tabs button{appearance:none;background:none;border:0;border-bottom:2px solid transparent;padding:8px 10px 7px;cursor:pointer;color:var(--mute);font-weight:500}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--amber)}
+.tabs button:focus-visible{outline:1px solid var(--amber);outline-offset:-2px}
+h2{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);margin:18px 0 8px}
+h2:first-child{margin-top:4px}
+h2 small{text-transform:none;letter-spacing:0;font-family:var(--body);font-weight:400;font-size:13px;color:var(--dim)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--raise);border-radius:99px;padding:5px 12px;font-size:13px;cursor:pointer}
+.chip:hover,.chip:focus-visible{border-color:var(--mute);outline:none}
+.chip.run{background:var(--amber);border-color:var(--amber);color:var(--amber-ink);font-weight:600}
+.sl{display:grid;grid-template-columns:52px minmax(0,1fr) 92px;align-items:center;gap:10px;padding:5px 0}
+.sl label{font-weight:500}
+.sl input[type=range]{width:100%;accent-color:var(--amber)}
+.sl output{font-family:var(--mono);font-size:12px;color:var(--mute);text-align:right;font-variant-numeric:tabular-nums}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:10px}
+.row .lbl{font-size:12px;color:var(--dim);min-width:52px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{appearance:none;border:0;background:var(--raise);padding:5px 12px;cursor:pointer;color:var(--mute);font-weight:500;font-size:13px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--amber);color:var(--amber-ink)}
+.seg button:focus-visible{outline:1px solid var(--fg);outline-offset:-2px}
+.status{font-size:12.5px;color:var(--mute);margin:6px 0 0;min-height:1.5em}
+.status.hit{color:#e6b46e}
+.spec{font-family:var(--mono);font-size:12px;color:var(--mute);margin:8px 0 0;line-height:1.7}
+.spec b{color:var(--fg);font-weight:500}
+.toggles{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
+.toggles label{display:flex;align-items:center;gap:8px;cursor:pointer}
+.toggles input{accent-color:var(--amber);width:16px;height:16px}
+
+/* reach chart */
+.chart{position:relative;background:var(--chart);border:1px solid var(--line);border-radius:8px;padding:6px 6px 2px}
+.chart svg{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair;user-select:none}
+.chart svg text{font-family:var(--mono);font-size:10px;fill:var(--dim)}
+.chart svg .ttl{font-family:var(--body);font-size:11px;fill:var(--mute)}
+.tip{position:absolute;left:0;top:0;pointer-events:none;background:#0f1216;border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:12px;line-height:1.45;white-space:nowrap;color:var(--fg);transform:translate(-50%,calc(-100% - 12px))}
+.tip small{display:block;color:var(--mute);font-size:11.5px}
+.key{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--mute);margin:8px 2px 0}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;background:rgba(57,135,229,.42);border:1px solid var(--reach)}
+.sw.h{width:16px;height:0;border:0;border-top:2px dashed var(--ref);border-radius:0;background:none}
+.sw.p{width:10px;height:10px;border-radius:50%;border:0;background:var(--pose)}
+
+/* tables + prose */
+.tablewrap{overflow-x:auto;margin:0 -2px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--dim);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td small{display:block;color:var(--mute);font-size:11.5px}
+td small.end{color:#e6b46e}
+.bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;min-width:64px;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--reach);border-radius:3px}
+.bar.mid{position:relative}
+.bar.mid i{position:absolute;top:0;width:4px;margin-left:-2px;background:var(--fg)}
+.prose p{margin:0 0 10px;color:#c9d0d7;max-width:62ch}
+.prose a{color:var(--amber)}
+.prose ol{margin:0 0 10px;padding-left:18px;color:#c9d0d7}
+.prose li{margin-bottom:6px}
+.prose li b{color:var(--fg);font-weight:600}
+.formula{font-family:var(--mono);font-size:12.5px;background:var(--raise);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--fg);line-height:1.7;margin-bottom:10px}
+.formula em{font-style:normal;color:var(--amber)}
+pre{position:relative;margin:0;background:#0f1216;border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;font-family:var(--mono);font-size:11.5px;line-height:1.55;color:#cfd6dd}
+.copy{position:absolute;right:6px;top:6px;appearance:none;border:1px solid var(--line);background:var(--raise);border-radius:5px;font-size:11px;padding:2px 8px;cursor:pointer;color:var(--mute)}
+.note{font-size:12px;color:var(--dim);margin-top:10px}
+.note a{color:var(--mute)}
+[role=tabpanel]{min-width:0}
+
+@media (max-width: 860px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,54%) minmax(0,46%)}
+  .panel{border-left:0;border-top:1px solid var(--line)}
+  .hud h1{font-size:20px}
+  .hud p{display:none}
+  .views{top:auto;bottom:10px;right:10px;max-width:none}
+  .views button{padding:4px 8px;font-size:11px}
+  .pose{bottom:auto;top:40px;font-size:11px}
+  .tag{font-size:10.5px}
+}
+</style>
+
+<div class="app">
+  <div class="stage" id="stage">
+    <div class="labels" id="labels"></div>
+    <div class="hud">
+      <h1>Piston <span>Wrist</span></h1>
+      <p>Four linear actuators steer the hand around a two-hinge joint on top of a centre post. The cup turns on a bearing for forearm twist.</p>
+    </div>
+    <div class="views" role="group" aria-label="Camera views">
+      <button data-view="three">3/4</button><button data-view="palm">Palm</button><button data-view="side">Side</button><button data-view="joint">Joint</button>
+    </div>
+    <div class="pose" id="hudPose" aria-live="off"></div>
+  </div>
+
+  <aside class="panel">
+    <div class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" id="b-move" aria-controls="t-move" aria-selected="true">Move</button>
+      <button role="tab" id="b-how" aria-controls="t-how" aria-selected="false">How it works</button>
+      <button role="tab" id="b-parts" aria-controls="t-parts" aria-selected="false">Parts</button>
+      <button role="tab" id="b-code" aria-controls="t-code" aria-selected="false">Code</button>
+    </div>
+
+    <section role="tabpanel" id="t-move" aria-labelledby="b-move">
+      <h2>Poses</h2>
+      <div class="chips" id="presets"></div>
+      <h2>Demos</h2>
+      <div class="chips" id="demos"></div>
+
+      <h2>Wrist</h2>
+      <div class="sl"><label for="sF">Bend</label><input type="range" id="sF" min="-80" max="80" step="1" value="0"><output id="oF" for="sF"></output></div>
+      <div class="sl"><label for="sD">Side</label><input type="range" id="sD" min="-80" max="80" step="1" value="0"><output id="oD" for="sD"></output></div>
+      <div class="sl"><label for="sT">Twist</label><input type="range" id="sT" min="-90" max="90" step="1" value="0"><output id="oT" for="sT"></output></div>
+      <p class="status" id="status" aria-live="polite"></p>
+      <div class="row">
+        <span class="lbl">Limits</span>
+        <div class="seg" id="segLim" role="group" aria-label="Movement limits">
+          <button data-v="human" aria-pressed="true">Human range</button><button data-v="full" aria-pressed="false">Full machine</button>
+        </div>
+      </div>
+
+      <h2>Reach <small>· drag on the chart to move</small></h2>
+      <div class="chart" id="chart">
+        <svg id="reach" viewBox="0 0 312 300" role="img" aria-label="Chart of wrist reach: side angle across, bend angle up and down. The blue area is what this wrist can reach, the dashed line is a typical human wrist, the dot is the current pose."></svg>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+      <div class="key"><span><i class="sw"></i>This wrist can reach</span><span><i class="sw h"></i>Human wrist</span><span><i class="sw p"></i>Current pose</span></div>
+      <p class="spec" id="coverage"></p>
+
+      <h2>Actuators</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Drive</th><th>Length</th><th>Stroke used</th><th>Signal</th></tr></thead>
+          <tbody id="actBody"></tbody>
+        </table>
+      </div>
+      <p class="spec" id="torque"></p>
+      <div class="row">
+        <span class="lbl">Gearing</span>
+        <div class="seg" id="segGear" role="group" aria-label="Actuator gearing">
+          <button data-v="g63" aria-pressed="true">63:1 · 100 N</button><button data-v="g150" aria-pressed="false">150:1 · 200 N</button>
+        </div>
+      </div>
+      <div class="row">
+        <span class="lbl">Speed</span>
+        <div class="seg" id="segSpeed" role="group" aria-label="Animation speed">
+          <button data-v="1" aria-pressed="true">Real</button><button data-v="4" aria-pressed="false">4× preview</button>
+        </div>
+      </div>
+
+      <h2>Show</h2>
+      <div class="toggles">
+        <label><input type="checkbox" id="cLabels" checked> Labels</label>
+        <label><input type="checkbox" id="cHand" checked> Hand</label>
+        <label><input type="checkbox" id="cShell" checked> Forearm shell</label>
+      </div>
+    </section>
+
+    <section role="tabpanel" id="t-how" aria-labelledby="b-how" hidden>
+      <div class="prose">
+        <h2>The idea</h2>
+        <ol>
+          <li><b>Two hinges.</b> The hand sits on a universal joint at the top of the centre post. One hinge bends the hand towards the palm or back. The other, at right angles, tips it to the thumb or little-finger side. The joint carries the hand's weight, so the actuators only have to steer.</li>
+          <li><b>Four pistons on the diagonals.</b> Each L16 linear actuator runs from the cup floor up to a corner of the hand plate: palm-thumb, palm-little, back-thumb and back-little. To bend towards the palm, both palm-side pistons pull in and both back-side ones push out. To tip towards the thumb, both thumb-side ones pull in. Every move uses all four, like pairs of muscles where one side pulls while the other lets go. Mixing the two gives every diagonal and full circles.</li>
+          <li><b>Why diagonals.</b> With one piston per side, the piston on the outside of a big bend has to swing its rod right over the top of the hinge, and that stops it at about 65°. On the diagonals, the rods pass beside the hinge, so the wrist bends past 80°. You also get about 40% more torque.</li>
+          <li><b>Twist.</b> The whole cup, with pistons, post and hand, turns on a thin bearing. A servo under it does the forearm twist, palm up or down.</li>
+        </ol>
+
+        <h2>Piston lengths</h2>
+        <div class="formula">
+          L<sub>i</sub> = | <em>R</em>(bend, side) · t<sub>i</sub> − b<sub>i</sub> |<br>
+          <em>R</em> = Rz(side) · Rx(−bend)<br>
+          t<sub>i</sub>: top joint, 28 mm out on a diagonal, level with the hinge<br>
+          b<sub>i</sub>: bottom joint, 31 mm out, 150 mm below
+        </div>
+        <p>The page and the Arduino code both solve this for every pose. At rest each actuator is 150.0 mm pin to pin, which is 23.5 mm of its 50 mm stroke out. That leaves almost equal travel both ways.</p>
+
+        <h2>What stops it</h2>
+        <p>Straight bend or side: at about 82°, the front and back actuators on one side close in on each other. On a diagonal, the stroke runs out first, at 66–71°. That is still about twice what a human wrist can do on a diagonal. Every pose is checked for stroke, both piston parts against the post, rods against the U-joint, yokes and hand plate, and the pistons against each other. The motion stops before anything touches. The post narrows to a 9 mm neck so the inner rods clear it on deep bends.</p>
+        <p>The top joints swing up to about 86° from the rod, so they have to be small forks with a two-pin cross. A ball link only tilts about 30°. The bottom joints never tilt more than about 9°, so plain M3 ball links are fine there.</p>
+
+        <h2>Robot vs human</h2>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Motion</th><th>Human</th><th>This wrist</th></tr></thead>
+            <tbody id="limTable"></tbody>
+          </table>
+        </div>
+        <p class="note">Human range is the usual clinical full range. Most everyday tasks need much less: about 54° flexion, 60° extension, 17° radial and 40° ulnar (Ryu et al. 1991). Sources: <a href="https://synapse.koreamed.org/articles/1122791" target="_blank" rel="noopener">wrist ROM review</a>, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6535937/table/table2-1558944717730604" target="_blank" rel="noopener">normal ROM table</a>, <a href="https://mayoclinic.elsevierpure.com/en/publications/functional-ranges-of-motion-of-the-wrist-joint/" target="_blank" rel="noopener">functional ROM (Mayo)</a>, <a href="https://robomechjournal.springeropen.com/articles/10.1186/s40648-018-0109-7/tables/1" target="_blank" rel="noopener">ROMs used in robot wrists</a>.</p>
+
+        <h2>Honest trade-offs</h2>
+        <ol>
+          <li><b>Slower than a real wrist.</b> L16 actuators move 20 mm/s (63:1) or 8 mm/s (150:1). That is roughly 58°/s or 23°/s at the wrist. The "Real" speed setting shows this.</li>
+          <li><b>Four actuators for two angles.</b> All four have to agree exactly, or they push against each other and draw stall current. Set a trim per actuator so all four read the same length at rest (it's in the code).</li>
+          <li><b>Holds without power.</b> The lead screws don't back-drive, so the hand stays put when the power is off.</li>
+          <li><b>Check the real drawing.</b> The clearances assume a 17 mm actuator body and 6 mm rod. Check them against the Actuonix drawing before you print.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section role="tabpanel" id="t-parts" aria-labelledby="b-parts" hidden>
+      <h2>Parts list</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Qty</th><th>Part</th></tr></thead>
+          <tbody>
+            <tr><td class="n">4</td><td>Actuonix L16-50-63-6-R linear actuator<small>50 mm stroke, 126.5 mm closed, 100 N, 20 mm/s, takes a normal servo signal. 150:1 version: 200 N at 8 mm/s.</small></td></tr>
+            <tr><td class="n">1</td><td>Universal joint (the two hinges)<small>Must fit in a 17 mm ball. Use a steel miniature U-joint of about 16 mm diameter, or a printed cross with M3 shoulder pins.</small></td></tr>
+            <tr><td class="n">4</td><td>Top joints: mini U-joint forks<small>Printed fork and cross with M3 pins. They swing almost 90°, which a ball link can't.</small></td></tr>
+            <tr><td class="n">4</td><td>M3 ball links (rod ends)<small>Bottom joints. These only tilt about 9°.</small></td></tr>
+            <tr><td class="n">1</td><td>Centre post<small>15 mm, narrowing to a 9 mm neck for the top 50 mm. Aluminium, or printed over an 8 mm steel rod.</small></td></tr>
+            <tr><td class="n">1</td><td>6810 thin-section bearing<small>50 × 65 × 7 mm. Carries the cup so it can turn.</small></td></tr>
+            <tr><td class="n">1</td><td>DS3218 servo, 20 kg·cm<small>Forearm twist ±90°. The horn bolts to the middle of the cup floor.</small></td></tr>
+            <tr><td class="n">1</td><td>Printed parts, PETG<small>Cup (91 mm across), hand plate (63 mm), two yokes, 4 bottom mounts, forearm shell.</small></td></tr>
+            <tr><td class="n">1</td><td>Arduino Nano</td></tr>
+            <tr><td class="n">1</td><td>6 V 5 A UBEC and a 2S LiPo<small>4 actuators at up to 650 mA each, plus the servo.</small></td></tr>
+            <tr><td class="n">1</td><td>1000 µF 10 V capacitor<small>Across the 6 V rail, close to the actuator plugs.</small></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Wiring</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Part</th><th>Signal</th><th>Power</th></tr></thead>
+          <tbody>
+            <tr><td>P1 palm · thumb</td><td class="n">D3</td><td>6 V rail</td></tr>
+            <tr><td>P2 palm · little</td><td class="n">D5</td><td>6 V rail</td></tr>
+            <tr><td>P3 back · thumb</td><td class="n">D6</td><td>6 V rail</td></tr>
+            <tr><td>P4 back · little</td><td class="n">D9</td><td>6 V rail</td></tr>
+            <tr><td>Twist servo</td><td class="n">D10</td><td>6 V rail</td></tr>
+            <tr><td>Arduino Nano</td><td class="n">—</td><td>VIN from the 2S pack (7.4 V)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Every ground joins: battery, UBEC, Nano and all five plugs. On each 3-wire plug: signal goes to the pin, red to +6 V, black to ground. The L16-R reads 1.0 ms as fully in and 2.0 ms as fully out. Specs: <a href="https://www.robotshop.com/products/actuonix-l16-actuator-50mm-631-6v-rc-control" target="_blank" rel="noopener">L16 63:1 (RobotShop)</a>, <a href="https://au.rs-online.com/web/p/electric-linear-actuators/1808403" target="_blank" rel="noopener">L16 150:1 (RS)</a>.</p>
+    </section>
+
+    <section role="tabpanel" id="t-code" aria-labelledby="b-code" hidden>
+      <h2>Arduino sketch <small>· Nano, Servo library</small></h2>
+      <pre><button class="copy" id="copy">Copy</button><code id="code"></code></pre>
+      <p class="note">Send three numbers over serial at 115200 baud: bend, side and twist in degrees, for example <code>40 -15 0</code>. Send <code>c</code> to draw a circle. The sketch eases between poses at the actuator speed, so the four pistons stay in step.</p>
+    </section>
+  </aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const D2R = Math.PI / 180;
+
+/* ---------- design data (centimetres; y up, the hinge centre at the origin) ---------- */
+const G = {
+  rt: 2.8, ht: 0.0,          // top joints: radius on the hand plate, height above the hinge
+  rb: 3.1, hb: 15.0,         // bottom joints: radius on the cup floor, depth below the hinge
+  lmin: 12.65, lmax: 17.65,  // Actuonix L16-50, pin to pin
+  body: 10.4,                // housing length from the bottom pin; the rod comes out of the top of it
+  rBody: 0.85, rRod: 0.3,    // clearance envelopes
+  post: 0.75, neck: 0.45,    // centre post radius, and its slim neck under the hinge
+  neckY: -6.0, postTop: -1.1,
+  hinge: 0.85,               // the U-joint fits in a ball this big
+  prong: 0.62,               // yoke arms either side of the cross
+  plateR: 3.15, plateY: 0.45 // hand plate radius, and its underside above the hinge
+};
+// right hand, palm facing -z, thumb towards -x. Bend + = flexion (towards the palm), side + = radial (towards the thumb).
+// The pistons sit on the diagonals, so every move uses all four and no rod has to swing over the top of the hinge.
+const S2 = Math.SQRT1_2;
+const LEGS = [
+  {id:'P1', name:'palm · thumb',  dir:[-S2, 0, -S2]},
+  {id:'P2', name:'palm · little', dir:[S2, 0, -S2]},
+  {id:'P3', name:'back · thumb',  dir:[-S2, 0, S2]},
+  {id:'P4', name:'back · little', dir:[S2, 0, S2]}
+];
+const TOPS = LEGS.map(l => [l.dir[0] * G.rt, G.ht, l.dir[2] * G.rt]);
+const BASES = LEGS.map(l => [l.dir[0] * G.rb, -G.hb, l.dir[2] * G.rb]);
+const HUMAN = {flex:80, ext:70, rad:20, uln:35, twist:80};
+const GEARS = {g63:{F:100, v:2.0}, g150:{F:200, v:0.8}};   // newtons, cm/s
+const TWIST_SPEED = 375;   // deg/s, DS3218 at 6 V
+const HAND_LOAD = 0.5 * 9.81 * 0.09; // N·m to hold a 0.5 kg hand 9 cm out
+
+const state = {
+  f:0, d:0, t:0,          // current pose (deg)
+  fT:0, dT:0, tT:0,       // target pose
+  human:true, gear:'g63', speedX:1,
+  why:'', demo:null
+};
+
+/* ---------- kinematics ---------- */
+function rotP(f, d, p){   // Rz(side) · Rx(-bend) · p
+  const a = -f * D2R, ca = Math.cos(a), sa = Math.sin(a);
+  const y1 = p[1] * ca - p[2] * sa, z1 = p[1] * sa + p[2] * ca;
+  const b = d * D2R, cb = Math.cos(b), sb = Math.sin(b);
+  return [p[0] * cb - y1 * sb, p[0] * sb + y1 * cb, z1];
+}
+function lengths(f, d){
+  return TOPS.map((tp, i) => { const t = rotP(f, d, tp), b = BASES[i]; return Math.hypot(t[0] - b[0], t[1] - b[1], t[2] - b[2]); });
+}
+const clamp01 = x => x < 0 ? 0 : x > 1 ? 1 : x;
+function segDist(p1, q1, p2, q2){   // closest distance between two segments
+  const d1x = q1[0] - p1[0], d1y = q1[1] - p1[1], d1z = q1[2] - p1[2];
+  const d2x = q2[0] - p2[0], d2y = q2[1] - p2[1], d2z = q2[2] - p2[2];
+  const rx = p1[0] - p2[0], ry = p1[1] - p2[1], rz = p1[2] - p2[2];
+  const a = d1x * d1x + d1y * d1y + d1z * d1z, e = d2x * d2x + d2y * d2y + d2z * d2z, f = d2x * rx + d2y * ry + d2z * rz;
+  let s = 0, t = 0;
+  if (a < 1e-12 && e < 1e-12){ s = t = 0; }
+  else if (a < 1e-12){ t = clamp01(f / e); }
+  else {
+    const c = d1x * rx + d1y * ry + d1z * rz;
+    if (e < 1e-12){ s = clamp01(-c / a); }
+    else {
+      const b = d1x * d2x + d1y * d2y + d1z * d2z, den = a * e - b * b;
+      s = den > 1e-12 ? clamp01((b * f - c * e) / den) : 0;
+      t = (b * s + f) / e;
+      if (t < 0){ t = 0; s = clamp01(-c / a); }
+      else if (t > 1){ t = 1; s = clamp01((b - c) / a); }
+    }
+  }
+  const x = rx + d1x * s - d2x * t, y = ry + d1y * s - d2y * t, z = rz + d1z * s - d2z * t;
+  return Math.sqrt(x * x + y * y + z * z);
+}
+const POST_LO = [0, -G.hb + 0.5, 0], POST_MID = [0, G.neckY, 0], POST_TOP = [0, G.postTop, 0];
+// one pose: piston lengths and the first thing that would stop it ('' = fine)
+function solve(f, d){
+  const tops = [], mids = [], L = [];
+  for (let i = 0; i < 4; i++){
+    const t = rotP(f, d, TOPS[i]), b = BASES[i];
+    const dx = t[0] - b[0], dy = t[1] - b[1], dz = t[2] - b[2], len = Math.hypot(dx, dy, dz);
+    tops.push(t); L.push(len); mids.push([b[0] + dx / len * G.body, b[1] + dy / len * G.body, b[2] + dz / len * G.body]);
+  }
+  let why = '';
+  for (let i = 0; i < 4 && !why; i++){
+    const id = LEGS[i].id, b = BASES[i], m = mids[i], t = tops[i];
+    if (L[i] < G.lmin - 1e-6) why = id + ' is fully in';
+    else if (L[i] > G.lmax + 1e-6) why = id + ' is fully out';
+    else if (segDist(b, m, POST_LO, POST_MID) < G.rBody + G.post || segDist(b, m, POST_MID, POST_TOP) < G.rBody + G.neck) why = id + ' body would hit the post';
+    else if (segDist(m, t, POST_MID, POST_TOP) < G.rRod + G.neck || segDist(m, t, POST_LO, POST_MID) < G.rRod + G.post) why = id + ' rod would hit the post';
+    else if (ptSeg([0, 0, 0], m, t) < G.hinge + G.rRod) why = id + ' rod would hit the U-joint';
+    else if (Math.hypot(t[0], t[1], t[2]) < 1.35) why = id + ' top joint would hit the U-joint';
+  }
+  for (let i = 0; i < 4 && !why; i++) for (let j = i + 1; j < 4 && !why; j++){
+    if (segDist(BASES[i], mids[i], BASES[j], mids[j]) < 2 * G.rBody) why = LEGS[i].id + ' and ' + LEGS[j].id + ' bodies would touch';
+    else if (segDist(mids[i], tops[i], mids[j], tops[j]) < 2 * G.rRod) why = LEGS[i].id + ' and ' + LEGS[j].id + ' rods would touch';
+  }
+  if (!why){
+    // yoke arms (forearm side fixed, hand side turning with the hand) and the rim of the hand plate
+    const arms = [[[0, -1.1, -G.prong], [0, 0, -G.prong]], [[0, -1.1, G.prong], [0, 0, G.prong]],
+      [rotP(f, d, [-G.prong, 0, 0]), rotP(f, d, [-G.prong, 0.9, 0])], [rotP(f, d, [G.prong, 0, 0]), rotP(f, d, [G.prong, 0.9, 0])]];
+    for (let i = 0; i < 4 && !why; i++){
+      if (arms.some(a => segDist(mids[i], tops[i], a[0], a[1]) < 0.55)) { why = LEGS[i].id + ' rod would hit a yoke'; break; }
+      const own = rotP(f, d, [TOPS[i][0], G.plateY, TOPS[i][2]]);
+      for (let k = 0; k < 40; k++){
+        const a = k / 40 * 2 * Math.PI, q = rotP(f, d, [G.plateR * Math.cos(a), G.plateY, G.plateR * Math.sin(a)]);
+        if (Math.hypot(q[0] - own[0], q[1] - own[1], q[2] - own[2]) < 0.9) continue;   // the bracket this joint hangs from
+        if (ptSeg(q, mids[i], tops[i]) < 0.35){ why = LEGS[i].id + ' rod would hit the hand plate'; break; }
+      }
+    }
+  }
+  return {ok: !why, why, L, tops};
+}
+function ptSeg(p, a, b){
+  const abx = b[0] - a[0], aby = b[1] - a[1], abz = b[2] - a[2];
+  const t = clamp01(((p[0] - a[0]) * abx + (p[1] - a[1]) * aby + (p[2] - a[2]) * abz) / (abx * abx + aby * aby + abz * abz));
+  return Math.hypot(a[0] + abx * t - p[0], a[1] + aby * t - p[1], a[2] + abz * t - p[2]);
+}
+function inHuman(f, d){
+  const a = f / (f > 0 ? HUMAN.flex : HUMAN.ext), b = d / (d > 0 ? HUMAN.rad : HUMAN.uln);
+  return a * a + b * b <= 1 + 1e-9;
+}
+function blockReason(f, d){
+  if (state.human && !inHuman(f, d)) return 'Stopped at the human range';
+  return solve(f, d).why;
+}
+// walk from a pose that's allowed towards the one asked for, and stop at the last allowed point
+function clampMove(f0, d0, f1, d1){
+  const why = blockReason(f1, d1);
+  if (!why) return {f:f1, d:d1, why:''};
+  if (blockReason(f0, d0)){ f0 = 0; d0 = 0; }
+  let lo = 0, hi = 1;
+  for (let k = 0; k < 24; k++){ const m = (lo + hi) / 2; if (blockReason(f0 + (f1 - f0) * m, d0 + (d1 - d0) * m)) hi = m; else lo = m; }
+  return {f: f0 + (f1 - f0) * lo, d: d0 + (d1 - d0) * lo, why: blockReason(f0 + (f1 - f0) * hi, d0 + (d1 - d0) * hi) || why};
+}
+// how far the wrist can go along a direction in the bend/side plane
+function rayLimit(a, test){
+  let lo = 0, hi = 90;
+  for (let k = 0; k < 22; k++){ const m = (lo + hi) / 2; if (test(Math.cos(a) * m, Math.sin(a) * m)) hi = m; else lo = m; }
+  return lo;
+}
+const mech = (f, d) => solve(f, d).why;
+
+/* ---------- reach (computed once) ---------- */
+const REACH = [];
+for (let k = 0; k < 360; k++){ const a = k * D2R, r = rayLimit(a, mech); REACH.push([Math.cos(a) * r, Math.sin(a) * r]); }
+const LIM = {flex: rayLimit(0, mech), ext: rayLimit(Math.PI, mech), rad: rayLimit(Math.PI / 2, mech), uln: rayLimit(-Math.PI / 2, mech)};
+let humanPts = 0, humanOK = 0;
+for (let f = -HUMAN.ext; f <= HUMAN.flex; f++) for (let d = -HUMAN.uln; d <= HUMAN.rad; d++){
+  if (!inHuman(f, d)) continue; humanPts++; if (!mech(f, d)) humanOK++;
+}
+const COVER = humanOK / humanPts;
+
+/* ---------- formatting ---------- */
+const r0 = x => Math.round(x) === 0 ? 0 : Math.round(x);
+const fmtBend = f => r0(f) > 0 ? 'Flex ' + r0(f) + '°' : r0(f) < 0 ? 'Ext ' + (-r0(f)) + '°' : 'Straight';
+const fmtSide = d => r0(d) > 0 ? 'Radial ' + r0(d) + '°' : r0(d) < 0 ? 'Ulnar ' + (-r0(d)) + '°' : 'Centred';
+const fmtTwist = t => r0(t) > 0 ? 'Sup ' + r0(t) + '°' : r0(t) < 0 ? 'Pron ' + (-r0(t)) + '°' : 'Neutral';
+const pulse = L => Math.round(1000 + 1000 * (L - G.lmin) / (G.lmax - G.lmin));
+
+/* ---------- targets, presets, demos ---------- */
+const sF = $('#sF'), sD = $('#sD'), sT = $('#sT');
+function setTarget(f, d, keepDemo){
+  if (!keepDemo) stopDemo();
+  const r = clampMove(state.fT, state.dT, f, d);
+  state.fT = r.f; state.dT = r.d; state.why = r.why;
+  syncInputs(); kick();
+}
+function setTwist(t, keepDemo){
+  if (!keepDemo) stopDemo();
+  state.tT = Math.max(-90, Math.min(90, t)); syncInputs(); kick();
+}
+function syncInputs(){
+  sF.value = Math.round(state.fT); sD.value = Math.round(state.dT); sT.value = Math.round(state.tT);
+  $('#oF').textContent = fmtBend(state.fT); $('#oD').textContent = fmtSide(state.dT); $('#oT').textContent = fmtTwist(state.tT);
+  const st = $('#status');
+  st.textContent = state.why ? state.why + '.' : state.human ? 'Within the human range.' : 'Full machine range.';
+  st.classList.toggle('hit', !!state.why);
+  drawPose();
+}
+sF.addEventListener('input', () => setTarget(+sF.value, state.dT));
+sD.addEventListener('input', () => setTarget(state.fT, +sD.value));
+sT.addEventListener('input', () => setTwist(+sT.value));
+
+const PRESETS = [
+  ['Neutral', () => { setTarget(0, 0); setTwist(0); }],
+  ['Flex',    () => setTarget(90, 0)],
+  ['Extend',  () => setTarget(-90, 0)],
+  ['Radial',  () => setTarget(0, 90)],
+  ['Ulnar',   () => setTarget(0, -90)],
+  ['Supinate',() => setTwist(90)],
+  ['Pronate', () => setTwist(-90)]
+];
+PRESETS.forEach(([name, fn]) => {
+  const b = document.createElement('button'); b.className = 'chip'; b.textContent = name; b.addEventListener('click', fn); $('#presets').appendChild(b);
+});
+function circlePts(){
+  const out = [], test = (f, d) => blockReason(f, d);
+  for (let loop = 0; loop < 2; loop++) for (let k = 0; k < 48; k++){
+    const a = k / 48 * 2 * Math.PI, r = rayLimit(a, test) * 0.9;
+    out.push({f: Math.cos(a) * r, d: Math.sin(a) * r, t: state.tT});
+  }
+  out.push({f:0, d:0, t:state.tT});
+  return out;
+}
+const DEMOS = {
+  Circle: () => circlePts(),
+  Wave:   () => [45, -45, 45, -45, 45, -45, 0].map(f => ({f, d:0, t:0})),
+  Pour:   () => [{f:15, d:-10, t:0}, {f:15, d:-10, t:85, hold:0.6}, {f:15, d:-10, t:0}, {f:0, d:0, t:0}]
+};
+Object.keys(DEMOS).forEach(name => {
+  const b = document.createElement('button'); b.className = 'chip'; b.textContent = name; b.dataset.demo = name;
+  b.addEventListener('click', () => {
+    if (state.demo && state.demo.name === name){ stopDemo(); return; }
+    stopDemo(); state.demo = {name, pts: DEMOS[name](), k:0, hold:0}; markDemo(); nextWaypoint(); kick();
+  });
+  $('#demos').appendChild(b);
+});
+function markDemo(){ $$('#demos .chip').forEach(b => b.classList.toggle('run', !!state.demo && b.dataset.demo === state.demo.name)); }
+function stopDemo(){ if (state.demo){ state.demo = null; markDemo(); } }
+function nextWaypoint(){
+  const p = state.demo.pts[state.demo.k];
+  const r = clampMove(state.fT, state.dT, p.f, p.d);
+  state.fT = r.f; state.dT = r.d; state.tT = p.t; state.why = '';
+  syncInputs();
+}
+function demoStep(dt){
+  const D = state.demo; if (!D) return;
+  const p = D.pts[D.k];
+  if (Math.abs(state.f - state.fT) < 0.6 && Math.abs(state.d - state.dT) < 0.6 && Math.abs(state.t - state.tT) < 1){
+    if ((D.hold += dt) < (p.hold || 0)) return;
+    D.hold = 0; D.k++;
+    if (D.k >= D.pts.length){ stopDemo(); return; }
+    nextWaypoint();
+  }
+}
+
+/* ---------- segmented controls + toggles ---------- */
+function seg(id, fn){
+  $$(id + ' button').forEach(b => b.addEventListener('click', () => {
+    $$(id + ' button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); fn(b.dataset.v);
+  }));
+}
+seg('#segLim', v => { state.human = v === 'human'; stopDemo(); const r = clampMove(0, 0, state.fT, state.dT); state.fT = r.f; state.dT = r.d; state.why = ''; syncInputs(); drawCoverage(); kick(); });
+seg('#segGear', v => { state.gear = v; updateReadouts(); });
+seg('#segSpeed', v => { state.speedX = +v; });
+
+/* ---------- tabs ---------- */
+$$('[role=tab]').forEach(tab => tab.addEventListener('click', () => {
+  $$('[role=tab]').forEach(t => { const on = t === tab; t.setAttribute('aria-selected', on ? 'true' : 'false'); $('#' + t.getAttribute('aria-controls')).hidden = !on; });
+}));
+
+/* ---------- reach chart ---------- */
+const svg = $('#reach'), NS = 'http://www.w3.org/2000/svg';
+const CH = {l:46, r:302, t:8, b:264, min:-80, max:80};
+const sx = d => CH.l + (d - CH.min) / (CH.max - CH.min) * (CH.r - CH.l);
+const sy = f => CH.b - (f - CH.min) / (CH.max - CH.min) * (CH.b - CH.t);
+function el(tag, attrs, parent){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; }
+(function drawChart(){
+  [-80, -40, 0, 40, 80].forEach(v => {
+    el('line', {x1:sx(v), x2:sx(v), y1:CH.t, y2:CH.b, stroke: v ? '#242b33' : '#353e49', 'stroke-width':1});
+    el('line', {x1:CH.l, x2:CH.r, y1:sy(v), y2:sy(v), stroke: v ? '#242b33' : '#353e49', 'stroke-width':1});
+    el('text', {x:sx(v), y:CH.b + 13, 'text-anchor':'middle'}).textContent = Math.abs(v);
+    el('text', {x:CH.l - 6, y:sy(v) + 3.5, 'text-anchor':'end'}).textContent = Math.abs(v);
+  });
+  el('text', {x:(CH.l + CH.r) / 2, y:CH.b + 30, 'text-anchor':'middle', class:'ttl'}).textContent = '← Ulnar   side (°)   Radial →';
+  el('text', {x:12, y:(CH.t + CH.b) / 2, 'text-anchor':'middle', class:'ttl', transform:'rotate(-90 12 ' + (CH.t + CH.b) / 2 + ')'}).textContent = '← Extension   bend (°)   Flexion →';
+  el('path', {d: 'M' + REACH.map(p => sx(p[1]).toFixed(1) + ' ' + sy(p[0]).toFixed(1)).join('L') + 'Z', fill:'rgba(57,135,229,.30)', stroke:'#3987e5', 'stroke-width':1.5, 'stroke-linejoin':'round'});
+  const hp = [];
+  for (let k = 0; k <= 180; k++){ const a = k / 180 * 2 * Math.PI, c = Math.cos(a), s = Math.sin(a); hp.push([c * (c > 0 ? HUMAN.flex : HUMAN.ext), s * (s > 0 ? HUMAN.rad : HUMAN.uln)]); }
+  el('path', {d: 'M' + hp.map(p => sx(p[1]).toFixed(1) + ' ' + sy(p[0]).toFixed(1)).join('L'), fill:'none', stroke:'#c9d0d7', 'stroke-width':1.5, 'stroke-dasharray':'4 3'});
+})();
+const tgtRing = el('circle', {r:6, fill:'none', stroke:'#c98500', 'stroke-width':1.5, opacity:0});
+const poseDot = el('circle', {r:5, fill:'#c98500', stroke:'#171c22', 'stroke-width':2});
+function drawPose(){
+  poseDot.setAttribute('cx', sx(state.d)); poseDot.setAttribute('cy', sy(state.f));
+  tgtRing.setAttribute('cx', sx(state.dT)); tgtRing.setAttribute('cy', sy(state.fT));
+  tgtRing.setAttribute('opacity', Math.hypot(state.f - state.fT, state.d - state.dT) > 1.5 ? 1 : 0);
+}
+function svgPoint(ev){
+  const r = svg.getBoundingClientRect(), k = 312 / r.width;
+  const x = (ev.clientX - r.left) * k, y = (ev.clientY - r.top) * k;
+  return {x, y, d: CH.min + (x - CH.l) / (CH.r - CH.l) * (CH.max - CH.min), f: CH.min + (CH.b - y) / (CH.b - CH.t) * (CH.max - CH.min), px: ev.clientX - r.left, py: ev.clientY - r.top};
+}
+const tip = $('#tip'); let dragging = false;
+function showTip(p){
+  if (p.d < CH.min || p.d > CH.max || p.f < CH.min || p.f > CH.max){ tip.hidden = true; return; }
+  const why = mech(p.f, p.d);
+  tip.innerHTML = fmtBend(p.f) + ' · ' + fmtSide(p.d) + '<small>' + (why ? why : 'This wrist can reach it') + '</small>' + (inHuman(p.f, p.d) ? '' : '<small>Past a human wrist</small>');
+  tip.hidden = false;
+  const cw = $('#chart').clientWidth, half = tip.offsetWidth / 2 + 4;
+  tip.style.left = Math.max(half, Math.min(cw - half, p.px + 6)) + 'px'; tip.style.top = (p.py + 6) + 'px';
+}
+svg.addEventListener('pointerdown', ev => { dragging = true; svg.setPointerCapture(ev.pointerId); const p = svgPoint(ev); setTarget(p.f, p.d); showTip(p); });
+svg.addEventListener('pointermove', ev => { const p = svgPoint(ev); if (dragging) setTarget(p.f, p.d); showTip(p); });
+svg.addEventListener('pointerup', () => { dragging = false; });
+svg.addEventListener('pointerleave', () => { if (!dragging) tip.hidden = true; });
+function drawCoverage(){
+  $('#coverage').innerHTML = (COVER > 0.9995 ? 'Reaches <b>all</b> of the human range.' : 'Reaches <b>' + (COVER * 100).toFixed(1) + '%</b> of the human range.') + '<br>' +
+    'Machine limits: <b>' + Math.round(LIM.flex) + '°</b> flex, <b>' + Math.round(LIM.ext) + '°</b> ext, <b>' + Math.round(LIM.rad) + '°</b> radial, <b>' + Math.round(LIM.uln) + '°</b> ulnar.';
+}
+(function limTable(){
+  const rows = [
+    ['Flexion', HUMAN.flex, Math.round(LIM.flex)], ['Extension', HUMAN.ext, Math.round(LIM.ext)],
+    ['Radial (to thumb)', HUMAN.rad, Math.round(LIM.rad)], ['Ulnar (to little finger)', HUMAN.uln, Math.round(LIM.uln)],
+    ['Twist, palm down', HUMAN.twist, 90], ['Twist, palm up', HUMAN.twist, 90]
+  ];
+  $('#limTable').innerHTML = rows.map(r => '<tr><td>' + r[0] + '</td><td class="n">' + r[1] + '°</td><td class="n">' + r[2] + '°</td></tr>').join('');
+})();
+
+/* ---------- actuator readouts ---------- */
+const rows = [];
+LEGS.concat([{id:'T', name:'twist servo'}]).forEach(l => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td><b>' + l.id + '</b><small>' + l.name + '</small></td><td class="n"></td><td><div class="bar' + (l.id === 'T' ? ' mid' : '') + '"><i></i></div><small></small></td><td class="n"></td>';
+  $('#actBody').appendChild(tr);
+  const td = tr.children; rows.push({len: td[1], bar: td[2].querySelector('i'), note: td[2].querySelector('small'), sig: td[3]});
+});
+let lastKey = '';
+function updateReadouts(){
+  const key = [state.f, state.d, state.t, state.gear].map(x => typeof x === 'number' ? x.toFixed(2) : x).join();
+  if (key === lastKey) return; lastKey = key;
+  const L = lengths(state.f, state.d);
+  L.forEach((len, i) => {
+    const ext = (len - G.lmin) * 10, r = rows[i];
+    r.len.textContent = (len * 10).toFixed(1) + ' mm';
+    r.bar.style.width = clamp01(ext / 50) * 100 + '%';
+    const end = ext < 1 ? ' · fully in' : ext > 49 ? ' · fully out' : '';
+    r.note.textContent = ext.toFixed(1) + ' of 50 mm' + end; r.note.className = end ? 'end' : '';
+    r.sig.textContent = pulse(len) + ' µs';
+  });
+  const T = rows[4];
+  T.len.textContent = (state.t > 0.5 ? '+' : '') + r0(state.t) + '°';
+  T.bar.style.left = (state.t + 90) / 180 * 100 + '%';
+  T.note.textContent = fmtTwist(state.t) + ' of ±90°'; T.sig.textContent = Math.round(1500 + state.t * 1000 / 90) + ' µs';
+  // torque and speed from how fast each piston length changes with each angle (cm per radian)
+  const g = GEARS[state.gear], h = 0.25;
+  const Jf = lengths(state.f + h, state.d).map((x, i) => (x - lengths(state.f - h, state.d)[i]) / (2 * h * D2R));
+  const Jd = lengths(state.f, state.d + h).map((x, i) => (x - lengths(state.f, state.d - h)[i]) / (2 * h * D2R));
+  const sum = J => J.reduce((s, x) => s + Math.abs(x), 0), mx = J => Math.max(...J.map(Math.abs));
+  const tf = sum(Jf) / 100 * g.F, td = sum(Jd) / 100 * g.F;
+  const wf = g.v / mx(Jf) / D2R, wd = g.v / mx(Jd) / D2R;
+  $('#torque').innerHTML = 'Bend: <b>' + tf.toFixed(1) + ' N·m</b>, up to <b>' + Math.round(wf) + '°/s</b><br>' +
+    'Side: <b>' + td.toFixed(1) + ' N·m</b>, up to <b>' + Math.round(wd) + '°/s</b><br>' +
+    'Holding a 0.5 kg hand level takes ' + HAND_LOAD.toFixed(2) + ' N·m, ' + Math.floor(Math.min(tf, td) / HAND_LOAD) + '× less.';
+  $('#hudPose').innerHTML = '<b>' + fmtBend(state.f) + '</b> · <b>' + fmtSide(state.d) + '</b> · <b>' + fmtTwist(state.t) + '</b>';
+  drawPose();
+}
+
+/* ---------- motion (actuator-speed limited) ---------- */
+function step(dt){
+  demoStep(dt);
+  const v = GEARS[state.gear].v * state.speedX;
+  const Lc = lengths(state.f, state.d), Lt = lengths(state.fT, state.dT);
+  let maxd = 0; for (let i = 0; i < 4; i++) maxd = Math.max(maxd, Math.abs(Lt[i] - Lc[i]));
+  let moving = false;
+  if (Math.abs(state.fT - state.f) > 1e-3 || Math.abs(state.dT - state.d) > 1e-3){
+    const k = maxd > 1e-6 ? Math.min(1, v * dt / maxd) : 1;
+    state.f += (state.fT - state.f) * k; state.d += (state.dT - state.d) * k; moving = true;
+    if (k >= 1){ state.f = state.fT; state.d = state.dT; }
+  }
+  if (Math.abs(state.tT - state.t) > 1e-3){
+    const s = TWIST_SPEED * state.speedX * dt, e = state.tT - state.t;
+    state.t = Math.abs(e) <= s ? state.tT : state.t + Math.sign(e) * s; moving = true;
+  }
+  return moving || !!state.demo;
+}
+
+/* ---------- code tab ---------- */
+const SKETCH = `// Piston wrist: 4 x Actuonix L16-50-63-6-R + 1 servo for forearm twist
+// Serial 115200: "bend side twist" in degrees, e.g. "40 -15 0".  "c" = circle.
+#include <Servo.h>
+#include <math.h>
+
+const float RT = 28.0, HT = 0.0;     // top joints: 28 mm out on the diagonals, level with the hinge
+const float RB = 31.0, HB = 150.0;   // bottom joints: 31 mm out, 150 mm below
+const float LMIN = 126.5, LMAX = 176.5;  // L16-50 pin to pin, mm
+const float SPEED = 20.0;            // mm/s (63:1). Use 8.0 for 150:1
+const float S = 0.7071;              // x,z of each diagonal: palm-thumb, palm-little, back-thumb, back-little
+const float DIR[4][2] = {{-S,-S}, {S,-S}, {-S,S}, {S,S}};
+const int PIN[4] = {3, 5, 6, 9};
+const int TWIST_PIN = 10;
+int TRIM[4] = {0, 0, 0, 0};          // us: tune so all four agree at rest
+
+Servo act[4], twist;
+float curF = 0, curD = 0, goalF = 0, goalD = 0;
+unsigned long last = 0;
+
+void lengthsFor(float bend, float side, float L[4]) {
+  float a = -bend * DEG_TO_RAD, b = side * DEG_TO_RAD;
+  for (int i = 0; i < 4; i++) {
+    float x = DIR[i][0] * RT, y = HT, z = DIR[i][1] * RT;
+    float y1 = y * cos(a) - z * sin(a), z1 = y * sin(a) + z * cos(a);  // bend hinge (x axis)
+    float x2 = x * cos(b) - y1 * sin(b), y2 = x * sin(b) + y1 * cos(b); // side hinge (z axis)
+    float dx = x2 - DIR[i][0] * RB, dy = y2 + HB, dz = z1 - DIR[i][1] * RB;
+    L[i] = sqrt(dx * dx + dy * dy + dz * dz);
+  }
+}
+
+// keep inside the human range (the mechanism reaches all of it)
+void limit(float &bend, float &side) {
+  float a = bend / (bend > 0 ? 80.0 : 70.0), b = side / (side > 0 ? 20.0 : 35.0);
+  float k = sqrt(a * a + b * b);
+  if (k > 1) { bend /= k; side /= k; }
+}
+
+void writeWrist(float bend, float side) {
+  float L[4];
+  lengthsFor(bend, side, L);
+  for (int i = 0; i < 4; i++) {
+    int us = 1000 + (int)(1000.0 * (L[i] - LMIN) / (LMAX - LMIN)) + TRIM[i];
+    act[i].writeMicroseconds(constrain(us, 1000, 2000));
+  }
+}
+
+void setTwist(float t) {
+  t = constrain(t, -90, 90);
+  twist.writeMicroseconds(1500 + (int)(t * 1000.0 / 90.0));
+}
+
+// ease towards the goal no faster than the slowest piston can move
+void update() {
+  unsigned long now = millis();
+  float dt = (now - last) / 1000.0;
+  if (dt < 0.02) return;
+  last = now;
+  float Lc[4], Lg[4], worst = 0;
+  lengthsFor(curF, curD, Lc);
+  lengthsFor(goalF, goalD, Lg);
+  for (int i = 0; i < 4; i++) worst = max(worst, fabs(Lg[i] - Lc[i]));
+  float k = worst > 0.01 ? min(1.0, SPEED * dt / worst) : 1.0;
+  curF += (goalF - curF) * k;
+  curD += (goalD - curD) * k;
+  writeWrist(curF, curD);
+}
+
+void moveTo(float bend, float side) {
+  limit(bend, side);
+  goalF = bend; goalD = side;
+  while (fabs(curF - goalF) > 0.3 || fabs(curD - goalD) > 0.3) update();
+}
+
+void circle() {
+  for (int k = 0; k <= 48; k++) {
+    float a = k * TWO_PI / 48;
+    float bend = cos(a) * (cos(a) > 0 ? 72 : 63);
+    float side = sin(a) * (sin(a) > 0 ? 18 : 31);
+    moveTo(bend, side);
+  }
+  moveTo(0, 0);
+}
+
+void setup() {
+  Serial.begin(115200);
+  for (int i = 0; i < 4; i++) act[i].attach(PIN[i], 1000, 2000);
+  twist.attach(TWIST_PIN, 500, 2500);
+  writeWrist(0, 0);
+  setTwist(0);
+  last = millis();
+}
+
+void loop() {
+  if (Serial.available()) {
+    if (Serial.peek() == 'c') { Serial.read(); circle(); return; }
+    float b = Serial.parseFloat(), s = Serial.parseFloat(), t = Serial.parseFloat();
+    setTwist(t);
+    limit(b, s);
+    goalF = b; goalD = s;
+  }
+  update();
+}
+`;
+$('#code').textContent = SKETCH;
+$('#copy').addEventListener('click', () => {
+  const done = () => { $('#copy').textContent = 'Copied'; setTimeout(() => { $('#copy').textContent = 'Copy'; }, 1400); };
+  if (navigator.clipboard) navigator.clipboard.writeText(SKETCH).then(done, () => {});
+});
+
+/* ---------- 3D ---------- */
+let kick = () => { state.f = state.fT; state.d = state.dT; state.t = state.tT; updateReadouts(); };
+function webglOK(){ try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))); } catch (e) { return false; } }
+let three = null;
+if (window.THREE && THREE.OrbitControls && webglOK()) three = build3D();
+else $('#stage').insertAdjacentHTML('beforeend', '<div class="nogl"><p>3D view needs WebGL, which this browser has turned off.<br>The controls, reach chart and parts list still work.</p></div>');
+syncInputs(); drawCoverage(); updateReadouts();
+
+function build3D(){
+  const stage = $('#stage'), labelsEl = $('#labels');
+  const renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  stage.prepend(renderer.domElement);
+  renderer.domElement.setAttribute('aria-label', '3D model of the piston wrist. Drag to orbit, scroll to zoom.');
+  renderer.domElement.tabIndex = 0;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#161b21');
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.5, 600);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = 0.09; controls.minDistance = 8; controls.maxDistance = 140;
+
+  /* chrome needs something to reflect: small gradient cube */
+  function face(top, bot, band, alpha){
+    const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, top); g.addColorStop(1, bot); x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+    if (band){ x.fillStyle = band; x.globalAlpha = alpha; x.fillRect(0, 38, 128, 22); x.globalAlpha = 1; }
+    return c;
+  }
+  const sideA = face('#6f7a87', '#0c0e11', '#ffffff', 0.95), sideB = face('#4a535e', '#0b0d10', '#dfe6ee', 0.5);
+  const env = new THREE.CubeTexture([sideA, sideB, face('#9aa5b2', '#5d6773'), face('#07080a', '#07080a'), sideB, sideA]);
+  env.needsUpdate = true;
+  const ph = o => new THREE.MeshPhongMaterial(o);
+  const M = {
+    print:  ph({color:0xc9cdd2, specular:0x2a2d31, shininess:16}),
+    printS: ph({color:0xc9cdd2, specular:0x2a2d31, shininess:16, side:THREE.DoubleSide}),
+    body:   ph({color:0xaab1b9, specular:0x3a3f45, shininess:30}),
+    band:   ph({color:0x8d959e, specular:0x3a3f45, shininess:30}),
+    chrome: ph({color:0x5d646d, specular:0xffffff, shininess:120, envMap:env, reflectivity:0.62, combine:THREE.MixOperation}),
+    steel:  ph({color:0x434951, specular:0xd4dae1, shininess:80, envMap:env, reflectivity:0.4, combine:THREE.MixOperation}),
+    dark:   ph({color:0x1b2028, specular:0x4a5058, shininess:40}),
+    hand:   ph({color:0x3b424c, specular:0x6a737e, shininess:50, envMap:env, reflectivity:0.12, combine:THREE.MixOperation}),
+    shell:  ph({color:0x8a96a3, specular:0x555c66, shininess:40, transparent:true, opacity:0.16, depthWrite:false, side:THREE.DoubleSide}),
+    rim:    ph({color:0x9aa3ad, specular:0x2a2d31, shininess:16})
+  };
+
+  scene.add(new THREE.HemisphereLight(0xc2ccda, 0x1d2228, 0.55));
+  const key = new THREE.DirectionalLight(0xffffff, 0.75); key.position.set(-26, 40, -24); key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0006;
+  Object.assign(key.shadow.camera, {left:-30, right:30, top:30, bottom:-30, near:1, far:120}); scene.add(key);
+  const rim = new THREE.DirectionalLight(0x9fb6d6, 0.45); rim.position.set(30, 14, 28); scene.add(rim);
+  const fill = new THREE.DirectionalLight(0xffe7cc, 0.25); fill.position.set(-14, -6, -30); scene.add(fill);
+  const FLOOR_Y = -24;
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), new THREE.ShadowMaterial({opacity:0.32}));
+  floor.rotation.x = -Math.PI / 2; floor.position.y = FLOOR_Y; floor.receiveShadow = true; scene.add(floor);
+  const g1 = new THREE.GridHelper(80, 80, 0x232a32, 0x232a32); g1.position.y = FLOOR_Y + 0.01; scene.add(g1);
+  const g2 = new THREE.GridHelper(80, 8, 0x323b46, 0x323b46); g2.position.y = FLOOR_Y + 0.02; scene.add(g2);
+
+  function mesh(geo, mat){ const m = new THREE.Mesh(geo, mat); m.castShadow = true; m.receiveShadow = true; return m; }
+  function at(m, x, y, z){ m.position.set(x, y, z); return m; }
+  const box = (w, h, d, mat) => mesh(new THREE.BoxGeometry(w, h, d), mat);
+  const cylY = (r, h, mat, seg, r2) => mesh(new THREE.CylinderGeometry(r2 === undefined ? r : r2, r, h, seg || 28), mat);
+  const cylX = (r, len, mat) => { const g = new THREE.CylinderGeometry(r, r, len, 20); g.rotateZ(Math.PI / 2); return mesh(g, mat); };
+  const cylZ = (r, len, mat) => { const g = new THREE.CylinderGeometry(r, r, len, 20); g.rotateX(Math.PI / 2); return mesh(g, mat); };
+  const ball = (r, mat) => mesh(new THREE.SphereGeometry(r, 16, 12), mat);
+  const lathe = (pts, mat) => mesh(new THREE.LatheGeometry(pts.map(p => new THREE.Vector2(p[0], p[1])), 56), mat);
+  const marker = (parent, x, y, z) => { const o = new THREE.Object3D(); o.position.set(x, y, z); parent.add(o); return o; };
+
+  /* fixed lower forearm: shell, servo, bearing housing */
+  const fixed = new THREE.Group(); scene.add(fixed);
+  const shell = mesh(new THREE.CylinderGeometry(4.55, 4.55, 7.9, 48, 1, true), M.shell); shell.castShadow = false; at(shell, 0, -20.45, 0); fixed.add(shell);
+  fixed.add(lathe([[3.35, -16.5], [4.55, -16.5], [4.55, -16.12], [3.35, -16.12]], M.rim));      // bearing housing ring
+  fixed.add(at(cylY(4.45, 0.35, M.print), 0, -21.15, 0));                                      // bulkhead the servo sits on
+  const servo = new THREE.Group(); fixed.add(servo);
+  servo.add(at(box(4.0, 3.9, 2.0, M.dark), 1.0, -19.0, 0));
+  servo.add(at(box(5.4, 0.25, 2.0, M.dark), 1.0, -17.65, 0));
+  servo.add(at(cylY(0.5, 0.35, M.steel), 0, -16.9, 0));
+
+  /* turning part: cup, post, pistons, joint, hand */
+  const tw = new THREE.Group(); scene.add(tw);
+  tw.add(at(cylY(1.3, 0.25, M.steel), 0, -16.65, 0));                                          // servo horn under the cup floor
+  const bearing = mesh(new THREE.TorusGeometry(2.9, 0.33, 12, 48), M.steel); bearing.rotation.x = Math.PI / 2; at(bearing, 0, -16.3, 0); tw.add(bearing);
+  const cup = lathe([[0.01, -16.0], [4.4, -16.0], [4.55, -15.85], [4.55, -10.65], [4.47, -10.5], [4.28, -10.5], [4.2, -10.6], [4.2, -15.5], [0.01, -15.5]], M.printS);
+  cup.rotation.y = Math.PI * 0.75; tw.add(cup);   // turn the lathe seam to the back
+  BASES.forEach(b => {
+    tw.add(at(box(1.2, 0.5, 1.2, M.print), b[0], -15.25, b[2]));
+    tw.add(at(ball(0.33, M.steel), b[0], b[1], b[2]));
+  });
+  // centre post, slim neck, and the lower yoke that holds the side hinge (pins along z)
+  tw.add(at(cylY(0.75, 9.1, M.print), 0, -10.95, 0));
+  tw.add(at(cylY(0.75, 0.4, M.print, 28, 0.45), 0, -6.2, 0));
+  tw.add(at(cylY(0.45, 4.7, M.chrome), 0, -3.65, 0));
+  tw.add(at(box(0.6, 0.25, 1.62, M.print), 0, -1.175, 0));
+  [-G.prong, G.prong].forEach(z => { tw.add(at(box(0.44, 1.1, 0.2, M.print), 0, -0.55, z)); tw.add(at(cylZ(0.22, 0.2, M.print), 0, 0, z)); });
+  const side = new THREE.Group(); tw.add(side);                                                // turns about z: radial / ulnar
+  side.add(box(0.44, 0.44, 0.44, M.steel));
+  side.add(cylZ(0.1, 1.6, M.steel)); side.add(cylX(0.1, 1.6, M.steel));
+  const bend = new THREE.Group(); side.add(bend);                                              // turns about x: flexion / extension
+  [-G.prong, G.prong].forEach(x => { bend.add(at(box(0.2, 0.45, 0.44, M.print), x, 0.225, 0)); bend.add(at(cylX(0.22, 0.2, M.print), x, 0, 0)); });
+  bend.add(at(cylY(G.plateR, 0.4, M.print, 48), 0, G.plateY + 0.2, 0));
+  // top joints: a small fork under the plate with a two-pin cross, so the rod can swing almost 90 degrees
+  TOPS.forEach(t => {
+    bend.add(at(box(0.6, 0.22, 0.6, M.print), t[0], G.plateY - 0.11, t[2]));
+    bend.add(at(box(0.12, 0.3, 0.5, M.print), t[0] - 0.24, G.plateY - 0.32, t[2]));
+    bend.add(at(box(0.12, 0.3, 0.5, M.print), t[0] + 0.24, G.plateY - 0.32, t[2]));
+    bend.add(at(ball(0.2, M.steel), t[0], t[1], t[2]));
+    bend.add(at(cylX(0.07, 0.6, M.steel), t[0], t[1], t[2]));
+  });
+
+  // the four actuators: housing fixed to the bottom joint, rod slides out to the top joint
+  const legs = LEGS.map((l, i) => {
+    const g = new THREE.Group(); tw.add(g); g.position.set(...BASES[i]);
+    g.add(at(cylY(0.36, 0.5, M.steel), 0, 0.4, 0));
+    g.add(at(cylY(0.86, 2.9, M.band), 0, 2.1, 0));
+    g.add(at(cylY(0.8, 6.2, M.body), 0, 6.65, 0));
+    g.add(at(cylY(0.88, 0.7, M.band), 0, 9.55, 0));
+    g.add(at(cylY(0.42, 0.4, M.steel), 0, 10.1, 0));
+    const rod = cylY(0.27, 1, M.chrome); g.add(rod);
+    const eye = cylY(0.36, 0.5, M.steel); g.add(eye);
+    return {g, rod, eye, mid: marker(g, 0, 6.2, 0)};
+  });
+
+  /* stand-in hand (the tendon hand from the other page goes here) */
+  const hand = new THREE.Group(); bend.add(hand);
+  const palmShape = new THREE.Shape();
+  palmShape.moveTo(-2.9, 1.25); palmShape.lineTo(2.9, 1.25); palmShape.quadraticCurveTo(3.9, 1.35, 3.9, 2.75); palmShape.lineTo(4.0, 8.75);
+  palmShape.quadraticCurveTo(4.0, 9.65, 3.1, 9.65); palmShape.lineTo(-3.1, 9.65); palmShape.quadraticCurveTo(-4.0, 9.65, -4.0, 8.75);
+  palmShape.lineTo(-3.9, 2.75); palmShape.quadraticCurveTo(-3.9, 1.35, -2.9, 1.25);
+  const palmGeo = new THREE.ExtrudeGeometry(palmShape, {depth:1.8, bevelEnabled:true, bevelThickness:0.4, bevelSize:0.35, bevelSegments:3, curveSegments:8});
+  palmGeo.translate(0, 0, -0.9);
+  hand.add(mesh(palmGeo, M.hand));
+  hand.add(at(box(4.4, 0.5, 2.0, M.hand), 0, 1.0, 0));
+  function finger(x, y, z, segs, r, rz, rx, curl){
+    let parent = new THREE.Group(); parent.position.set(x, y, z); parent.rotation.set(rx, 0, rz); hand.add(parent);
+    segs.forEach((len, k) => {
+      const j = new THREE.Group(); if (k) { j.position.y = segs[k - 1]; } j.rotation.x = -curl; parent.add(j);
+      j.add(ball(r * (1 - k * 0.06), M.steel));
+      j.add(at(cylY(r * (1 - k * 0.06) * 0.92, len - 0.15, M.hand, 16), 0, len / 2, 0));
+      parent = j;
+    });
+    parent.add(at(ball(r * 0.82, M.hand), 0, segs[segs.length - 1] - 0.1, 0));
+  }
+  finger(-2.85, 9.95, 0, [3.9, 2.4, 2.0], 0.8, 0.04, 0, 0.16);
+  finger(-0.95, 10.05, 0, [4.3, 2.7, 2.1], 0.82, 0.0, 0, 0.16);
+  finger(0.95, 9.95, 0, [4.0, 2.6, 2.0], 0.78, -0.03, 0, 0.16);
+  finger(2.8, 9.55, 0, [3.1, 2.0, 1.8], 0.68, -0.07, 0, 0.16);
+  finger(-3.6, 3.35, -0.7, [3.2, 2.6, 2.1], 0.92, 0.72, -0.45, 0.12);
+
+  /* labels */
+  const TAGS = [
+    {text:'P1 palm·thumb', at:legs[0].mid}, {text:'P2 palm·little', at:legs[1].mid},
+    {text:'P3 back·thumb', at:legs[2].mid}, {text:'P4 back·little', at:legs[3].mid},
+    {text:'U-joint (2 hinges)', at:marker(side, 0, 0, 0)}, {text:'Centre post', at:marker(tw, 0, -8.5, 0)},
+    {text:'Twist bearing', at:marker(tw, -2.9, -16.3, 0)}, {text:'Twist servo', at:marker(fixed, 1.0, -19.8, 0)}
+  ];
+  TAGS.forEach(t => {
+    t.el = document.createElement('div'); t.el.className = 'tag'; t.el.innerHTML = '<i></i><span></span>';
+    t.el.lastChild.textContent = t.text; labelsEl.appendChild(t.el); t.w = t.text.length * 6.6 + 30;
+  });
+  const _v = new THREE.Vector3();
+  function placeTags(w, h){
+    const show = $('#cLabels').checked, placed = [];
+    TAGS.forEach(t => {
+      if (!show){ t.el.hidden = true; return; }
+      t.at.getWorldPosition(_v); _v.project(camera);
+      const x = (_v.x + 1) / 2 * w, y = (1 - _v.y) / 2 * h;
+      const box = {x0:x - 4, x1:x - 4 + t.w, y0:y - 10, y1:y + 10};
+      const hit = _v.z > 1 || x < 0 || y < 0 || x > w - 20 || y > h || placed.some(p => box.x0 < p.x1 && box.x1 > p.x0 && box.y0 < p.y1 && box.y1 > p.y0);
+      t.el.hidden = hit; if (hit) return;
+      placed.push(box); t.el.style.transform = 'translate(' + (x - 3.5).toFixed(1) + 'px,' + (y - 9).toFixed(1) + 'px)';
+    });
+  }
+
+  /* pose -> model */
+  const up = new THREE.Vector3(0, 1, 0), _u = new THREE.Vector3();
+  function pose(){
+    tw.rotation.y = state.t * D2R;
+    side.rotation.z = state.d * D2R;
+    bend.rotation.x = -state.f * D2R;
+    TOPS.forEach((tp, i) => {
+      const t = rotP(state.f, state.d, tp), b = BASES[i];
+      _u.set(t[0] - b[0], t[1] - b[1], t[2] - b[2]);
+      const L = _u.length(); _u.divideScalar(L);
+      const lg = legs[i]; lg.g.quaternion.setFromUnitVectors(up, _u);
+      const r0 = 10.3, r1 = L - 0.45;
+      lg.rod.scale.y = Math.max(0.01, r1 - r0); lg.rod.position.y = (r0 + r1) / 2;
+      lg.eye.position.y = L - 0.42;
+    });
+  }
+
+  /* camera */
+  const VIEWS = {
+    three: {p:[-33, 8, -57], t:[0, -2.5, 0]},
+    palm:  {p:[0, -1, -60], t:[0, -4, 0]},
+    side:  {p:[-60, -1, 0], t:[0, -4, 0]},
+    joint: {p:[-1.8, -3.4, -16], t:[0, -1.0, 0]}
+  };
+  let fly = null;
+  function viewPos(v){
+    const a = stage.clientWidth / Math.max(1, stage.clientHeight), k = Math.min(1.9, Math.max(1, 1.05 / a));
+    const t = new THREE.Vector3(...v.t); return {p: new THREE.Vector3(...v.p).sub(t).multiplyScalar(k).add(t), t};
+  }
+  function setView(name, instant){
+    const v = viewPos(VIEWS[name]);
+    if (instant){ camera.position.copy(v.p); controls.target.copy(v.t); controls.update(); return; }
+    fly = {p0: camera.position.clone(), t0: controls.target.clone(), p1: v.p, t1: v.t, k: 0};
+  }
+  $$('.views button').forEach(b => b.addEventListener('click', () => { setView(b.dataset.view); dirty = true; }));
+
+  /* toggles */
+  $('#cLabels').addEventListener('change', () => { dirty = true; });
+  $('#cHand').addEventListener('change', e => { hand.visible = e.target.checked; dirty = true; });
+  $('#cShell').addEventListener('change', e => { shell.visible = e.target.checked; dirty = true; });
+
+  /* render loop: only draws when something changed */
+  let dirty = true, W = 0, H = 0, lastT = performance.now();
+  function resize(){
+    W = stage.clientWidth; H = stage.clientHeight;
+    renderer.setSize(W, H, false); camera.aspect = W / Math.max(1, H); camera.updateProjectionMatrix(); dirty = true;
+  }
+  new ResizeObserver(resize).observe(stage); resize();
+  setView('three', true);
+  controls.addEventListener('change', () => { dirty = true; });
+  function frame(now){
+    const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+    if (step(dt)){ dirty = true; updateReadouts(); }
+    if (fly){
+      fly.k = Math.min(1, fly.k + dt / 0.6); const e = 1 - Math.pow(1 - fly.k, 3);
+      camera.position.lerpVectors(fly.p0, fly.p1, e); controls.target.lerpVectors(fly.t0, fly.t1, e);
+      if (fly.k >= 1) fly = null; dirty = true;
+    }
+    controls.update();
+    if (dirty){ pose(); renderer.render(scene, camera); placeTags(W, H); dirty = false; }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  kick = () => { dirty = true; };
+  return {scene, camera, controls, renderer, legs, tw, side, bend};
+}
+
+window.__wrist = {state, solve, lengths, blockReason, setTarget, setTwist, LIM, COVER, REACH, three};
+})();
+</script>

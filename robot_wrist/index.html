@@ -40,6 +40,7 @@ button,input{font:inherit;color:inherit}
 .tag i{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px rgba(240,167,60,.22);flex:none}
 .tag span{background:rgba(18,22,27,.8);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
 .nogl{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--mute)}
+.err{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:16px;bottom:34px;color:#e6b46e;font-size:12px;pointer-events:none}
 
 /* panel */
 .panel{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;min-height:0;padding-block:14px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -294,6 +295,11 @@ pre{position:relative;margin:0;background:#0f1216;border:1px solid var(--line);b
 'use strict';
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const D2R = Math.PI / 180;
+// show any runtime error on the stage instead of failing silently
+window.addEventListener('error', e => {
+  let n = $('#err'); if (!n){ $('#stage').insertAdjacentHTML('beforeend', '<div class="err" id="err" role="status"></div>'); n = $('#err'); }
+  n.textContent = 'Something went wrong: ' + (e.message || 'unknown error');
+});
 
 /* ---------- design data (centimetres; y up, the hinge centre at the origin) ---------- */
 const G = {
@@ -332,14 +338,15 @@ const state = {
 };
 
 /* ---------- kinematics ---------- */
-function rotP(f, d, p){   // Rz(side) · Rx(-bend) · p
-  const a = -f * D2R, ca = Math.cos(a), sa = Math.sin(a);
-  const y1 = p[1] * ca - p[2] * sa, z1 = p[1] * sa + p[2] * ca;
-  const b = d * D2R, cb = Math.cos(b), sb = Math.sin(b);
-  return [p[0] * cb - y1 * sb, p[0] * sb + y1 * cb, z1];
+function rotM(f, d){   // Rz(side) · Rx(-bend), row by row
+  const a = -f * D2R, ca = Math.cos(a), sa = Math.sin(a), b = d * D2R, cb = Math.cos(b), sb = Math.sin(b);
+  return [cb, -sb * ca, sb * sa, sb, cb * ca, -cb * sa, 0, sa, ca];
 }
+const mulM = (M, p) => [M[0] * p[0] + M[1] * p[1] + M[2] * p[2], M[3] * p[0] + M[4] * p[1] + M[5] * p[2], M[6] * p[0] + M[7] * p[1] + M[8] * p[2]];
+const rotP = (f, d, p) => mulM(rotM(f, d), p);
 function lengths(f, d){
-  return TOPS.map((tp, i) => { const t = rotP(f, d, tp), b = BASES[i]; return Math.hypot(t[0] - b[0], t[1] - b[1], t[2] - b[2]); });
+  const M = rotM(f, d);
+  return TOPS.map((tp, i) => { const t = mulM(M, tp), b = BASES[i]; return Math.hypot(t[0] - b[0], t[1] - b[1], t[2] - b[2]); });
 }
 const clamp01 = x => x < 0 ? 0 : x > 1 ? 1 : x;
 function segDist(p1, q1, p2, q2){   // closest distance between two segments
@@ -365,11 +372,17 @@ function segDist(p1, q1, p2, q2){   // closest distance between two segments
   return Math.sqrt(x * x + y * y + z * z);
 }
 const POST_LO = [0, -G.hb + 0.5, 0], POST_MID = [0, G.neckY, 0], POST_TOP = [0, G.postTop, 0];
+// yoke arms: the forearm pair stays put, the hand pair turns with the hand. The plate rim is sampled at 40 points;
+// each joint skips the rim right above it, where its own bracket is
+const ARMS_F = [[[0, -1.1, -G.prong], [0, 0, -G.prong]], [[0, -1.1, G.prong], [0, 0, G.prong]]];
+const ARMS_H = [[[-G.prong, 0, 0], [-G.prong, 0.9, 0]], [[G.prong, 0, 0], [G.prong, 0.9, 0]]];
+const RIM = Array.from({length:40}, (_, k) => [G.plateR * Math.cos(k / 40 * 2 * Math.PI), G.plateY, G.plateR * Math.sin(k / 40 * 2 * Math.PI)]);
+const RIM_SKIP = TOPS.map(t => RIM.map(q => Math.hypot(q[0] - t[0], q[1] - G.plateY, q[2] - t[2]) < 0.9));
 // one pose: piston lengths and the first thing that would stop it ('' = fine)
 function solve(f, d){
-  const tops = [], mids = [], L = [];
+  const tops = [], mids = [], L = [], M = rotM(f, d);
   for (let i = 0; i < 4; i++){
-    const t = rotP(f, d, TOPS[i]), b = BASES[i];
+    const t = mulM(M, TOPS[i]), b = BASES[i];
     const dx = t[0] - b[0], dy = t[1] - b[1], dz = t[2] - b[2], len = Math.hypot(dx, dy, dz);
     tops.push(t); L.push(len); mids.push([b[0] + dx / len * G.body, b[1] + dy / len * G.body, b[2] + dz / len * G.body]);
   }
@@ -388,16 +401,11 @@ function solve(f, d){
     else if (segDist(mids[i], tops[i], mids[j], tops[j]) < 2 * G.rRod) why = LEGS[i].id + ' and ' + LEGS[j].id + ' rods would touch';
   }
   if (!why){
-    // yoke arms (forearm side fixed, hand side turning with the hand) and the rim of the hand plate
-    const arms = [[[0, -1.1, -G.prong], [0, 0, -G.prong]], [[0, -1.1, G.prong], [0, 0, G.prong]],
-      [rotP(f, d, [-G.prong, 0, 0]), rotP(f, d, [-G.prong, 0.9, 0])], [rotP(f, d, [G.prong, 0, 0]), rotP(f, d, [G.prong, 0.9, 0])]];
+    const arms = ARMS_F.concat(ARMS_H.map(a => [mulM(M, a[0]), mulM(M, a[1])])), rim = RIM.map(q => mulM(M, q));
     for (let i = 0; i < 4 && !why; i++){
       if (arms.some(a => segDist(mids[i], tops[i], a[0], a[1]) < 0.55)) { why = LEGS[i].id + ' rod would hit a yoke'; break; }
-      const own = rotP(f, d, [TOPS[i][0], G.plateY, TOPS[i][2]]);
-      for (let k = 0; k < 40; k++){
-        const a = k / 40 * 2 * Math.PI, q = rotP(f, d, [G.plateR * Math.cos(a), G.plateY, G.plateR * Math.sin(a)]);
-        if (Math.hypot(q[0] - own[0], q[1] - own[1], q[2] - own[2]) < 0.9) continue;   // the bracket this joint hangs from
-        if (ptSeg(q, mids[i], tops[i]) < 0.35){ why = LEGS[i].id + ' rod would hit the hand plate'; break; }
+      for (let k = 0; k < rim.length; k++){
+        if (!RIM_SKIP[i][k] && ptSeg(rim[k], mids[i], tops[i]) < 0.35){ why = LEGS[i].id + ' rod would hit the hand plate'; break; }
       }
     }
   }
@@ -433,15 +441,23 @@ function rayLimit(a, test){
 }
 const mech = (f, d) => solve(f, d).why;
 
-/* ---------- reach (computed once) ---------- */
-const REACH = [];
-for (let k = 0; k < 360; k++){ const a = k * D2R, r = rayLimit(a, mech); REACH.push([Math.cos(a) * r, Math.sin(a) * r]); }
-const LIM = {flex: rayLimit(0, mech), ext: rayLimit(Math.PI, mech), rad: rayLimit(Math.PI / 2, mech), uln: rayLimit(-Math.PI / 2, mech)};
-let humanPts = 0, humanOK = 0;
-for (let f = -HUMAN.ext; f <= HUMAN.flex; f++) for (let d = -HUMAN.uln; d <= HUMAN.rad; d++){
-  if (!inHuman(f, d)) continue; humanPts++; if (!mech(f, d)) humanOK++;
+/* ---------- reach: worked out in short slices once the page is showing, so it never holds up the first paint ---------- */
+let REACH = null, LIM = null, COVER = null;
+function computeReach(){
+  const pts = []; let k = 0, f = -HUMAN.ext, humanPts = 0, humanOK = 0;
+  (function slice(){
+    const t0 = performance.now();
+    while (performance.now() - t0 < 12){
+      if (k < 360){ const a = k * D2R, r = rayLimit(a, mech); pts.push([Math.cos(a) * r, Math.sin(a) * r]); k++; }
+      else if (f <= HUMAN.flex){ for (let d = -HUMAN.uln; d <= HUMAN.rad; d++){ if (!inHuman(f, d)) continue; humanPts++; if (!mech(f, d)) humanOK++; } f++; }
+      else break;
+    }
+    if (k < 360 || f <= HUMAN.flex){ setTimeout(slice, 0); return; }
+    REACH = pts; COVER = humanOK / humanPts;
+    LIM = {flex: rayLimit(0, mech), ext: rayLimit(Math.PI, mech), rad: rayLimit(Math.PI / 2, mech), uln: rayLimit(-Math.PI / 2, mech)};
+    drawReach(); drawCoverage(); limTable();
+  })();
 }
-const COVER = humanOK / humanPts;
 
 /* ---------- formatting ---------- */
 const r0 = x => Math.round(x) === 0 ? 0 : Math.round(x);
@@ -548,6 +564,11 @@ const CH = {l:46, r:302, t:8, b:264, min:-80, max:80};
 const sx = d => CH.l + (d - CH.min) / (CH.max - CH.min) * (CH.r - CH.l);
 const sy = f => CH.b - (f - CH.min) / (CH.max - CH.min) * (CH.b - CH.t);
 function el(tag, attrs, parent){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; }
+let reachG = null;
+function drawReach(){
+  reachG.textContent = '';
+  el('path', {d: 'M' + REACH.map(p => sx(p[1]).toFixed(1) + ' ' + sy(p[0]).toFixed(1)).join('L') + 'Z', fill:'rgba(57,135,229,.30)', stroke:'#3987e5', 'stroke-width':1.5, 'stroke-linejoin':'round'}, reachG);
+}
 (function drawChart(){
   [-80, -40, 0, 40, 80].forEach(v => {
     el('line', {x1:sx(v), x2:sx(v), y1:CH.t, y2:CH.b, stroke: v ? '#242b33' : '#353e49', 'stroke-width':1});
@@ -557,7 +578,8 @@ function el(tag, attrs, parent){ const e = document.createElementNS(NS, tag); fo
   });
   el('text', {x:(CH.l + CH.r) / 2, y:CH.b + 30, 'text-anchor':'middle', class:'ttl'}).textContent = '← Ulnar   side (°)   Radial →';
   el('text', {x:12, y:(CH.t + CH.b) / 2, 'text-anchor':'middle', class:'ttl', transform:'rotate(-90 12 ' + (CH.t + CH.b) / 2 + ')'}).textContent = '← Extension   bend (°)   Flexion →';
-  el('path', {d: 'M' + REACH.map(p => sx(p[1]).toFixed(1) + ' ' + sy(p[0]).toFixed(1)).join('L') + 'Z', fill:'rgba(57,135,229,.30)', stroke:'#3987e5', 'stroke-width':1.5, 'stroke-linejoin':'round'});
+  reachG = el('g', {});
+  el('text', {x:(CH.l + CH.r) / 2, y:(CH.t + CH.b) / 2 - 14, 'text-anchor':'middle', class:'ttl'}, reachG).textContent = 'Working out the reach…';
   const hp = [];
   for (let k = 0; k <= 180; k++){ const a = k / 180 * 2 * Math.PI, c = Math.cos(a), s = Math.sin(a); hp.push([c * (c > 0 ? HUMAN.flex : HUMAN.ext), s * (s > 0 ? HUMAN.rad : HUMAN.uln)]); }
   el('path', {d: 'M' + hp.map(p => sx(p[1]).toFixed(1) + ' ' + sy(p[0]).toFixed(1)).join('L'), fill:'none', stroke:'#c9d0d7', 'stroke-width':1.5, 'stroke-dasharray':'4 3'});
@@ -588,17 +610,20 @@ svg.addEventListener('pointermove', ev => { const p = svgPoint(ev); if (dragging
 svg.addEventListener('pointerup', () => { dragging = false; });
 svg.addEventListener('pointerleave', () => { if (!dragging) tip.hidden = true; });
 function drawCoverage(){
+  if (!LIM){ $('#coverage').textContent = 'Working out the reach…'; return; }
   $('#coverage').innerHTML = (COVER > 0.9995 ? 'Reaches <b>all</b> of the human range.' : 'Reaches <b>' + (COVER * 100).toFixed(1) + '%</b> of the human range.') + '<br>' +
     'Machine limits: <b>' + Math.round(LIM.flex) + '°</b> flex, <b>' + Math.round(LIM.ext) + '°</b> ext, <b>' + Math.round(LIM.rad) + '°</b> radial, <b>' + Math.round(LIM.uln) + '°</b> ulnar.';
 }
-(function limTable(){
+function limTable(){
+  if (!LIM){ $('#limTable').innerHTML = '<tr><td colspan="3">Working out the reach…</td></tr>'; return; }
   const rows = [
     ['Flexion', HUMAN.flex, Math.round(LIM.flex)], ['Extension', HUMAN.ext, Math.round(LIM.ext)],
     ['Radial (to thumb)', HUMAN.rad, Math.round(LIM.rad)], ['Ulnar (to little finger)', HUMAN.uln, Math.round(LIM.uln)],
     ['Twist, palm down', HUMAN.twist, 90], ['Twist, palm up', HUMAN.twist, 90]
   ];
   $('#limTable').innerHTML = rows.map(r => '<tr><td>' + r[0] + '</td><td class="n">' + r[1] + '°</td><td class="n">' + r[2] + '°</td></tr>').join('');
-})();
+}
+limTable();
 
 /* ---------- actuator readouts ---------- */
 const rows = [];
@@ -772,9 +797,20 @@ $('#copy').addEventListener('click', () => {
 let kick = () => { state.f = state.fT; state.d = state.dT; state.t = state.tT; updateReadouts(); };
 function webglOK(){ try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))); } catch (e) { return false; } }
 let three = null;
-if (window.THREE && THREE.OrbitControls && webglOK()) three = build3D();
-else $('#stage').insertAdjacentHTML('beforeend', '<div class="nogl"><p>3D view needs WebGL, which this browser has turned off.<br>The controls, reach chart and parts list still work.</p></div>');
+function stageNote(html){ $('#stage').insertAdjacentHTML('beforeend', '<div class="nogl"><p>' + html + '</p></div>'); }
 syncInputs(); drawCoverage(); updateReadouts();
+$('#stage').insertAdjacentHTML('beforeend', '<div class="nogl" id="loading"><p>Loading the 3D model…</p></div>');
+// start the 3D view after the panel has painted, then work out the reach chart in the background
+requestAnimationFrame(() => setTimeout(() => {
+  $('#loading').remove();
+  if (!(window.THREE && THREE.OrbitControls)) stageNote('The 3D library didn\'t load. Check the connection and reopen the page.<br>The controls, reach chart and parts list still work.');
+  else if (!webglOK()) stageNote('3D view needs WebGL, which this browser has turned off.<br>The controls, reach chart and parts list still work.');
+  else {
+    try { three = build3D(); }
+    catch (e) { stageNote('The 3D view couldn\'t start: ' + String(e && e.message || e).replace(/[<>&]/g, '') + '<br>The controls, reach chart and parts list still work.'); }
+  }
+  computeReach();
+}, 0));
 
 function build3D(){
   const stage = $('#stage'), labelsEl = $('#labels');
@@ -1010,6 +1046,7 @@ function build3D(){
   return {scene, camera, controls, renderer, legs, tw, side, bend};
 }
 
-window.__wrist = {state, solve, lengths, blockReason, setTarget, setTwist, LIM, COVER, REACH, three};
+window.__wrist = {state, solve, lengths, blockReason, setTarget, setTwist,
+  get LIM(){ return LIM; }, get COVER(){ return COVER; }, get REACH(){ return REACH; }, get three(){ return three; }};
 })();
 </script>

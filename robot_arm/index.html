@@ -1,0 +1,856 @@
+<title>Arm Layout</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Same workbench look as the hand and wrist pages: 3D stage left, panel right, stacked on phones.
+   Amber = steel tendons, dark tube = Bowden cables, white = printed parts. */
+:root{
+  color-scheme: dark;
+  --bg:#12161b; --stage:#161b21; --panel:#1a1f26; --raise:#222932; --line:#2e3640; --fg:#e4e8ec; --mute:#919ba7; --dim:#626c78;
+  --amber:#f0a73c; --amber-ink:#1d1405; --ok:#76c08f; --warn:#e6b46e;
+  --chart:#171c22; --s1:#3987e5; --s2:#c98500;
+  --display:"Saira Semi Condensed","Arial Narrow",sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.5;overflow:hidden}
+button,input{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 390px;height:100%}
+
+.stage{position:relative;min-width:0;min-height:0;background:var(--stage);overflow:hidden}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;outline:none;touch-action:none}
+.hud{position:absolute;left:max(16px,env(safe-area-inset-left,0px));top:14px;pointer-events:none;max-width:min(460px,60%)}
+.hud h1,.hud p{text-shadow:0 1px 3px rgba(0,0,0,.85)}
+.hud h1{font-family:var(--display);font-weight:700;font-size:26px;line-height:1;letter-spacing:.01em;margin:0}
+.hud h1 span{color:var(--amber)}
+.hud p{margin:6px 0 0;color:var(--mute);font-size:13px}
+.views{position:absolute;right:12px;top:12px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px;max-width:50%}
+.views button{appearance:none;border:1px solid var(--line);background:rgba(26,31,38,.85);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--mute)}
+.views button:hover,.views button:focus-visible{color:var(--fg);border-color:var(--mute);outline:none}
+.sum{position:absolute;left:max(16px,env(safe-area-inset-left,0px));bottom:12px;font-family:var(--mono);font-size:12px;color:var(--mute);pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.9);line-height:1.6}
+.sum b{color:var(--fg);font-weight:500}
+.labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+[hidden]{display:none!important}
+.tag{position:absolute;left:0;top:0;display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:11.5px;font-weight:500;color:var(--fg);will-change:transform}
+.tag i{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px rgba(240,167,60,.22);flex:none}
+.tag span{background:rgba(18,22,27,.82);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+.nogl{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--mute)}
+.err{position:absolute;left:max(16px,env(safe-area-inset-left,0px));right:16px;bottom:56px;color:var(--warn);font-size:12px;pointer-events:none}
+
+.panel{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;min-height:0;padding-block:14px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.tabs button{appearance:none;background:none;border:0;border-bottom:2px solid transparent;padding:8px 10px 7px;cursor:pointer;color:var(--mute);font-weight:500}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--amber)}
+.tabs button:focus-visible{outline:1px solid var(--amber);outline-offset:-2px}
+h2{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);margin:18px 0 8px}
+h2:first-child{margin-top:4px}
+h2 small{text-transform:none;letter-spacing:0;font-family:var(--body);font-weight:400;font-size:13px;color:var(--dim)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--raise);border-radius:99px;padding:5px 12px;font-size:13px;cursor:pointer}
+.chip:hover,.chip:focus-visible{border-color:var(--mute);outline:none}
+.chip.run{background:var(--amber);border-color:var(--amber);color:var(--amber-ink);font-weight:600}
+.sl{display:grid;grid-template-columns:96px minmax(0,1fr) 78px;align-items:center;gap:10px;padding:4px 0}
+.sl label{font-weight:500;font-size:13px}
+.sl input[type=range]{width:100%;accent-color:var(--amber)}
+.sl output{font-family:var(--mono);font-size:12px;color:var(--mute);text-align:right;font-variant-numeric:tabular-nums}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{flex:1;appearance:none;border:0;background:var(--raise);padding:7px 10px;cursor:pointer;color:var(--mute);font-weight:500;font-size:13px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--amber);color:var(--amber-ink)}
+.seg button:focus-visible{outline:1px solid var(--fg);outline-offset:-2px}
+.toggles{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
+.toggles label{display:flex;align-items:center;gap:8px;cursor:pointer}
+.toggles input{accent-color:var(--amber);width:16px;height:16px}
+.spec{font-family:var(--mono);font-size:12px;color:var(--mute);margin:8px 0 0;line-height:1.7}
+.spec b{color:var(--fg);font-weight:500}
+.lead{font-size:13px;color:var(--mute);margin:8px 0 0}
+
+.tablewrap{overflow-x:auto;margin:0 -2px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--dim);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td small{display:block;color:var(--mute);font-size:11.5px}
+.cmp td:first-child{color:var(--mute)}
+.cmp td.win{color:var(--fg)}
+.cmp td.win::after{content:" ✓";color:var(--ok)}
+.cmp th.on{color:var(--amber)}
+.prose p{margin:0 0 10px;color:#c9d0d7;max-width:62ch}
+.prose ol{margin:0 0 10px;padding-left:18px;color:#c9d0d7}
+.prose li{margin-bottom:6px}
+.prose li b{color:var(--fg);font-weight:600}
+.note{font-size:12px;color:var(--dim);margin-top:10px}
+[role=tabpanel]{min-width:0}
+
+.chart{position:relative;background:var(--chart);border:1px solid var(--line);border-radius:8px;padding:6px 6px 2px}
+.chart svg{display:block;width:100%;height:auto;touch-action:none;user-select:none}
+.chart svg text{font-family:var(--mono);font-size:10px;fill:var(--dim)}
+.chart svg .ttl{font-family:var(--body);font-size:11px;fill:var(--mute)}
+.chart svg .lab{font-family:var(--body);font-size:11px;fill:var(--fg)}
+.tip{position:absolute;left:0;top:0;pointer-events:none;background:#0f1216;border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:12px;line-height:1.5;white-space:nowrap;color:var(--fg);transform:translate(-50%,calc(-100% - 10px))}
+.tip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.key{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--mute);margin:8px 2px 0}
+.key span{display:inline-flex;align-items:center;gap:6px}
+.key i{display:inline-block;width:14px;height:2px;border-radius:1px}
+
+@media (max-width: 860px){
+  .app{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,52%) minmax(0,48%)}
+  .panel{border-left:0;border-top:1px solid var(--line)}
+  .hud h1{font-size:20px}
+  .hud p{display:none}
+  .views{top:auto;bottom:10px;right:10px;max-width:none}
+  .views button{padding:4px 8px;font-size:11px}
+  .sum{bottom:auto;top:40px;font-size:11px}
+  .tag{font-size:10.5px}
+}
+</style>
+
+<div class="app">
+  <div class="stage" id="stage">
+    <div class="labels" id="labels"></div>
+    <div class="hud">
+      <h1>Arm <span>Layout</span></h1>
+      <p>Heavy motors close to the body, finger motors in the forearm, tendons crossing only the wrist, right through its middle.</p>
+    </div>
+    <div class="views" role="group" aria-label="Camera views">
+      <button data-view="front">Front</button><button data-view="side">Side</button><button data-view="fore">Forearm</button><button data-view="wrist">Wrist</button>
+    </div>
+    <div class="sum" id="sum"></div>
+  </div>
+
+  <aside class="panel">
+    <div class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" id="b-move" aria-controls="t-move" aria-selected="true">Move</button>
+      <button role="tab" id="b-cmp" aria-controls="t-cmp" aria-selected="false">Compare</button>
+      <button role="tab" id="b-lay" aria-controls="t-lay" aria-selected="false">Layout</button>
+      <button role="tab" id="b-parts" aria-controls="t-parts" aria-selected="false">Parts</button>
+    </div>
+
+    <section role="tabpanel" id="t-move" aria-labelledby="b-move">
+      <h2>Finger motors are in the</h2>
+      <div class="seg" id="segMode" role="group" aria-label="Where the finger motors are">
+        <button data-v="fore" aria-pressed="true">Forearm (my pick)</button><button data-v="body" aria-pressed="false">Body (all cables)</button>
+      </div>
+      <p class="spec" id="quick"></p>
+
+      <h2>Poses</h2>
+      <div class="chips" id="presets"></div>
+      <h2>Demos <small>· smooth, human-style moves</small></h2>
+      <div class="chips" id="demos"></div>
+
+      <h2>Joints</h2>
+      <div id="sliders"></div>
+
+      <h2>Show</h2>
+      <div class="toggles">
+        <label><input type="checkbox" id="cLabels" checked> Labels</label>
+        <label><input type="checkbox" id="cShell" checked> See-through shells</label>
+        <label><input type="checkbox" id="cTendon" checked> Tendons</label>
+        <label><input type="checkbox" id="cBody" checked> Body</label>
+      </div>
+    </section>
+
+    <section role="tabpanel" id="t-cmp" aria-labelledby="b-cmp" hidden>
+      <h2>Right now, in this pose</h2>
+      <div class="tablewrap">
+        <table class="cmp">
+          <thead><tr><th></th><th id="hF">Forearm</th><th id="hB">Body</th></tr></thead>
+          <tbody id="cmpBody"></tbody>
+        </table>
+      </div>
+      <p class="note">✓ marks the better of the two. In the forearm layout the tendons only cross the wrist; in the body layout they also cross the shoulder, elbow and twist. Cable: 0.54 mm 7×7 stainless in PTFE-lined guides, friction 0.12, 20 N on the finger tendon. These are rough numbers to compare the two layouts, not exact values.</p>
+
+      <h2>Pull reaching the fingers <small>· as the elbow bends</small></h2>
+      <div class="chart" id="chart">
+        <svg id="pull" viewBox="0 0 330 220" role="img" aria-label="Line chart: share of the motor's pull that reaches the fingers, against elbow angle. Forearm layout stays flat; body layout drops as the elbow bends."></svg>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+      <div class="key"><span><i style="background:var(--s1)"></i>Motors in the forearm</span><span><i style="background:var(--s2)"></i>Motors in the body</span></div>
+      <p class="note">The shoulder, wrist and grip stay as they are now; only the elbow changes across the chart. The dashed line is your current elbow.</p>
+
+      <h2>Weight</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Where</th><th>Forearm</th><th>Body</th></tr></thead>
+          <tbody id="massBody"></tbody>
+        </table>
+      </div>
+      <p class="note">Moving the finger motors to the body saves less than you'd think. They already sit at the elbow end of the forearm, close to the joint, so they add little leverage.</p>
+    </section>
+
+    <section role="tabpanel" id="t-lay" aria-labelledby="b-lay" hidden>
+      <div class="prose">
+        <h2>Where everything goes</h2>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Place</th><th>What's there</th></tr></thead>
+            <tbody>
+              <tr><td>Body</td><td>2 shoulder motors<small>The biggest motors. They don't move, so their weight costs nothing.</small></td></tr>
+              <tr><td>Top of upper arm</td><td>Elbow motor + belt<small>Sits at the shoulder end and drives the elbow through a 2:1 timing belt, so its weight is near the shoulder.</small></td></tr>
+              <tr><td>Elbow</td><td>Forearm twist servo<small>Turns the whole forearm on a bearing. Because the finger motors are past this joint, the tendons never get twisted.</small></td></tr>
+              <tr><td>Forearm, elbow half</td><td>16 finger servos<small>Two rings of 8 slim servos with spools, close to the elbow so they add little leverage.</small></td></tr>
+              <tr><td>Forearm, wrist half</td><td>4 wrist actuators<small>The piston wrist: four L16s on the diagonals around a centre post.</small></td></tr>
+              <tr><td>Wrist</td><td>Ring-shaped U-joint<small>Like a normal universal joint, but the middle is open. All 16 tendons pass through it.</small></td></tr>
+              <tr><td>Hand</td><td>Tendons only<small>No motors, so the hand stays light and fast.</small></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>The four rules behind it</h2>
+        <ol>
+          <li><b>Heavy things close to the body.</b> Every gram near the hand costs about four times as much shoulder torque as the same gram near the elbow.</li>
+          <li><b>Tendons cross as few joints as possible.</b> Here they only cross the wrist. Each extra joint adds friction, stretch, and coupling (the fingers moving on their own when the arm moves).</li>
+          <li><b>Tendons go through the middle of the joint they cross.</b> The tendons run up a hollow centre post and through the open ring of the U-joint. A string through a joint's pivot doesn't get longer or shorter when the joint bends, so bending the wrist doesn't pull the fingers. Your wrist works the same way: the finger tendons pass through the carpal tunnel.</li>
+          <li><b>Twist goes on the elbow side of the finger motors.</b> Because the twist joint is before them, the finger motors turn together with the hand and the tendons never wind up.</li>
+        </ol>
+        <p>Your own arm follows the same plan: the big muscles are in the shoulder and upper arm, and most finger muscles are in the forearm with long tendons into the hand.</p>
+
+        <h2>If the forearm gets too heavy</h2>
+        <p>Move just one strong, slow channel (a power grip that closes all fingers together) to the body on a Bowden cable. Keep the 16 fast, precise channels in the forearm.</p>
+
+        <h2>What this page doesn't do yet</h2>
+        <p>The wrist module is the checked piston wrist, so its reach and clearances are verified. The rest of the arm is a layout study: the sizes are realistic, but the shoulder and elbow parts aren't clearance-checked, and the wrist moves at L16 speed (about 58°/s).</p>
+      </div>
+    </section>
+
+    <section role="tabpanel" id="t-parts" aria-labelledby="b-parts" hidden>
+      <h2>Motors and drives</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Qty</th><th>Part</th></tr></thead>
+          <tbody>
+            <tr><td class="n">2</td><td>Shoulder actuators, about 20 N·m peak<small>A geared brushless joint motor, or a big servo with a belt reduction. Holding the arm straight out takes about <span id="pShoulder"></span>, plus whatever it carries.</small></td></tr>
+            <tr><td class="n">1</td><td>Elbow: DS5160 servo + 2:1 GT2 belt<small>20T and 40T pulleys, about 200 mm of belt. That gives roughly 13 N·m at the elbow. Holding the forearm level takes about <span id="pElbow"></span>.</small></td></tr>
+            <tr><td class="n">1</td><td>Forearm twist: SCS15 serial servo<small>Plus a 6810 thin bearing (50 × 65 × 7 mm) between the elbow bracket and the forearm.</small></td></tr>
+            <tr><td class="n">4</td><td>Actuonix L16-50-63-6-R<small>The piston wrist, with fork joints on top and M3 ball links below.</small></td></tr>
+            <tr><td class="n">1</td><td>Ring U-joint<small>A 17 mm ring with 4 pins and an open centre of about 6 mm for the tendons.</small></td></tr>
+            <tr><td class="n">16</td><td>ES3352 slim servos + spools<small>23.2 × 9.2 × 24 mm, 12.4 g each. Two rings of 8 at the elbow end of the forearm.</small></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h2>Tendons</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Qty</th><th>Part</th></tr></thead>
+          <tbody>
+            <tr><td class="n">~6 m</td><td>0.54 mm 7×7 stainless cable<small>Or 0.5 mm Dyneema: it slides more easily and doesn't kink, but it creeps, so re-tension it now and then.</small></td></tr>
+            <tr><td class="n">1</td><td>Hollow centre post<small>15 mm outside, with a PTFE-lined 6 mm bore for the 16 tendons.</small></td></tr>
+            <tr><td class="n">16</td><td>Crimp sleeves + tension screws<small>One per tendon at the spool, for setting tension.</small></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h2>Electronics</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Qty</th><th>Part</th></tr></thead>
+          <tbody>
+            <tr><td class="n">1</td><td>Arduino Mega<small>16 finger servos + 4 wrist actuators on its pins, the twist servo on a serial-bus adapter.</small></td></tr>
+            <tr><td class="n">1</td><td>6 V, 10 A supply for the servos<small>With a separate supply for the shoulder motors. Plus 1000 µF of capacitors near the servos.</small></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">The wrist and finger parts match the Piston Wrist and Endoskeleton Hand pages.</p>
+    </section>
+  </aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+'use strict';
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const D2R = Math.PI / 180;
+window.addEventListener('error', e => {
+  let n = $('#err'); if (!n){ $('#stage').insertAdjacentHTML('beforeend', '<div class="err" id="err" role="status"></div>'); n = $('#err'); }
+  n.textContent = 'Something went wrong: ' + (e.message || 'unknown error');
+});
+
+/* ---------- sizes (cm). Person faces -z, this is the right arm, hanging down at zero ---------- */
+const UPPER = 30, FORE = 27.5;          // shoulder to elbow, elbow to wrist
+const TWIST_AT = -5.1;                  // twist bearing, below the elbow pin
+// piston wrist module, as on the Piston Wrist page (checked: reaches the whole human range)
+const WR = {rt:2.8, rb:3.1, hb:15};
+const S2 = Math.SQRT1_2;
+const LEG_DIRS = [[-S2, -S2], [S2, -S2], [-S2, S2], [S2, S2]];   // x,z: palm-thumb, palm-little, back-thumb, back-little
+const TOPS = LEG_DIRS.map(d => [d[0] * WR.rt, 0, d[1] * WR.rt]);
+const BASES = LEG_DIRS.map(d => [d[0] * WR.rb, -WR.hb, d[1] * WR.rb]);
+const HUMAN_W = {flex:80, ext:70, rad:20, uln:35};
+
+/* ---------- joints ---------- */
+const JOINTS = [
+  {k:'sf', label:'Shoulder lift', min:-40, max:170, v:120, fmt:x => x > 0.5 ? 'fwd ' + Math.round(x) + '°' : x < -0.5 ? 'back ' + Math.round(-x) + '°' : '0°'},
+  {k:'sa', label:'Shoulder out',  min:0,   max:120, v:120, fmt:x => Math.round(x) + '°'},
+  {k:'el', label:'Elbow',         min:0,   max:145, v:150, fmt:x => Math.round(x) + '°'},
+  {k:'tw', label:'Forearm twist', min:-90, max:90,  v:300, fmt:x => x > 0.5 ? 'sup ' + Math.round(x) + '°' : x < -0.5 ? 'pron ' + Math.round(-x) + '°' : '0°'},
+  {k:'wf', label:'Wrist bend',    min:-70, max:80,  v:55,  fmt:x => x > 0.5 ? 'flex ' + Math.round(x) + '°' : x < -0.5 ? 'ext ' + Math.round(-x) + '°' : '0°'},
+  {k:'wd', label:'Wrist side',    min:-35, max:20,  v:55,  fmt:x => x > 0.5 ? 'rad ' + Math.round(x) + '°' : x < -0.5 ? 'uln ' + Math.round(-x) + '°' : '0°'},
+  {k:'gr', label:'Grip',          min:0,   max:100, v:220, fmt:x => Math.round(x) + '%'}
+];
+const ZERO = {sf:0, sa:0, el:0, tw:0, wf:0, wd:0, gr:0};
+const state = {pose:{...ZERO}, from:{...ZERO}, to:{...ZERO}, t:0, T:0, mode:'fore', demo:null};
+
+function clampPose(p){
+  const q = {...p};
+  JOINTS.forEach(j => { q[j.k] = Math.max(j.min, Math.min(j.max, q[j.k])); });
+  // the wrist stays inside the human range, which the piston wrist reaches everywhere
+  const a = q.wf / (q.wf > 0 ? HUMAN_W.flex : HUMAN_W.ext), b = q.wd / (q.wd > 0 ? HUMAN_W.rad : HUMAN_W.uln), k = Math.hypot(a, b);
+  if (k > 1){ q.wf /= k; q.wd /= k; }
+  return q;
+}
+// minimum-jerk move: starts gently, peaks in the middle, stops gently, like a person reaching
+const mj = s => s * s * s * (10 - 15 * s + 6 * s * s);
+function moveTo(target, keepDemo){
+  if (!keepDemo) stopDemo();
+  state.from = {...state.pose}; state.to = clampPose({...state.pose, ...target}); state.t = 0;
+  state.T = Math.max(0.35, ...JOINTS.map(j => Math.abs(state.to[j.k] - state.from[j.k]) / j.v));
+  syncSliders(); kick();
+}
+function step(dt){
+  if (state.demo) demoStep(dt);
+  if (state.t >= state.T) return !!state.demo;
+  state.t = Math.min(state.T, state.t + dt);
+  const s = mj(state.t / state.T);
+  JOINTS.forEach(j => { state.pose[j.k] = state.from[j.k] + (state.to[j.k] - state.from[j.k]) * s; });
+  return true;
+}
+
+/* ---------- presets and demos ---------- */
+const PRESETS = [
+  ['Hang', {...ZERO}],
+  ['Reach', {sf:80, sa:5, el:10, tw:0, wf:0, wd:0, gr:0}],
+  ['Elbow 90°', {sf:0, sa:0, el:90, tw:0, wf:0, wd:0, gr:20}],
+  ['Arm up', {sf:165, sa:10, el:5, tw:30, wf:-10, wd:0, gr:0}],
+  ['Fist', {sf:20, sa:10, el:100, tw:40, wf:10, wd:0, gr:100}]
+];
+PRESETS.forEach(([name, p]) => {
+  const b = document.createElement('button'); b.className = 'chip'; b.textContent = name;
+  b.addEventListener('click', () => moveTo(p)); $('#presets').appendChild(b);
+});
+const DEMOS = {
+  'Wave hello': [
+    {sf:20, sa:80, el:95, tw:-20, wf:-15, wd:0, gr:5},
+    {tw:15, wd:15}, {tw:-25, wd:-25}, {tw:15, wd:15}, {tw:-25, wd:-25}, {tw:15, wd:15},
+    {...ZERO}
+  ],
+  'Reach & grab': [
+    {sf:70, sa:8, el:25, tw:-10, wf:-20, wd:-10, gr:0},
+    {gr:85, wf:0, hold:0.3},
+    {sf:40, el:95, tw:30, wf:15, hold:0.4},
+    {sf:70, el:25, tw:-10, wf:-20, gr:85},
+    {gr:0, hold:0.2},
+    {...ZERO}
+  ],
+  'Drink': [
+    {sf:35, sa:12, el:70, tw:-60, wf:0, wd:0, gr:75},
+    {sf:30, el:135, tw:-15, wf:-25, wd:-15, hold:0.6},
+    {sf:35, el:70, tw:-60, wf:0, wd:0},
+    {...ZERO}
+  ]
+};
+Object.keys(DEMOS).forEach(name => {
+  const b = document.createElement('button'); b.className = 'chip'; b.textContent = name; b.dataset.demo = name;
+  b.addEventListener('click', () => {
+    if (state.demo && state.demo.name === name){ stopDemo(); return; }
+    stopDemo(); state.demo = {name, k:0, hold:0}; markDemo(); moveTo(DEMOS[name][0], true);
+  });
+  $('#demos').appendChild(b);
+});
+function markDemo(){ $$('#demos .chip').forEach(b => b.classList.toggle('run', !!state.demo && b.dataset.demo === state.demo.name)); }
+function stopDemo(){ if (state.demo){ state.demo = null; markDemo(); } }
+function demoStep(dt){
+  const D = state.demo, list = DEMOS[D.name];
+  if (state.t < state.T) return;
+  if ((D.hold += dt) < (list[D.k].hold || 0)) return;
+  D.hold = 0; D.k++;
+  if (D.k >= list.length){ stopDemo(); return; }
+  moveTo(list[D.k], true);
+}
+
+/* ---------- sliders ---------- */
+const sliders = {};
+JOINTS.forEach(j => {
+  const row = document.createElement('div'); row.className = 'sl';
+  row.innerHTML = '<label for="s-' + j.k + '">' + j.label + '</label><input type="range" id="s-' + j.k + '" min="' + j.min + '" max="' + j.max + '" step="1" value="0"><output for="s-' + j.k + '"></output>';
+  $('#sliders').appendChild(row);
+  const input = row.querySelector('input'), out = row.querySelector('output');
+  input.addEventListener('input', () => moveTo({[j.k]: +input.value}));
+  sliders[j.k] = {input, out};
+});
+function syncSliders(){ JOINTS.forEach(j => { sliders[j.k].input.value = Math.round(state.to[j.k]); sliders[j.k].out.textContent = j.fmt(state.to[j.k]); }); }
+
+/* ---------- tendon maths for both layouts ---------- */
+const MU = 0.12, LOAD = 20, EA = 13700, PULLEY_R = 0.6;   // friction, N on the finger tendon, N per unit strain of the cable, cm
+const CABLE_L = {fore:0.30, body:0.95};                    // spool to fingertip, m
+const angWrist = p => Math.acos(Math.cos(p.wf * D2R) * Math.cos(p.wd * D2R)) / D2R;
+const angShoulder = p => Math.acos(Math.cos(p.sf * D2R) * Math.cos(p.sa * D2R)) / D2R;
+const fingerWrap = p => 190 * p.gr / 100;                  // index finger joints, all three
+// total bend the tendon slides around, from motor to fingertip (degrees)
+function bends(p, mode){
+  const common = angWrist(p) + 30 + fingerWrap(p);         // wrist, palm guide, finger joints
+  if (mode === 'fore') return 90 + common;                 // spool to the post
+  return 45 + 90 + angShoulder(p) + p.el + 30 + common;    // body pack, into the shoulder, shoulder, elbow, into the post
+}
+const reach = (p, mode) => Math.exp(-MU * bends(p, mode) * D2R);
+const stretchMM = mode => LOAD * CABLE_L[mode] / EA * 1000;
+const playDeg = mode => stretchMM(mode) / (PULLEY_R * 10) / D2R;
+
+/* ---------- weights (g) and where they sit (cm from the shoulder, arm straight) ---------- */
+const MASS = [
+  {name:'Upper arm frame',          g:400, at:15,    fore:true, body:true},
+  {name:'Elbow motor + belt',       g:200, at:4,     fore:true, body:true},
+  {name:'Twist servo + bearing',    g:144, at:32.5,  fore:true, body:true},
+  {name:'16 finger servos + spools',g:230, at:38.2,  fore:true, body:false},
+  {name:'Forearm shell, cup, post', g:300, at:43,    fore:true, body:true},
+  {name:'4 wrist actuators',        g:224, at:47.5,  fore:true, body:true},
+  {name:'Wrist joint + plate',      g:60,  at:57.5,  fore:true, body:true},
+  {name:'Hand',                     g:300, at:66,    fore:true, body:true},
+  {name:'Bowden cables, upper arm', g:45,  at:15,    fore:false, body:true},
+  {name:'Bowden cables, forearm',   g:30,  at:45,    fore:false, body:true}
+];
+function massSums(mode){
+  let fh = 0, sh = 0, elb = 0;
+  MASS.forEach(m => {
+    if (!m[mode]) return;
+    sh += m.g / 1000 * 9.81 * m.at / 100;
+    if (m.at > UPPER){ fh += m.g; elb += m.g / 1000 * 9.81 * (m.at - UPPER) / 100; }
+  });
+  return {fh, sh, elb};
+}
+const MF = massSums('fore'), MB = massSums('body');
+$('#pShoulder').textContent = MF.sh.toFixed(1) + ' N·m';
+$('#pElbow').textContent = MF.elb.toFixed(1) + ' N·m';
+$('#massBody').innerHTML = [
+  ['Forearm + hand', Math.round(MF.fh) + ' g', Math.round(MB.fh) + ' g'],
+  ['Shoulder torque, arm straight out', MF.sh.toFixed(2) + ' N·m', MB.sh.toFixed(2) + ' N·m'],
+  ['Elbow torque, forearm level', MF.elb.toFixed(2) + ' N·m', MB.elb.toFixed(2) + ' N·m']
+].map(r => '<tr><td>' + r[0] + '</td><td class="n">' + r[1] + '</td><td class="n">' + r[2] + '</td></tr>').join('');
+
+/* ---------- compare readouts ---------- */
+let lastCmp = '';
+function updateCompare(){
+  const p = state.pose, key = JOINTS.map(j => p[j.k].toFixed(1)).join() + state.mode;
+  if (key === lastCmp) return; lastCmp = key;
+  const rf = reach(p, 'fore'), rb = reach(p, 'body');
+  // how much the grip changes over the elbow's whole range, with the rest of the arm where it is
+  const elbRange = mode => { let lo = 1, hi = 0; for (let e = 0; e <= 145; e += 5){ const r = reach({...p, el:e}, mode); lo = Math.min(lo, r); hi = Math.max(hi, r); } return (hi - lo) / hi; };
+  const rows = [
+    ['Joints the tendons cross', '1', '4', 'low'],
+    ['Total bend the tendon slides around', Math.round(bends(p, 'fore')) + '°', Math.round(bends(p, 'body')) + '°', 'low'],
+    ['Motor pull that reaches the finger', Math.round(rf * 100) + '%', Math.round(rb * 100) + '%', 'high'],
+    ['Motor pull for 20 N at the finger', (LOAD / rf).toFixed(0) + ' N', (LOAD / rb).toFixed(0) + ' N', 'low'],
+    ['Grip change as the elbow moves', Math.round(elbRange('fore') * 100) + '%', Math.round(elbRange('body') * 100) + '%', 'low'],
+    ['Cable stretch at 20 N', stretchMM('fore').toFixed(2) + ' mm', stretchMM('body').toFixed(2) + ' mm', 'low'],
+    ['Finger springiness from that', playDeg('fore').toFixed(1) + '°', playDeg('body').toFixed(1) + '°', 'low'],
+    ['Forearm + hand weight', Math.round(MF.fh) + ' g', Math.round(MB.fh) + ' g', 'low'],
+    ['Shoulder torque, arm out', MF.sh.toFixed(2) + ' N·m', MB.sh.toFixed(2) + ' N·m', 'low']
+  ];
+  $('#cmpBody').innerHTML = rows.map(r => {
+    const a = parseFloat(r[1]), b = parseFloat(r[2]);
+    const fw = r[3] === 'low' ? a < b : a > b, bw = r[3] === 'low' ? b < a : b > a;
+    return '<tr><td>' + r[0] + '</td><td class="n' + (fw ? ' win' : '') + '">' + r[1] + '</td><td class="n' + (bw ? ' win' : '') + '">' + r[2] + '</td></tr>';
+  }).join('');
+  $('#hF').classList.toggle('on', state.mode === 'fore'); $('#hB').classList.toggle('on', state.mode === 'body');
+  const r = state.mode === 'fore' ? rf : rb;
+  $('#quick').innerHTML = 'Pull reaching the fingers: <b>' + Math.round(r * 100) + '%</b> · cable stretch: <b>' + stretchMM(state.mode).toFixed(1) + ' mm</b><br>' +
+    (state.mode === 'fore' ? 'Bending the elbow or shoulder doesn\'t change the grip.' : 'Bend the elbow and watch the pull drop: the cables slide round every joint.');
+  $('#sum').innerHTML = (state.mode === 'fore' ? '<b>Motors in the forearm</b>' : '<b>Motors in the body</b>') + ' · ' + Math.round(r * 100) + '% of the pull reaches the fingers';
+  drawChart();
+}
+
+/* ---------- chart: pull reaching the fingers vs elbow ---------- */
+const svg = $('#pull'), NS = 'http://www.w3.org/2000/svg';
+const CH = {l:40, r:262, t:10, b:186};
+const cx = e => CH.l + e / 145 * (CH.r - CH.l), cy = v => CH.b - v * (CH.b - CH.t);
+function el(tag, a, parent){ const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); (parent || svg).appendChild(e); return e; }
+[0, 0.25, 0.5, 0.75, 1].forEach(v => {
+  el('line', {x1:CH.l, x2:CH.r, y1:cy(v), y2:cy(v), stroke: v ? '#242b33' : '#353e49', 'stroke-width':1});
+  el('text', {x:CH.l - 6, y:cy(v) + 3.5, 'text-anchor':'end'}).textContent = Math.round(v * 100) + '%';
+});
+[0, 45, 90, 145].forEach(e => el('text', {x:cx(e), y:CH.b + 13, 'text-anchor':'middle'}).textContent = e + '°');
+el('text', {x:(CH.l + CH.r) / 2, y:CH.b + 29, 'text-anchor':'middle', class:'ttl'}).textContent = 'Elbow angle';
+const nowLine = el('line', {y1:CH.t, y2:CH.b, stroke:'#626c78', 'stroke-width':1, 'stroke-dasharray':'3 3'});
+const lineF = el('path', {fill:'none', stroke:'#3987e5', 'stroke-width':2, 'stroke-linejoin':'round', 'stroke-linecap':'round'});
+const lineB = el('path', {fill:'none', stroke:'#c98500', 'stroke-width':2, 'stroke-linejoin':'round', 'stroke-linecap':'round'});
+const dotF = el('circle', {r:4, fill:'#3987e5', stroke:'#171c22', 'stroke-width':2});
+const dotB = el('circle', {r:4, fill:'#c98500', stroke:'#171c22', 'stroke-width':2});
+const labF = el('text', {x:CH.r + 6, class:'lab'}), labB = el('text', {x:CH.r + 6, class:'lab'});
+const hoverLine = el('line', {y1:CH.t, y2:CH.b, stroke:'#919ba7', 'stroke-width':1, opacity:0});
+function series(mode){ const p = state.pose, pts = []; for (let e = 0; e <= 145; e += 2.5) pts.push([e, reach({...p, el:e}, mode)]); return pts; }
+function drawChart(){
+  const f = series('fore'), b = series('body'), p = state.pose;
+  lineF.setAttribute('d', 'M' + f.map(q => cx(q[0]).toFixed(1) + ' ' + cy(q[1]).toFixed(1)).join('L'));
+  lineB.setAttribute('d', 'M' + b.map(q => cx(q[0]).toFixed(1) + ' ' + cy(q[1]).toFixed(1)).join('L'));
+  const lf = f[f.length - 1][1], lb = b[b.length - 1][1];
+  labF.setAttribute('y', cy(lf) + 4); labF.textContent = 'Forearm';
+  labB.setAttribute('y', Math.max(cy(lb) + 4, cy(lf) + 18)); labB.textContent = 'Body';
+  nowLine.setAttribute('x1', cx(p.el)); nowLine.setAttribute('x2', cx(p.el));
+  dotF.setAttribute('cx', cx(p.el)); dotF.setAttribute('cy', cy(reach(p, 'fore')));
+  dotB.setAttribute('cx', cx(p.el)); dotB.setAttribute('cy', cy(reach(p, 'body')));
+}
+const tip = $('#tip');
+svg.addEventListener('pointermove', ev => {
+  const r = svg.getBoundingClientRect(), x = (ev.clientX - r.left) * 330 / r.width;
+  const e = Math.max(0, Math.min(145, (x - CH.l) / (CH.r - CH.l) * 145));
+  if (x < CH.l - 4 || x > CH.r + 4){ tip.hidden = true; hoverLine.setAttribute('opacity', 0); return; }
+  const p = {...state.pose, el:e};
+  hoverLine.setAttribute('x1', cx(e)); hoverLine.setAttribute('x2', cx(e)); hoverLine.setAttribute('opacity', 1);
+  tip.innerHTML = 'Elbow ' + Math.round(e) + '°<br><i style="background:#3987e5"></i>Forearm ' + Math.round(reach(p, 'fore') * 100) + '%<br><i style="background:#c98500"></i>Body ' + Math.round(reach(p, 'body') * 100) + '%';
+  tip.hidden = false;
+  const cw = $('#chart').clientWidth, half = tip.offsetWidth / 2 + 4;
+  tip.style.left = Math.max(half, Math.min(cw - half, ev.clientX - r.left + 6)) + 'px'; tip.style.top = (ev.clientY - r.top + 6) + 'px';
+});
+svg.addEventListener('pointerleave', () => { tip.hidden = true; hoverLine.setAttribute('opacity', 0); });
+
+/* ---------- mode, tabs, toggles ---------- */
+$$('#segMode button').forEach(b => b.addEventListener('click', () => {
+  $$('#segMode button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  state.mode = b.dataset.v; lastCmp = ''; updateCompare(); if (three) three.setMode(state.mode); kick();
+}));
+$$('[role=tab]').forEach(tab => tab.addEventListener('click', () => {
+  $$('[role=tab]').forEach(t => { const on = t === tab; t.setAttribute('aria-selected', on ? 'true' : 'false'); $('#' + t.getAttribute('aria-controls')).hidden = !on; });
+}));
+
+/* ---------- 3D ---------- */
+let three = null;
+let kick = () => { state.pose = {...state.to}; state.t = state.T; updateCompare(); };
+function webglOK(){ try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))); } catch (e) { return false; } }
+function stageNote(html){ $('#stage').insertAdjacentHTML('beforeend', '<div class="nogl"><p>' + html + '</p></div>'); }
+syncSliders(); updateCompare();
+$('#stage').insertAdjacentHTML('beforeend', '<div class="nogl" id="loading"><p>Loading the 3D model…</p></div>');
+requestAnimationFrame(() => setTimeout(() => {
+  $('#loading').remove();
+  if (!(window.THREE && THREE.OrbitControls)) stageNote('The 3D library didn\'t load. Check the connection and reopen the page.<br>The controls and the comparison still work.');
+  else if (!webglOK()) stageNote('3D view needs WebGL, which this browser has turned off.<br>The controls and the comparison still work.');
+  else {
+    try { three = build3D(); }
+    catch (e) { stageNote('The 3D view couldn\'t start: ' + String(e && e.message || e).replace(/[<>&]/g, '') + '<br>The controls and the comparison still work.'); }
+  }
+}, 0));
+
+function build3D(){
+  const stage = $('#stage'), labelsEl = $('#labels');
+  const renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  stage.prepend(renderer.domElement);
+  renderer.domElement.setAttribute('aria-label', '3D model of the arm layout. Drag to orbit, scroll to zoom.');
+  renderer.domElement.tabIndex = 0;
+  const scene = new THREE.Scene(); scene.background = new THREE.Color('#161b21');
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.5, 900);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = 0.09; controls.minDistance = 8; controls.maxDistance = 260;
+
+  function face(top, bot, band, alpha){
+    const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, top); g.addColorStop(1, bot); x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+    if (band){ x.fillStyle = band; x.globalAlpha = alpha; x.fillRect(0, 38, 128, 22); x.globalAlpha = 1; }
+    return c;
+  }
+  const sA = face('#6f7a87', '#0c0e11', '#ffffff', 0.95), sB = face('#4a535e', '#0b0d10', '#dfe6ee', 0.5);
+  const env = new THREE.CubeTexture([sA, sB, face('#9aa5b2', '#5d6773'), face('#07080a', '#07080a'), sB, sA]); env.needsUpdate = true;
+  const ph = o => new THREE.MeshPhongMaterial(o);
+  const M = {
+    print:  ph({color:0xc9cdd2, specular:0x2a2d31, shininess:16}),
+    printS: ph({color:0xc9cdd2, specular:0x2a2d31, shininess:16, side:THREE.DoubleSide}),
+    body:   ph({color:0xaab1b9, specular:0x3a3f45, shininess:30}),
+    band:   ph({color:0x8d959e, specular:0x3a3f45, shininess:30}),
+    chrome: ph({color:0x5d646d, specular:0xffffff, shininess:120, envMap:env, reflectivity:0.62, combine:THREE.MixOperation}),
+    steel:  ph({color:0x434951, specular:0xd4dae1, shininess:80, envMap:env, reflectivity:0.4, combine:THREE.MixOperation}),
+    servo:  ph({color:0x1b2028, specular:0x4a5058, shininess:40}),
+    motor:  ph({color:0x2b3139, specular:0x6a737e, shininess:60, envMap:env, reflectivity:0.15, combine:THREE.MixOperation}),
+    sticker:ph({color:0x2b5ea8, specular:0x222222, shininess:20}),
+    spool:  ph({color:0xe4dfd3, specular:0x3a3a3a, shininess:22}),
+    hand:   ph({color:0x3b424c, specular:0x6a737e, shininess:50, envMap:env, reflectivity:0.12, combine:THREE.MixOperation}),
+    shell:  ph({color:0x8a96a3, specular:0x555c66, shininess:40, transparent:true, opacity:0.14, depthWrite:false, side:THREE.DoubleSide}),
+    torso:  ph({color:0x6d7783, specular:0x444b55, shininess:30, transparent:true, opacity:0.16, depthWrite:false, side:THREE.DoubleSide}),
+    glass:  ph({color:0xb8c4d0, specular:0xffffff, shininess:90, transparent:true, opacity:0.28, depthWrite:false}),
+    belt:   ph({color:0x15181c, shininess:10}),
+    bowden: ph({color:0x2a2f36, specular:0x3d454f, shininess:30}),
+    rubber: ph({color:0x25282c, shininess:6})
+  };
+  scene.add(new THREE.HemisphereLight(0xc2ccda, 0x1d2228, 0.55));
+  const key = new THREE.DirectionalLight(0xffffff, 0.78); key.position.set(40, 60, -40); key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0006;
+  Object.assign(key.shadow.camera, {left:-60, right:60, top:60, bottom:-60, near:1, far:220}); scene.add(key);
+  const rim = new THREE.DirectionalLight(0x9fb6d6, 0.45); rim.position.set(-40, 20, 40); scene.add(rim);
+  const fill = new THREE.DirectionalLight(0xffe7cc, 0.25); fill.position.set(30, -10, -50); scene.add(fill);
+  const FLOOR_Y = -84;
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.ShadowMaterial({opacity:0.3}));
+  floor.rotation.x = -Math.PI / 2; floor.position.y = FLOOR_Y; floor.receiveShadow = true; scene.add(floor);
+  const g1 = new THREE.GridHelper(160, 80, 0x232a32, 0x232a32); g1.position.y = FLOOR_Y + 0.01; scene.add(g1);
+  const g2 = new THREE.GridHelper(160, 8, 0x323b46, 0x323b46); g2.position.y = FLOOR_Y + 0.02; scene.add(g2);
+
+  function mesh(geo, mat){ const m = new THREE.Mesh(geo, mat); m.castShadow = true; m.receiveShadow = true; return m; }
+  const at = (m, x, y, z) => { m.position.set(x, y, z); return m; };
+  const box = (w, h, d, mat) => mesh(new THREE.BoxGeometry(w, h, d), mat);
+  const cylY = (r, h, mat, seg, r2) => mesh(new THREE.CylinderGeometry(r2 === undefined ? r : r2, r, h, seg || 28), mat);
+  const cylX = (r, len, mat, seg) => { const g = new THREE.CylinderGeometry(r, r, len, seg || 24); g.rotateZ(Math.PI / 2); return mesh(g, mat); };
+  const cylZ = (r, len, mat, seg) => { const g = new THREE.CylinderGeometry(r, r, len, seg || 24); g.rotateX(Math.PI / 2); return mesh(g, mat); };
+  const ball = (r, mat) => mesh(new THREE.SphereGeometry(r, 16, 12), mat);
+  const lathe = (pts, mat) => mesh(new THREE.LatheGeometry(pts.map(p => new THREE.Vector2(p[0], p[1])), 56), mat);
+  const marker = (parent, x, y, z) => { const o = new THREE.Object3D(); o.position.set(x, y, z); parent.add(o); return o; };
+  const shells = [];
+  const shellMesh = (geo, mat) => { const m = new THREE.Mesh(geo, mat); m.renderOrder = 2; shells.push(m); return m; };
+
+  /* ----- torso (fixed): shoulder motors, and the finger pack in "body" mode ----- */
+  const torso = new THREE.Group(); scene.add(torso);
+  const torsoShell = shellMesh(new THREE.BoxGeometry(22, 44, 18), M.torso); at(torsoShell, -16.2, -16, 0); torso.add(torsoShell);
+  torso.add(at(box(3, 44, 3, M.print), -16.2, -16, 4));                                     // spine
+  torso.add(at(box(14, 1.2, 12, M.print), -10, 2.6, 0));                                    // shoulder deck
+  const shMotorA = cylZ(3.2, 4.2, M.motor, 32); at(shMotorA, -3.6, 0, 0); torso.add(shMotorA);   // lifts the arm out to the side
+  torso.add(at(cylZ(1.2, 4.6, M.steel), -3.6, 0, 0));
+  const bodyPack = new THREE.Group(); torso.add(bodyPack); bodyPack.position.set(-12, -18, -2);
+  for (let r = 0; r < 2; r++) for (let k = 0; k < 8; k++){
+    const s = new THREE.Group(); s.position.set(-4.2 + k * 1.2, r * -3.2, 0); bodyPack.add(s);
+    s.add(at(box(0.92, 2.4, 2.32, M.servo), 0, 0, 0)); s.add(at(box(0.94, 0.5, 2.34, M.sticker), 0, 0.2, 0));
+    s.add(at(cylX(0.5, 0.3, M.spool), 0.62, 0.5, 0.6));
+  }
+  bodyPack.add(at(box(11, 0.4, 3.4, M.print), 0, -4.8, 0));
+  const packOut = marker(torso, -10, -12, -0.5), shoulderIn = marker(torso, -3, 4.2, 2.2);
+
+  /* ----- arm chain ----- */
+  const shAb = new THREE.Group(); scene.add(shAb);                  // shoulder out (about z)
+  const shFl = new THREE.Group(); shAb.add(shFl);                   // shoulder lift (about x)
+  shAb.add(at(cylX(2.7, 3.4, M.motor, 32), 0.2, 0, 0));             // second shoulder motor, rides on the first
+  shAb.add(at(cylX(1.0, 4.0, M.steel), 0.2, 0, 0));
+  shFl.add(ball(2.6, M.print));
+  // upper arm: frame tube, shell, elbow motor at the top driving a belt down to the elbow
+  shFl.add(at(cylY(1.1, UPPER - 3, M.steel), 0, -UPPER / 2 - 1, 0));
+  const upperShell = shellMesh(new THREE.CylinderGeometry(4.0, 3.4, UPPER - 4, 40, 1, true), M.shell); at(upperShell, 0, -UPPER / 2 - 1, 0); shFl.add(upperShell);
+  const elMotor = cylX(2.2, 3.8, M.motor, 32); at(elMotor, 0.6, -5, 0); shFl.add(elMotor);
+  shFl.add(at(box(2.0, 4.6, 5.4, M.print), -1.5, -5, 0));
+  shFl.add(at(cylX(1.0, 0.8, M.steel), 2.9, -5, 0));                 // 20T pulley
+  // belt strands, motor pulley (r 1.0) to elbow pulley (r 2.0)
+  const beltA = box(0.6, 1, 0.12, M.belt), beltB = box(0.6, 1, 0.12, M.belt); shFl.add(beltA); shFl.add(beltB);
+  (function placeBelt(){
+    [[beltA, 1], [beltB, -1]].forEach(([b, s]) => {
+      const y0 = -5, y1 = -UPPER, z0 = s * 1.0, z1 = s * 2.0, len = Math.hypot(y1 - y0, z1 - z0);
+      b.scale.y = len; b.position.set(2.9, (y0 + y1) / 2, (z0 + z1) / 2); b.rotation.x = -Math.atan2(z1 - z0, -(y1 - y0));
+    });
+  })();
+  // elbow fork on the upper arm
+  [-2.2, 2.2].forEach(x => shFl.add(at(box(0.6, 4.2, 3.6, M.print), x, -UPPER + 0.9, 0)));
+  shFl.add(at(cylX(0.5, 5.6, M.steel), 0, -UPPER, 0));
+  const elbow = new THREE.Group(); elbow.position.y = -UPPER; shFl.add(elbow);
+  elbow.add(at(cylX(2.0, 0.8, M.steel), 2.9, 0, 0));                 // 40T pulley on the elbow
+  [-1.4, 1.4].forEach(x => elbow.add(at(box(0.4, 4.4, 3.4, M.print), x, -2.4, 0)));   // elbow bracket, the twist servo between its plates
+  const twistServo = new THREE.Group(); elbow.add(twistServo);
+  twistServo.add(at(box(2.0, 3.0, 4.0, M.servo), 0, -3.4, 0.6));
+  twistServo.add(at(box(2.02, 0.6, 4.02, M.sticker), 0, -3.2, 0.6));
+  elbow.add(at(cylY(3.6, 0.4, M.print, 40), 0, TWIST_AT + 0.4, 0));
+  const twBear = mesh(new THREE.TorusGeometry(3.25, 0.32, 12, 48), M.steel); twBear.rotation.x = Math.PI / 2; at(twBear, 0, TWIST_AT, 0); elbow.add(twBear);
+  const twist = new THREE.Group(); elbow.add(twist);                 // forearm twist (about the forearm axis)
+  // forearm frame: hand along local +y, palm towards the body (-x) and thumb forwards (-z) when hanging
+  const fa = new THREE.Group(); fa.position.y = -FORE; twist.add(fa);
+  fa.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, -1, 0), new THREE.Vector3(1, 0, 0)));
+
+  /* ----- forearm (in the wrist frame: hinge at 0, elbow at -27.5) ----- */
+  const foreShell = shellMesh(new THREE.CylinderGeometry(4.55, 4.2, 7.0, 48, 1, true), M.shell);   // cup floor down to the twist bearing
+  at(foreShell, 0, -19.1, 0); fa.add(foreShell);
+  fa.add(at(cylY(4.0, 0.4, M.print, 40), 0, -FORE - TWIST_AT - 0.2, 0));     // forearm floor on the twist bearing
+  const cup = lathe([[0.01, -16.0], [4.4, -16.0], [4.55, -15.85], [4.55, -10.65], [4.47, -10.5], [4.28, -10.5], [4.2, -10.6], [4.2, -15.5], [0.01, -15.5]], M.printS);
+  cup.rotation.y = Math.PI * 0.75; fa.add(cup);
+  BASES.forEach(b => { fa.add(at(box(1.2, 0.5, 1.2, M.print), b[0], -15.25, b[2])); fa.add(at(ball(0.33, M.steel), b[0], b[1], b[2])); });
+  // hollow centre post: the tendon tunnel (see-through so the tendons show)
+  const post = new THREE.Group(); fa.add(post);
+  post.add(at(mesh(new THREE.CylinderGeometry(0.75, 0.75, 9.1, 28, 1, true), M.glass), 0, -10.95, 0));
+  post.add(at(mesh(new THREE.CylinderGeometry(0.45, 0.75, 0.4, 28, 1, true), M.glass), 0, -6.2, 0));
+  post.add(at(mesh(new THREE.CylinderGeometry(0.45, 0.45, 4.7, 28, 1, true), M.glass), 0, -3.65, 0));
+  [-15.5, -6.4, -1.3].forEach(y => post.add(at(lathe([[0.42, y - 0.12], [0.78, y - 0.12], [0.78, y + 0.12], [0.42, y + 0.12]], M.print), 0, 0, 0)));
+  [-0.62, 0.62].forEach(z => { fa.add(at(box(0.44, 1.1, 0.2, M.print), 0, -0.55, z)); fa.add(at(cylZ(0.22, 0.2, M.print), 0, 0, z)); });
+  // ring U-joint: open in the middle so the tendons pass straight through
+  const side = new THREE.Group(); fa.add(side);
+  const ring = mesh(new THREE.TorusGeometry(0.62, 0.16, 12, 32), M.steel); ring.rotation.x = Math.PI / 2; side.add(ring);
+  side.add(cylZ(0.08, 1.5, M.steel)); side.add(cylX(0.08, 1.5, M.steel));
+  const bend = new THREE.Group(); side.add(bend);
+  [-0.62, 0.62].forEach(x => { bend.add(at(box(0.2, 0.45, 0.44, M.print), x, 0.225, 0)); bend.add(at(cylX(0.22, 0.2, M.print), x, 0, 0)); });
+  bend.add(at(lathe([[0.4, 0.45], [3.15, 0.45], [3.15, 0.85], [0.4, 0.85]], M.print), 0, 0, 0));
+  TOPS.forEach(t => {
+    bend.add(at(box(0.6, 0.22, 0.6, M.print), t[0], 0.34, t[2]));
+    bend.add(at(box(0.12, 0.3, 0.5, M.print), t[0] - 0.24, 0.13, t[2])); bend.add(at(box(0.12, 0.3, 0.5, M.print), t[0] + 0.24, 0.13, t[2]));
+    bend.add(at(ball(0.2, M.steel), t[0], t[1], t[2]));
+  });
+  // wrist actuators
+  const legs = BASES.map((b, i) => {
+    const g = new THREE.Group(); fa.add(g); g.position.set(...b);
+    g.add(at(cylY(0.36, 0.5, M.steel), 0, 0.4, 0)); g.add(at(cylY(0.86, 2.9, M.band), 0, 2.1, 0));
+    g.add(at(cylY(0.8, 6.2, M.body), 0, 6.65, 0)); g.add(at(cylY(0.88, 0.7, M.band), 0, 9.55, 0)); g.add(at(cylY(0.42, 0.4, M.steel), 0, 10.1, 0));
+    const rod = cylY(0.27, 1, M.chrome); g.add(rod); const eye = cylY(0.36, 0.5, M.steel); g.add(eye);
+    return {g, rod, eye};
+  });
+  // finger servos: two rings of 8 below the cup, spools on top; tendons run in to the post
+  const forePack = new THREE.Group(); fa.add(forePack);
+  const spools = [];
+  [[-17.8, 0], [-20.8, 22.5]].forEach(([y, off]) => {
+    for (let k = 0; k < 8; k++){
+      const a = (k * 45 + off) * D2R, g = new THREE.Group(); g.position.y = y; g.rotation.y = -a; forePack.add(g);
+      g.add(at(box(2.32, 2.4, 0.92, M.servo), 2.75, 0, 0)); g.add(at(box(2.34, 0.5, 0.94, M.sticker), 2.75, 0.3, 0));
+      g.add(at(cylY(0.5, 0.3, M.spool), 3.3, 1.38, 0));
+      spools.push(marker(g, 3.0, 1.38, 0));
+    }
+  });
+  forePack.add(at(cylY(3.9, 0.3, M.print, 40), 0, -22.3, 0));
+  const funnel = marker(fa, 0, -16.2, 0), postIn = marker(fa, 0, -15.4, 0), hinge = marker(fa, 0, 0, 0);
+
+  /* ----- hand (moves with the wrist) ----- */
+  const hand = new THREE.Group(); bend.add(hand);
+  const palmShape = new THREE.Shape();
+  palmShape.moveTo(-2.9, 1.25); palmShape.lineTo(2.9, 1.25); palmShape.quadraticCurveTo(3.9, 1.35, 3.9, 2.75); palmShape.lineTo(4.0, 8.75);
+  palmShape.quadraticCurveTo(4.0, 9.65, 3.1, 9.65); palmShape.lineTo(-3.1, 9.65); palmShape.quadraticCurveTo(-4.0, 9.65, -4.0, 8.75);
+  palmShape.lineTo(-3.9, 2.75); palmShape.quadraticCurveTo(-3.9, 1.35, -2.9, 1.25);
+  const palmGeo = new THREE.ExtrudeGeometry(palmShape, {depth:1.8, bevelEnabled:true, bevelThickness:0.4, bevelSize:0.35, bevelSegments:3, curveSegments:8});
+  palmGeo.translate(0, 0, -0.9);
+  hand.add(mesh(palmGeo, M.hand)); hand.add(at(box(4.4, 0.5, 2.0, M.hand), 0, 1.0, 0));
+  const palmIn = marker(hand, 0, 1.3, -0.4);
+  const fingers = [];
+  function finger(x, y, z, segs, r, rz, rx, curlMax, isThumb){
+    const root = new THREE.Group(); root.position.set(x, y, z); root.rotation.set(rx, 0, rz); hand.add(root);
+    let parent = root; const joints = [], tps = [marker(root, 0, -0.6, -r * 0.9)];
+    segs.forEach((len, k) => {
+      const j = new THREE.Group(); if (k) j.position.y = segs[k - 1]; parent.add(j);
+      const rr = r * (1 - k * 0.06);
+      j.add(ball(rr, M.steel)); j.add(at(cylY(rr * 0.92, len - 0.15, M.hand, 16), 0, len / 2, 0));
+      tps.push(marker(j, 0, 0.15, -rr * 0.95), marker(j, 0, len * 0.6, -rr * 0.95));
+      joints.push(j); parent = j;
+    });
+    parent.add(at(ball(r * 0.82, M.hand), 0, segs[segs.length - 1] - 0.1, 0));
+    tps.push(marker(parent, 0, segs[segs.length - 1] - 0.3, -r * 0.5));
+    fingers.push({joints, curlMax, tps, isThumb});
+  }
+  finger(-2.85, 9.95, 0, [3.9, 2.4, 2.0], 0.8, 0.04, 0, [70, 95, 60]);
+  finger(-0.95, 10.05, 0, [4.3, 2.7, 2.1], 0.82, 0.0, 0, [70, 95, 60]);
+  finger(0.95, 9.95, 0, [4.0, 2.6, 2.0], 0.78, -0.03, 0, [70, 95, 60]);
+  finger(2.8, 9.55, 0, [3.1, 2.0, 1.8], 0.68, -0.07, 0, [70, 95, 60]);
+  finger(-3.6, 3.35, -0.7, [3.2, 2.6, 2.1], 0.92, 0.72, -0.45, [25, 40, 45], true);
+
+  /* ----- tendons: one line set, rebuilt from world positions each frame ----- */
+  const MAXPTS = 600, tPos = new Float32Array(MAXPTS * 3);
+  const tGeo = new THREE.BufferGeometry(); tGeo.setAttribute('position', new THREE.BufferAttribute(tPos, 3));
+  const tendons = new THREE.LineSegments(tGeo, new THREE.LineBasicMaterial({color:0xf0a73c})); tendons.frustumCulled = false; scene.add(tendons);
+  const _a = new THREE.Vector3(), _b = new THREE.Vector3();
+  let nSeg = 0;
+  function segW(a, b){ if (nSeg >= MAXPTS / 2) return; a.getWorldPosition(_a); b.getWorldPosition(_b); tPos.set([_a.x, _a.y, _a.z, _b.x, _b.y, _b.z], nSeg * 6); nSeg++; }
+  function chainW(list){ for (let i = 0; i + 1 < list.length; i++) segW(list[i], list[i + 1]); }
+  // the bundle in the post: a few strands side by side
+  const strands = [-0.18, 0, 0.18].map(o => [marker(fa, o, -15.4, 0), marker(fa, o * 0.6, -6.2, 0), marker(fa, o * 0.4, -0.2, 0)]);
+  const handIn = [-0.18, 0, 0.18].map(o => marker(hand, o, 0.9, -0.2));
+  function buildTendons(){
+    nSeg = 0;
+    if (state.mode === 'fore') spools.forEach(s => chainW([s, funnel]));
+    strands.forEach((s, i) => { chainW([funnel, ...s]); segW(s[2], hinge); segW(hinge, handIn[i]); });
+    fingers.forEach(f => { segW(palmIn, f.tps[0]); chainW(f.tps); });
+    tGeo.setDrawRange(0, nSeg * 2); tGeo.attributes.position.needsUpdate = true;
+  }
+
+  /* ----- Bowden cables ("body" mode): body pack, over the shoulder, down the back of the arm, into the forearm ----- */
+  const bowPts = [packOut, shoulderIn, marker(shFl, 1.2, -3, 3.4), marker(shFl, 1.2, -15, 3.9), marker(shFl, 1.2, -27, 3.6),
+    marker(elbow, 1.2, -1.2, 3.8), marker(elbow, 1.6, -4.2, 2.4), marker(twist, 1.2, -6.5, 1.6), marker(fa, 0.6, -18.5, 0.6), marker(fa, 0.2, -16.9, 0.3), funnel];
+  let bowMesh = null;
+  function buildBowden(){
+    if (bowMesh){ scene.remove(bowMesh); bowMesh.geometry.dispose(); bowMesh = null; }
+    if (state.mode !== 'body') return;
+    const pts = bowPts.map(m => m.getWorldPosition(new THREE.Vector3()));
+    bowMesh = mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, false, 'centripetal'), 120, 0.55, 10, false), M.bowden);
+    scene.add(bowMesh);
+  }
+
+  /* ----- labels ----- */
+  const TAGS = [
+    {text:'2 shoulder motors', at:marker(torso, -3.6, 3.4, -1)},
+    {text:'Elbow motor + belt', at:marker(shFl, 2.4, -5, -2)},
+    {text:'Twist servo', at:marker(elbow, 1.2, -3.4, -1.6)},
+    {text:'16 finger servos', at:marker(fa, 3.9, -19.3, 0), mode:'fore'},
+    {text:'4 wrist actuators', at:marker(fa, 2.2, -8, -2.2)},
+    {text:'Tendon tunnel (ring U-joint)', at:marker(fa, 0, 0, 0)},
+    {text:'16 finger servos (in the body)', at:marker(bodyPack, 0, 1.8, -1.5), mode:'body'},
+    {text:'Bowden cables', at:marker(shFl, 1.2, -15, 4.2), mode:'body'}
+  ];
+  TAGS.forEach(t => { t.el = document.createElement('div'); t.el.className = 'tag'; t.el.innerHTML = '<i></i><span></span>'; t.el.lastChild.textContent = t.text; labelsEl.appendChild(t.el); t.w = t.text.length * 6.6 + 30; });
+  const _v = new THREE.Vector3();
+  function placeTags(w, h){
+    const show = $('#cLabels').checked, placed = [];
+    TAGS.forEach(t => {
+      if (!show || (t.mode && t.mode !== state.mode)){ t.el.hidden = true; return; }
+      t.at.getWorldPosition(_v); _v.project(camera);
+      const x = (_v.x + 1) / 2 * w, y = (1 - _v.y) / 2 * h, bx = {x0:x - 4, x1:x - 4 + t.w, y0:y - 10, y1:y + 10};
+      const hit = _v.z > 1 || x < 0 || y < 0 || x > w - 20 || y > h || placed.some(p => bx.x0 < p.x1 && bx.x1 > p.x0 && bx.y0 < p.y1 && bx.y1 > p.y0);
+      t.el.hidden = hit; if (hit) return;
+      placed.push(bx); t.el.style.transform = 'translate(' + (x - 3.5).toFixed(1) + 'px,' + (y - 9).toFixed(1) + 'px)';
+    });
+  }
+
+  /* ----- pose -> model ----- */
+  const up = new THREE.Vector3(0, 1, 0), _u = new THREE.Vector3();
+  function rotM(f, d){ const a = -f * D2R, ca = Math.cos(a), sa = Math.sin(a), b = d * D2R, cb = Math.cos(b), sb = Math.sin(b); return [cb, -sb * ca, sb * sa, sb, cb * ca, -cb * sa, 0, sa, ca]; }
+  function pose(){
+    const p = state.pose;
+    shAb.rotation.z = p.sa * D2R; shFl.rotation.x = p.sf * D2R;
+    elbow.rotation.x = p.el * D2R; twist.rotation.y = -p.tw * D2R;
+    side.rotation.z = p.wd * D2R; bend.rotation.x = -p.wf * D2R;
+    const R = rotM(p.wf, p.wd);
+    TOPS.forEach((tp, i) => {
+      const t = [R[0] * tp[0] + R[1] * tp[1] + R[2] * tp[2], R[3] * tp[0] + R[4] * tp[1] + R[5] * tp[2], R[6] * tp[0] + R[7] * tp[1] + R[8] * tp[2]], b = BASES[i];
+      _u.set(t[0] - b[0], t[1] - b[1], t[2] - b[2]); const L = _u.length(); _u.divideScalar(L);
+      const lg = legs[i]; lg.g.quaternion.setFromUnitVectors(up, _u);
+      lg.rod.scale.y = Math.max(0.01, L - 10.75); lg.rod.position.y = (10.3 + L - 0.45) / 2; lg.eye.position.y = L - 0.42;
+    });
+    const g = p.gr / 100;
+    fingers.forEach(f => f.joints.forEach((j, k) => { j.rotation.x = -f.curlMax[k] * g * D2R; }));
+    scene.updateMatrixWorld(true);
+    if ($('#cTendon').checked){ tendons.visible = true; buildTendons(); } else tendons.visible = false;
+    buildBowden();
+  }
+  function setMode(mode){ forePack.visible = mode === 'fore'; bodyPack.visible = mode === 'body'; dirty = true; }
+
+  /* ----- camera ----- */
+  // front and side frame the whole arm; forearm and wrist follow those parts wherever the arm is
+  const VIEWS = {
+    front: {off:[104, 30, -146], t:[-4, -24, -14]},
+    side:  {off:[170, 8, -10], t:[-2, -26, -6]},
+    fore:  {off:[42, 18, -58], follow:marker(fa, 0, -12, 0)},
+    wrist: {off:[24, 10, -32], follow:marker(fa, 0, 0, 0)}
+  };
+  let fly = null;
+  function viewPos(name){
+    const v = VIEWS[name], a = stage.clientWidth / Math.max(1, stage.clientHeight), k = Math.min(1.8, Math.max(1, 1.1 / a));
+    const t = v.follow ? v.follow.getWorldPosition(new THREE.Vector3()) : new THREE.Vector3(...v.t);
+    return {p: new THREE.Vector3(...v.off).multiplyScalar(k).add(t), t};
+  }
+  function setView(name, instant){
+    const v = viewPos(name);
+    if (instant){ camera.position.copy(v.p); controls.target.copy(v.t); controls.update(); return; }
+    fly = {p0: camera.position.clone(), t0: controls.target.clone(), p1: v.p, t1: v.t, k: 0};
+  }
+  $$('.views button').forEach(b => b.addEventListener('click', () => { setView(b.dataset.view); dirty = true; }));
+  $('#cLabels').addEventListener('change', () => { dirty = true; });
+  $('#cTendon').addEventListener('change', () => { dirty = true; });
+  $('#cShell').addEventListener('change', e => { shells.forEach(s => { s.visible = e.target.checked; }); dirty = true; });
+  $('#cBody').addEventListener('change', e => { torso.visible = e.target.checked; dirty = true; });
+
+  let dirty = true, W = 0, H = 0, lastT = performance.now();
+  function resize(){ W = stage.clientWidth; H = stage.clientHeight; renderer.setSize(W, H, false); camera.aspect = W / Math.max(1, H); camera.updateProjectionMatrix(); dirty = true; }
+  new ResizeObserver(resize).observe(stage); resize();
+  setView('front', true); setMode(state.mode);
+  controls.addEventListener('change', () => { dirty = true; });
+  function frame(now){
+    const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+    if (step(dt)) dirty = true;
+    if (fly){ fly.k = Math.min(1, fly.k + dt / 0.6); const e = 1 - Math.pow(1 - fly.k, 3); camera.position.lerpVectors(fly.p0, fly.p1, e); controls.target.lerpVectors(fly.t0, fly.t1, e); if (fly.k >= 1) fly = null; dirty = true; }
+    controls.update();
+    if (dirty){ pose(); updateCompare(); renderer.render(scene, camera); placeTags(W, H); dirty = false; }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  kick = () => { dirty = true; };
+  return {scene, camera, controls, setMode, renderer};
+}
+
+window.__arm = {state, moveTo, reach, bends, get three(){ return three; }};
+})();
+</script>
